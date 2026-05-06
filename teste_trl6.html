@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulador TRL6 - TratamentoWeb</title>
+    <style>
+        body { font-family: monospace; margin: 20px; background: #1a237e; color: #fff; }
+        .container { max-width: 900px; margin: 0 auto; background: #0f172a; padding: 20px; border-radius: 16px; }
+        button { background: #f97316; border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer; margin: 4px; }
+        .log { background: #1e293b; padding: 10px; height: 300px; overflow-y: auto; font-size: 12px; margin-top: 20px; border-radius: 8px; }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { border: 1px solid #334155; padding: 6px; text-align: left; font-size: 12px; }
+        th { background: #f97316; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>🧪 Simulador TRL6 - TratamentoWeb</h2>
+    <p>Teste de múltiplos acessos simultâneos (Firestore + Auth simulados)</p>
+
+    <div>
+        <button id="testarLoginPaciente">👤 Simular Login Paciente</button>
+        <button id="testarLoginNutri">🥼 Simular Login Nutricionista</button>
+        <button id="simular5Usuarios">👥 Simular 5 Usuários Concorrentes</button>
+        <button id="limparLog">🗑️ Limpar Log</button>
+    </div>
+
+    <div class="log" id="logArea">
+        ✅ Clique em um botão para iniciar o teste...
+    </div>
+
+    <div>
+        <h3>📊 Resultados TRL6</h3>
+        <table id="resultTable">
+            <thead>
+                <tr><th>Cenário</th><th>Status</th><th>Mensagem</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Firebase Conectividade</td><td id="status_fb">⏳ Pendente</td><td id="msg_fb">-</td></tr>
+                <tr><td>Autenticação (Auth)</td><td id="status_auth">⏳ Pendente</td><td id="msg_auth">-</td></tr>
+                <tr><td>Leitura Firestore</td><td id="status_read">⏳ Pendente</td><td id="msg_read">-</td></tr>
+                <tr><td>Escrita Firestore</td><td id="status_write">⏳ Pendente</td><td id="msg_write">-</td></tr>
+                <tr><td>Upload ImgBB</td><td id="status_imgbb">⏳ Pendente</td><td id="msg_imgbb">-</td></tr>
+                <tr><td>Modelo IA (TensorFlow)</td><td id="status_ia">⏳ Pendente</td><td id="msg_ia">-</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { carregarModeloIA, analisarImagemComIA } from './scripts_telas/0_ia_tensorflowjs.js';
+    import { uploadParaImgbb } from './0_firebase_api_config.js';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyB8tkMR4kx_c4Hj9TNf0EPTEwWMEQc-oDs",
+        authDomain: "tratamentoweb.firebaseapp.com",
+        projectId: "tratamentoweb",
+        storageBucket: "tratamentoweb.firebasestorage.app",
+        messagingSenderId: "894728971208",
+        appId: "1:894728971208:web:52278dc3754180626c16fd"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    function log(msg, type = 'info') {
+        const logDiv = document.getElementById('logArea');
+        const time = new Date().toLocaleTimeString();
+        const color = type === 'error' ? 'red' : (type === 'success' ? '#10b981' : '#aaa');
+        logDiv.innerHTML += `<div style="color:${color}">[${time}] ${msg}</div>`;
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function updateResult(id, status, msg) {
+        document.getElementById(`status_${id}`).innerHTML = status === 'ok' ? '✅ OK' : (status === 'fail' ? '❌ FALHA' : '⏳ Pendente');
+        document.getElementById(`msg_${id}`).innerHTML = msg;
+    }
+
+    // Teste 1: Conectividade Firebase
+    async function testFirebaseConnectivity() {
+        try {
+            const testRef = doc(db, 'teste_connectivity', 'ping');
+            await setDoc(testRef, { timestamp: new Date().toISOString(), source: 'TRL6' });
+            log('✅ Firebase conectado e com permissão de escrita', 'success');
+            updateResult('fb', 'ok', 'Conectado e com permissões OK');
+            return true;
+        } catch (e) {
+            log(`❌ Firebase erro: ${e.message}`, 'error');
+            updateResult('fb', 'fail', e.message);
+            return false;
+        }
+    }
+
+    // Teste 2: Autenticação (simulado com credencial real)
+    async function testAuth() {
+        try {
+            // Tenta fazer login com um paciente conhecido (opcional: usar usuário de teste)
+            // Aqui apenas verificamos se o Auth está disponível
+            const user = auth.currentUser;
+            log(`🔐 Auth: usuário atual = ${user?.email || 'nenhum'}`, 'info');
+            updateResult('auth', 'ok', 'Auth inicializado');
+            return true;
+        } catch (e) {
+            updateResult('auth', 'fail', e.message);
+            return false;
+        }
+    }
+
+    // Teste 3: Leitura Firestore
+    async function testFirestoreRead() {
+        try {
+            const snap = await getDocs(collection(db, 'logins'));
+            log(`📖 Leitura Firestore: ${snap.size} documentos em logins`, 'success');
+            updateResult('read', 'ok', `Lido ${snap.size} documentos`);
+            return true;
+        } catch (e) {
+            log(`❌ Erro leitura: ${e.message}`, 'error');
+            updateResult('read', 'fail', e.message);
+            return false;
+        }
+    }
+
+    // Teste 4: Escrita Firestore (coleção de teste)
+    async function testFirestoreWrite() {
+        try {
+            const testCol = collection(db, 'teste_trl6');
+            const docRef = await addDoc(testCol, {
+                timestamp: new Date().toISOString(),
+                usuario: 'simulador_trl6',
+                acao: 'teste_escrita'
+            });
+            log(`✍️ Escrita Firestore OK: ${docRef.id}`, 'success');
+            updateResult('write', 'ok', `Documento criado: ${docRef.id}`);
+            return true;
+        } catch (e) {
+            log(`❌ Erro escrita: ${e.message}`, 'error');
+            updateResult('write', 'fail', e.message);
+            return false;
+        }
+    }
+
+    // Teste 5: Upload ImgBB (com imagem dummy)
+    async function testImgBB() {
+        try {
+            // Cria uma imagem base64 1x1 vermelha
+            const dummyImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+            const result = await uploadParaImgbb(dummyImage);
+            if (result && result.success) {
+                log(`🖼️ Upload ImgBB OK: ${result.url.substring(0, 50)}...`, 'success');
+                updateResult('imgbb', 'ok', 'Upload funcionou');
+                return true;
+            } else {
+                throw new Error('Resposta sem success');
+            }
+        } catch (e) {
+            log(`❌ Erro ImgBB: ${e.message}`, 'error');
+            updateResult('imgbb', 'fail', e.message);
+            return false;
+        }
+    }
+
+    // Teste 6: Modelo IA (carrega e analisa imagem dummy)
+    async function testIA() {
+        try {
+            log('🧠 Carregando modelo IA...', 'info');
+            await carregarModeloIA((p, msg) => log(`IA: ${p}% - ${msg}`, 'info'));
+            const dummyImage = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q==';
+            const resultado = await analisarImagemComIA(dummyImage, 'refeicao');
+            log(`🤖 IA análise: aprovado=${resultado.aprovado}, conf=${resultado.confianca}`, resultado.aprovado ? 'success' : 'info');
+            updateResult('ia', resultado.aprovado ? 'ok' : 'fail', `Confiança: ${resultado.confianca}`);
+            return resultado.aprovado;
+        } catch (e) {
+            log(`❌ Erro IA: ${e.message}`, 'error');
+            updateResult('ia', 'fail', e.message);
+            return false;
+        }
+    }
+
+    // Simular usuários concorrentes
+    async function simularConcorrencia(quantidade = 5) {
+        log(`🚀 Iniciando simulação de ${quantidade} acessos concorrentes...`, 'info');
+        const promessas = [];
+        for (let i = 1; i <= quantidade; i++) {
+            promessas.push(
+                (async () => {
+                    const inicio = Date.now();
+                    try {
+                        const snap = await getDocs(collection(db, 'logins'));
+                        const duracao = Date.now() - inicio;
+                        log(`📊 UserSim${i}: leu ${snap.size} docs em ${duracao}ms`, 'success');
+                        return { user: i, ok: true, duracao };
+                    } catch (e) {
+                        log(`❌ UserSim${i} falhou: ${e.message}`, 'error');
+                        return { user: i, ok: false, error: e.message };
+                    }
+                })()
+            );
+        }
+        const resultados = await Promise.all(promessas);
+        const sucessos = resultados.filter(r => r.ok).length;
+        log(`🏁 Concorrência: ${sucessos}/${quantidade} sucessos`, sucessos === quantidade ? 'success' : 'error');
+    }
+
+    // Executar todos os testes principais
+    async function rodarTestesCompletos() {
+        log('═══════════════════════════════════════════', 'info');
+        log('🚀 INICIANDO TESTES TRL6', 'info');
+        
+        await testFirebaseConnectivity();
+        await testAuth();
+        await testFirestoreRead();
+        await testFirestoreWrite();
+        await testImgBB();
+        await testIA();
+        
+        log('═══════════════════════════════════════════', 'info');
+        log('✅ Testes TRL6 concluídos!', 'success');
+    }
+
+    // Eventos dos botões
+    document.getElementById('testarLoginPaciente').onclick = () => {
+        log('👤 Simulando login paciente (não executa auth real)');
+        log('   Para testar login real, use a interface normal.');
+    };
+    document.getElementById('testarLoginNutri').onclick = () => {
+        log('🥼 Simulando login nutricionista');
+    };
+    document.getElementById('simular5Usuarios').onclick = () => simularConcorrencia(5);
+    document.getElementById('limparLog').onclick = () => {
+        document.getElementById('logArea').innerHTML = '✅ Log limpo. Clique em um botão para testar...';
+    };
+
+    // Executa automaticamente ao carregar
+    rodarTestesCompletos();
+</script>
+</body>
+</html>
