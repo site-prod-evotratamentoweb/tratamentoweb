@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portfólio Profissional - Grazielle Carvalho | Nutricionista">
+    <title>Grazielle Carvalho | Nutricionista - TratamentoWeb</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../imagens/icone.ico">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    
+    <!-- CSS do Portfólio -->
+    <link rel="stylesheet" href="grazielle_carvalho.css">
+    
+    <!-- Firebase SDK (mesma versão do seu sistema) -->
+    <script type="module" src="../0_firebase_api_config.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="spinner"></div>
+        <p>Carregando portfólio...</p>
+    </div>
+
+    <!-- Header -->
+    <header id="mainHeader">
+        <div class="container">
+            <div class="header-left">
+                <div class="logo-container">
+                    <img src="grazielle_carvalho_imagens_portfolio/logo_grazielle_carvalho.png" 
+                         alt="Grazielle Carvalho" 
+                         class="profile-logo"
+                         onerror="this.src='../../imagens/logo.png'">
+                </div>
+                <div class="header-info">
+                    <h1 id="professionalName">Grazielle Carvalho</h1>
+                    <p id="professionalTitle">Nutricionista</p>
+                </div>
+            </div>
+            
+            <nav class="desktop-nav">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#galeria" class="nav-link">Galeria</a>
+                <a href="#sobre" class="nav-link">Sobre</a>
+                <a href="#servicos" class="nav-link">Serviços</a>
+                <a href="#contato" class="nav-link">Contato</a>
+            </nav>
+            
+            <div class="header-right">
+                <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                
+                <!-- Dropdown Menu -->
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="#home"><i class="bi bi-house"></i> Home</a>
+                    <a href="#galeria"><i class="bi bi-images"></i> Galeria</a>
+                    <a href="#sobre"><i class="bi bi-person"></i> Sobre</a>
+                    <a href="#servicos"><i class="bi bi-list-check"></i> Serviços</a>
+                    <a href="#contato"><i class="bi bi-envelope"></i> Contato</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" id="adminAccessBtn" class="admin-link">
+                        <i class="bi bi-shield-lock"></i> Acesso Administrativo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero-section">
+            <div class="hero-overlay"></div>
+            <div class="container">
+                <div class="hero-content">
+                    <h2 class="hero-title">Transforme sua saúde com acompanhamento nutricional</h2>
+                    <p class="hero-subtitle">Especialista em nutrição clínica, esportiva e comportamental</p>
+                    <div class="hero-cta">
+                        <a href="https://wa.me/5571999999999" target="_blank" class="btn-whatsapp">
+                            <i class="bi bi-whatsapp"></i> Agende pelo WhatsApp
+                        </a>
+                        <a href="#contato" class="btn-outline">
+                            <i class="bi bi-calendar-check"></i> Outras formas de contato
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Galeria Section com Carrossel -->
+        <section id="galeria" class="gallery-section">
+            <div class="container">
+                <h2 class="section-title">Resultados e Transformações</h2>
+                <p class="section-subtitle">Acompanhe casos reais de pacientes</p>
+                
+                <div class="carousel-container">
+                    <div class="carousel" id="mainCarousel">
+                        <!-- Imagens serão carregadas via JavaScript -->
+                    </div>
+                    
+                    <!-- Controles do Carrossel -->
+                    <button class="carousel-control prev" id="prevSlide" aria-label="Anterior">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button class="carousel-control next" id="nextSlide" aria-label="Próximo">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    
+                    <!-- Indicadores -->
+                    <div class="carousel-indicators" id="carouselIndicators"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sobre Section -->
+        <section id="sobre" class="about-section">
+            <div class="container">
+                <h2 class="section-title">Sobre Grazielle Carvalho</h2>
+                <div class="about-grid">
+                    <div class="about-image">
+                        <img src="grazielle_carvalho_imagens_portfolio/logo_grazielle_carvalho.png" 
+                             alt="Grazielle Carvalho"
+                             onerror="this.src='../../imagens/logo.png'">
+                    </div>
+                    <div class="about-content" id="aboutContent">
+                        <!-- Carregado via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Serviços Section -->
+        <section id="servicos" class="services-section">
+            <div class="container">
+                <h2 class="section-title">Serviços Oferecidos</h2>
+                <div class="services-grid" id="servicesGrid">
+                    <!-- Carregado via JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contato Section -->
+        <section id="contato" class="contact-section">
+            <div class="container">
+                <h2 class="section-title">Entre em Contato</h2>
+                <div class="contact-grid">
+                    <div class="contact-info" id="contactInfo">
+                        <!-- Carregado via JavaScript -->
+                    </div>
+                    <div class="contact-map">
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.5!2d-38.5!3d-12.9!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTLCsDU0JzAwLjAiUyAzOMKwMzAnMDAuMCJX!5e0!3m2!1spt-BR!2sbr!4v1620000000000!5m2!1spt-BR!2sbr"
+                            width="100%" 
+                            height="300" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>Grazielle Carvalho</h3>
+                    <p>Nutricionista</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#home">Home</a>
+                    <a href="#galeria">Galeria</a>
+                    <a href="#sobre">Sobre</a>
+                    <a href="#contato">Contato</a>
+                </div>
+                <div class="footer-social" id="footerSocial">
+                    <!-- Redes sociais carregadas via JavaScript -->
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Grazielle Carvalho - Todos os direitos reservados</p>
+                <p>Desenvolvido por <a href="https://tratamentoweb.com.br" target="_blank">TratamentoWeb</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Login Administrativo -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="closeLoginModal">&times;</span>
+            <h2>Acesso Administrativo</h2>
+            <p>Área restrita para edição do portfólio</p>
+            
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="adminLogin">Login</label>
+                    <input type="text" id="adminLogin" placeholder="Seu login" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Senha</label>
+                    <input type="password" id="adminPassword" placeholder="Sua senha" required autocomplete="current-password">
+                </div>
+                <div id="loginError" class="error-message" style="display: none;"></div>
+                <button type="submit" class="btn-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Administração -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content modal-lg">
+            <span class="modal-close" id="closeAdminModal">&times;</span>
+            <h2>Painel Administrativo - Portfólio</h2>
+            <p>Gerencie seu portfólio profissional</p>
+            
+            <!-- Tabs -->
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="images">
+                    <i class="bi bi-images"></i> Imagens
+                </button>
+                <button class="tab-btn" data-tab="content">
+                    <i class="bi bi-pencil"></i> Conteúdo
+                </button>
+                <button class="tab-btn" data-tab="services">
+                    <i class="bi bi-list-check"></i> Serviços
+                </button>
+            </div>
+            
+            <!-- Tab: Imagens -->
+            <div class="tab-content active" id="imagesTab">
+                <h3>Adicionar Nova Imagem</h3>
+                <form id="imageUploadForm">
+                    <div class="form-group">
+                        <label for="imageFile">Selecionar Imagem</label>
+                        <input type="file" id="imageFile" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="imageTitle">Título</label>
+                        <input type="text" id="imageTitle" placeholder="Ex: Antes e Depois - Tratamento X">
+                    </div>
+                    <div class="form-group">
+                        <label for="imageDescription">Descrição</label>
+                        <textarea id="imageDescription" rows="3" placeholder="Descreva o resultado..."></textarea>
+                    </div>
+                    <div id="uploadProgress" class="progress-bar" style="display: none;">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="bi bi-cloud-upload"></i> Fazer Upload
+                    </button>
+                </form>
+                
+                <h3>Imagens do Portfólio</h3>
+                <div class="current-images" id="currentImages">
+                    <!-- Lista de imagens carregadas via JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Tab: Conteúdo -->
+            <div class="tab-content" id="contentTab">
+                <h3>Informações Pessoais</h3>
+                <form id="contentForm">
+                    <div class="form-group">
+                        <label for="aboutText">Sobre</label>
+                        <textarea id="aboutText" rows="5"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="whatsapp">WhatsApp</label>
+                        <input type="text" id="whatsapp" placeholder="5571999999999">
+                    </div>
+                    <div class="form-group">
+                        <label for="instagram">Instagram</label>
+                        <input type="text" id="instagram" placeholder="@graziellecarvalho">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-mail Profissional</label>
+                        <input type="email" id="email" placeholder="contato@graziellecarvalho.com.br">
+                    </div>
+                    <div class="form-group">
+                        <label for="endereco">Endereço</label>
+                        <input type="text" id="endereco" placeholder="Rua, número, bairro, cidade - UF">
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="bi bi-check-lg"></i> Salvar Informações
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Tab: Serviços -->
+            <div class="tab-content" id="servicesTab">
+                <h3>Gerenciar Serviços</h3>
+                <form id="serviceForm">
+                    <div class="form-group">
+                        <label for="serviceName">Nome do Serviço</label>
+                        <input type="text" id="serviceName" placeholder="Ex: Consulta Nutricional">
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceDescription">Descrição</label>
+                        <textarea id="serviceDescription" rows="3" placeholder="Descreva o serviço..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="servicePrice">Preço (opcional)</label>
+                        <input type="text" id="servicePrice" placeholder="Ex: R$ 150,00">
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="bi bi-plus-circle"></i> Adicionar Serviço
+                    </button>
+                </form>
+                
+                <h3>Serviços Atuais</h3>
+                <div class="current-services" id="currentServices">
+                    <!-- Lista de serviços carregada via JavaScript -->
+                </div>
+            </div>
+            
+            <button id="logoutBtn" class="btn-logout">
+                <i class="bi bi-box-arrow-right"></i> Sair do Painel
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast de Notificação -->
+    <div id="toast" class="toast">
+        <i class="bi bi-check-circle"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Script do Portfólio -->
+    <script type="module" src="grazielle_carvalho.js"></script>
+</body>
+</html>
