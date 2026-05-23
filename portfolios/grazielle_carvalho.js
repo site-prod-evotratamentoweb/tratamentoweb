@@ -20,13 +20,11 @@ import {
 } from '../0_firebase_api_config.js';
 
 // ==================== CONFIGURAÇÃO ====================
-const PROFESSIONAL_ID = 'grazielle.carvalho';
+const PROFESSIONAL_ID = 'grazielle_carvalho';
 
-// ✅ CORRIGIDO: Usando segmentos separados para evitar erro de caminho ímpar
-// Estrutura: portfolios (coleção) → grazielle.carvalho (documento) → imagens (subcoleção)
-const PORTFOLIO_DOC_REF = doc(db, 'portfolios', PROFESSIONAL_ID); // Documento do portfólio
+// ✅ CORRIGIDO: Usando documento raiz para conteúdo
+const PORTFOLIO_DOC_REF = doc(db, 'portfolios', PROFESSIONAL_ID); // Documento principal com todos os dados
 const IMAGES_COLLECTION_REF = collection(PORTFOLIO_DOC_REF, 'imagens'); // Subcoleção imagens
-const CONTENT_DOC_REF = doc(PORTFOLIO_DOC_REF, 'conteudo', 'dados'); // Documento de conteúdo
 const SERVICES_COLLECTION_REF = collection(PORTFOLIO_DOC_REF, 'servicos'); // Subcoleção serviços
 
 // ==================== INICIALIZAÇÃO ====================
@@ -91,15 +89,23 @@ async function loadPortfolioData() {
     try {
         console.log('📁 Carregando conteúdo do portfólio...');
         
-        // ✅ CORRIGIDO: Usando a referência correta do documento
-        const contentDoc = await getDoc(CONTENT_DOC_REF);
+        // ✅ CORRIGIDO: Buscar dados diretamente do documento raiz
+        const portfolioDoc = await getDoc(PORTFOLIO_DOC_REF);
         
-        if (contentDoc.exists()) {
-            const data = contentDoc.data();
+        if (portfolioDoc.exists()) {
+            const data = portfolioDoc.data();
             console.log('✅ Conteúdo carregado:', data);
             populatePortfolioContent(data);
         } else {
             console.log('ℹ️ Nenhum conteúdo cadastrado ainda');
+            // Criar documento padrão se não existir
+            await setDoc(PORTFOLIO_DOC_REF, {
+                nome: "Grazielle Carvalho",
+                titulo: "Nutricionista",
+                sobre: "Bem-vindo ao meu portfólio! Em breve mais informações.",
+                criado_em: serverTimestamp()
+            }, { merge: true });
+            await loadPortfolioData(); // Recarregar
         }
         
         // Carregar imagens do carrossel
@@ -232,7 +238,6 @@ function formatWhatsapp(number) {
 // ==================== CARROSSEL DE IMAGENS ====================
 async function loadCarouselImages() {
     try {
-        // ✅ CORRIGIDO: Usando referência correta da coleção
         const q = query(IMAGES_COLLECTION_REF, orderBy('ordem', 'asc'));
         const querySnapshot = await getDocs(q);
         
@@ -244,7 +249,16 @@ async function loadCarouselImages() {
         
         if (querySnapshot.empty) {
             if (mainCarousel) mainCarousel.style.display = 'none';
-            if (placeholder) placeholder.classList.remove('d-none');
+            if (placeholder) {
+                placeholder.classList.remove('d-none');
+                placeholder.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-images fs-1 text-muted"></i>
+                        <h4 class="mt-3">Em breve, fotos do meu trabalho</h4>
+                        <p class="text-muted">Entre em contato para mais informações</p>
+                    </div>
+                `;
+            }
             return;
         }
         
@@ -281,7 +295,6 @@ async function loadCarouselImages() {
 // ==================== SERVIÇOS ====================
 async function loadServices() {
     try {
-        // ✅ CORRIGIDO: Usando referência correta da coleção
         const q = query(SERVICES_COLLECTION_REF, orderBy('ordem', 'asc'));
         const querySnapshot = await getDocs(q);
         
@@ -289,7 +302,7 @@ async function loadServices() {
         if (!servicesGrid) return;
         
         if (querySnapshot.empty) {
-            servicesGrid.innerHTML = '<div class="col-12 text-center text-muted py-5">Nenhum serviço cadastrado ainda</div>';
+            servicesGrid.innerHTML = '<div class="col-12 text-center py-5"><i class="bi bi-briefcase fs-1 text-muted"></i><h5 class="mt-3">Serviços em breve</h5><p class="text-muted">Entre em contato para saber mais</p></div>';
             return;
         }
         
@@ -446,7 +459,6 @@ async function loadAdminData() {
 
 async function loadCurrentImages() {
     try {
-        // ✅ CORRIGIDO
         const q = query(IMAGES_COLLECTION_REF, orderBy('ordem', 'asc'));
         const querySnapshot = await getDocs(q);
         
@@ -485,11 +497,10 @@ async function loadCurrentImages() {
 
 async function loadContentForm() {
     try {
-        // ✅ CORRIGIDO
-        const contentDoc = await getDoc(CONTENT_DOC_REF);
+        const portfolioDoc = await getDoc(PORTFOLIO_DOC_REF);
         
-        if (contentDoc.exists()) {
-            const data = contentDoc.data();
+        if (portfolioDoc.exists()) {
+            const data = portfolioDoc.data();
             
             const aboutText = document.getElementById('aboutText');
             const whatsapp = document.getElementById('whatsapp');
@@ -510,7 +521,6 @@ async function loadContentForm() {
 
 async function loadCurrentServices() {
     try {
-        // ✅ CORRIGIDO
         const q = query(SERVICES_COLLECTION_REF, orderBy('ordem', 'asc'));
         const querySnapshot = await getDocs(q);
         
@@ -565,24 +575,19 @@ async function handleImageUpload(e) {
     
     const file = fileInput.files[0];
     
-    // Mostrar progresso
     if (progressDiv) progressDiv.classList.remove('d-none');
     if (progressBar) progressBar.style.width = '0%';
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
     
     try {
-        // Converter para base64
         const base64 = await fileToBase64(file);
         if (progressBar) progressBar.style.width = '50%';
         
-        // Upload para ImgBB
         const result = await uploadParaImgbb(base64);
         if (progressBar) progressBar.style.width = '100%';
         
         if (result.success) {
-            // Buscar última ordem
-            // ✅ CORRIGIDO
             const q = query(IMAGES_COLLECTION_REF, orderBy('ordem', 'desc'), limit(1));
             const querySnapshot = await getDocs(q);
             let nextOrder = 0;
@@ -591,8 +596,6 @@ async function handleImageUpload(e) {
                 nextOrder = querySnapshot.docs[0].data().ordem + 1;
             }
             
-            // Salvar no Firestore
-            // ✅ CORRIGIDO
             await addDoc(IMAGES_COLLECTION_REF, {
                 url: result.url,
                 thumb: result.thumb,
@@ -605,12 +608,10 @@ async function handleImageUpload(e) {
             
             showToast('Imagem adicionada com sucesso!', 'success');
             
-            // Limpar formulário
             fileInput.value = '';
             if (titleInput) titleInput.value = '';
             if (descriptionInput) descriptionInput.value = '';
             
-            // Recarregar dados
             await loadCurrentImages();
             await loadCarouselImages();
         }
@@ -659,13 +660,16 @@ async function handleContentSave(e) {
             atualizado_em: serverTimestamp()
         };
         
-        // ✅ CORRIGIDO: Salvando no documento correto
-        await setDoc(CONTENT_DOC_REF, data, { merge: true });
+        // ✅ CORRIGIDO: Salvar no documento raiz
+        await setDoc(PORTFOLIO_DOC_REF, data, { merge: true });
         
         showToast('Informações salvas com sucesso!', 'success');
         
         // Atualizar visualização
-        populatePortfolioContent(data);
+        const portfolioDoc = await getDoc(PORTFOLIO_DOC_REF);
+        if (portfolioDoc.exists()) {
+            populatePortfolioContent(portfolioDoc.data());
+        }
         
     } catch (error) {
         console.error('❌ Erro ao salvar conteúdo:', error);
@@ -698,8 +702,6 @@ async function handleServiceAdd(e) {
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adicionando...';
     
     try {
-        // Buscar última ordem
-        // ✅ CORRIGIDO
         const q = query(SERVICES_COLLECTION_REF, orderBy('ordem', 'desc'), limit(1));
         const querySnapshot = await getDocs(q);
         let nextOrder = 0;
@@ -708,7 +710,6 @@ async function handleServiceAdd(e) {
             nextOrder = querySnapshot.docs[0].data().ordem + 1;
         }
         
-        // ✅ CORRIGIDO
         await addDoc(SERVICES_COLLECTION_REF, {
             nome: nome,
             descricao: descricao,
@@ -719,12 +720,10 @@ async function handleServiceAdd(e) {
         
         showToast('Serviço adicionado!', 'success');
         
-        // Limpar formulário
         if (serviceName) serviceName.value = '';
         if (serviceDescription) serviceDescription.value = '';
         if (servicePrice) servicePrice.value = '';
         
-        // Recarregar
         await loadCurrentServices();
         await loadServices();
         
@@ -742,7 +741,6 @@ window.deleteImage = async function(imageId) {
     if (!confirm('Tem certeza que deseja excluir esta imagem?')) return;
     
     try {
-        // ✅ CORRIGIDO: Referência correta ao documento na subcoleção
         const imageRef = doc(IMAGES_COLLECTION_REF, imageId);
         await deleteDoc(imageRef);
         
@@ -760,7 +758,6 @@ window.deleteService = async function(serviceId) {
     if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
     
     try {
-        // ✅ CORRIGIDO: Referência correta ao documento na subcoleção
         const serviceRef = doc(SERVICES_COLLECTION_REF, serviceId);
         await deleteDoc(serviceRef);
         
