@@ -89,7 +89,6 @@ async function loadPortfolioData() {
     try {
         console.log('📁 Carregando conteúdo do portfólio...');
         
-        // ✅ CORRIGIDO: Buscar dados diretamente do documento raiz
         const portfolioDoc = await getDoc(PORTFOLIO_DOC_REF);
         
         if (portfolioDoc.exists()) {
@@ -98,24 +97,31 @@ async function loadPortfolioData() {
             populatePortfolioContent(data);
         } else {
             console.log('ℹ️ Nenhum conteúdo cadastrado ainda');
-            // Criar documento padrão se não existir
             await setDoc(PORTFOLIO_DOC_REF, {
                 nome: "Grazielle Carvalho",
                 titulo: "Nutricionista",
                 sobre: "Bem-vindo ao meu portfólio! Em breve mais informações.",
                 criado_em: serverTimestamp()
             }, { merge: true });
-            await loadPortfolioData(); // Recarregar
+            await loadPortfolioData();
         }
         
-        // Carregar imagens do carrossel
         await loadCarouselImages();
-        
-        // Carregar serviços
         await loadServices();
+        
+        // ✅ ADICIONE ESTA LINHA AQUI - Forçar esconder loading
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
         
     } catch (error) {
         console.error('❌ Erro ao carregar dados do portfólio:', error);
+        // Esconder loading mesmo com erro
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
     }
 }
 
