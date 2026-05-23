@@ -97,8 +97,8 @@ body {
 
 .carousel-3d {
     position: relative;
-    width: 250px;
-    height: 250px;
+    width: 280px;
+    height: 280px;
     transform-style: preserve-3d;
     transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.45, 1);
     cursor: grab;
@@ -110,8 +110,8 @@ body {
 
 .carousel-item-3d {
     position: absolute;
-    width: 220px;
-    height: 220px;
+    width: 250px;
+    height: 250px;
     left: 15px;
     top: 15px;
     border-radius: 16px;
@@ -142,7 +142,7 @@ body {
     left: 0;
     right: 0;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.95), transparent);
-    padding: 15px 10px;
+    padding: 20px 10px;
     opacity: 0;
     transform: translateY(100%);
     transition: all 0.3s ease;
@@ -156,10 +156,11 @@ body {
 
 .image-title {
     color: #ffd700;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: bold;
     margin: 0;
     text-align: center;
+    line-height: 1.3;
 }
 
 .image-subtitle {
@@ -227,13 +228,13 @@ body {
     }
     
     .carousel-3d {
-        width: 180px;
-        height: 180px;
+        width: 200px;
+        height: 200px;
     }
     
     .carousel-item-3d {
-        width: 160px;
-        height: 160px;
+        width: 180px;
+        height: 180px;
         left: 10px;
         top: 10px;
     }
@@ -245,5 +246,9 @@ body {
     
     .btn-carousel i {
         font-size: 1.4rem;
+    }
+    
+    .image-title {
+        font-size: 0.75rem;
     }
 }
