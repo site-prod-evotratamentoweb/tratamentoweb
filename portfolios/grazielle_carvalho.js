@@ -21,10 +21,13 @@ import {
 
 // ==================== CONFIGURAÇÃO ====================
 const PROFESSIONAL_ID = 'grazielle.carvalho';
-const PORTFOLIO_PATH = `portfolios/${PROFESSIONAL_ID}`;
-const IMAGES_COLLECTION = `${PORTFOLIO_PATH}/imagens`;
-const CONTENT_DOC = `${PORTFOLIO_PATH}/conteudo`;
-const SERVICES_COLLECTION = `${PORTFOLIO_PATH}/servicos`;
+
+// ✅ CORRIGIDO: Usando segmentos separados para evitar erro de caminho ímpar
+// Estrutura: portfolios (coleção) → grazielle.carvalho (documento) → imagens (subcoleção)
+const PORTFOLIO_DOC_REF = doc(db, 'portfolios', PROFESSIONAL_ID); // Documento do portfólio
+const IMAGES_COLLECTION_REF = collection(PORTFOLIO_DOC_REF, 'imagens'); // Subcoleção imagens
+const CONTENT_DOC_REF = doc(PORTFOLIO_DOC_REF, 'conteudo', 'dados'); // Documento de conteúdo
+const SERVICES_COLLECTION_REF = collection(PORTFOLIO_DOC_REF, 'servicos'); // Subcoleção serviços
 
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -35,41 +38,68 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Esconder loading screen
     setTimeout(() => {
-        document.getElementById('loadingScreen').style.display = 'none';
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
     }, 500);
 });
 
 // ==================== EVENT LISTENERS ====================
 function setupEventListeners() {
     // Acesso Administrativo
-    document.getElementById('adminAccessBtn').addEventListener('click', (e) => {
-        e.preventDefault();
-        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-        loginModal.show();
-    });
+    const adminAccessBtn = document.getElementById('adminAccessBtn');
+    if (adminAccessBtn) {
+        adminAccessBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+            loginModal.show();
+        });
+    }
     
     // Form de Login
-    document.getElementById('adminLoginForm').addEventListener('submit', handleAdminLogin);
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    if (adminLoginForm) {
+        adminLoginForm.addEventListener('submit', handleAdminLogin);
+    }
     
     // Forms do Admin
-    document.getElementById('imageUploadForm').addEventListener('submit', handleImageUpload);
-    document.getElementById('contentForm').addEventListener('submit', handleContentSave);
-    document.getElementById('serviceForm').addEventListener('submit', handleServiceAdd);
+    const imageUploadForm = document.getElementById('imageUploadForm');
+    if (imageUploadForm) {
+        imageUploadForm.addEventListener('submit', handleImageUpload);
+    }
+    
+    const contentForm = document.getElementById('contentForm');
+    if (contentForm) {
+        contentForm.addEventListener('submit', handleContentSave);
+    }
+    
+    const serviceForm = document.getElementById('serviceForm');
+    if (serviceForm) {
+        serviceForm.addEventListener('submit', handleServiceAdd);
+    }
     
     // Logout
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
 }
 
 // ==================== CARREGAR DADOS DO PORTFÓLIO ====================
 async function loadPortfolioData() {
     try {
-        // Carregar conteúdo
-        const contentRef = doc(db, CONTENT_DOC);
-        const contentDoc = await getDoc(contentRef);
+        console.log('📁 Carregando conteúdo do portfólio...');
+        
+        // ✅ CORRIGIDO: Usando a referência correta do documento
+        const contentDoc = await getDoc(CONTENT_DOC_REF);
         
         if (contentDoc.exists()) {
             const data = contentDoc.data();
+            console.log('✅ Conteúdo carregado:', data);
             populatePortfolioContent(data);
+        } else {
+            console.log('ℹ️ Nenhum conteúdo cadastrado ainda');
         }
         
         // Carregar imagens do carrossel
@@ -79,105 +109,119 @@ async function loadPortfolioData() {
         await loadServices();
         
     } catch (error) {
-        console.error('Erro ao carregar dados do portfólio:', error);
+        console.error('❌ Erro ao carregar dados do portfólio:', error);
     }
 }
 
 function populatePortfolioContent(data) {
     // Atualizar nome e título
     if (data.nome) {
-        document.getElementById('navName').textContent = data.nome;
+        const navName = document.getElementById('navName');
+        if (navName) navName.textContent = data.nome;
         document.title = `${data.nome} | Nutricionista - TratamentoWeb`;
     }
+    
     if (data.titulo) {
-        document.getElementById('navTitle').textContent = data.titulo;
+        const navTitle = document.getElementById('navTitle');
+        if (navTitle) navTitle.textContent = data.titulo;
     }
     
     // Sobre
     if (data.sobre) {
-        document.getElementById('aboutContent').innerHTML = `
-            <h3 class="mb-4">Minha História</h3>
-            <p class="lead">${data.sobre}</p>
-        `;
+        const aboutContent = document.getElementById('aboutContent');
+        if (aboutContent) {
+            aboutContent.innerHTML = `
+                <h3 class="mb-4">Minha História</h3>
+                <p class="lead">${data.sobre}</p>
+            `;
+        }
     }
     
     // WhatsApp
     if (data.whatsapp) {
-        document.getElementById('btnWhatsappHero').href = `https://wa.me/${data.whatsapp}`;
+        const btnWhatsapp = document.getElementById('btnWhatsappHero');
+        if (btnWhatsapp) {
+            btnWhatsapp.href = `https://wa.me/${data.whatsapp}`;
+        }
     }
     
     // Contato
     const contactInfo = document.getElementById('contactInfo');
-    let contactHTML = '<h3 class="mb-4">Informações de Contato</h3>';
-    
-    if (data.whatsapp) {
-        contactHTML += `
-            <a href="https://wa.me/${data.whatsapp}" target="_blank" class="contact-item">
-                <i class="bi bi-whatsapp fs-3"></i>
-                <div>
-                    <strong>WhatsApp</strong><br>
-                    <span>${formatWhatsapp(data.whatsapp)}</span>
+    if (contactInfo) {
+        let contactHTML = '<h3 class="mb-4">Informações de Contato</h3>';
+        
+        if (data.whatsapp) {
+            contactHTML += `
+                <a href="https://wa.me/${data.whatsapp}" target="_blank" class="contact-item">
+                    <i class="bi bi-whatsapp fs-3"></i>
+                    <div>
+                        <strong>WhatsApp</strong><br>
+                        <span>${formatWhatsapp(data.whatsapp)}</span>
+                    </div>
+                </a>
+            `;
+        }
+        
+        if (data.instagram) {
+            contactHTML += `
+                <a href="https://instagram.com/${data.instagram.replace('@', '')}" target="_blank" class="contact-item">
+                    <i class="bi bi-instagram fs-3"></i>
+                    <div>
+                        <strong>Instagram</strong><br>
+                        <span>${data.instagram}</span>
+                    </div>
+                </a>
+            `;
+        }
+        
+        if (data.email) {
+            contactHTML += `
+                <a href="mailto:${data.email}" class="contact-item">
+                    <i class="bi bi-envelope fs-3"></i>
+                    <div>
+                        <strong>E-mail</strong><br>
+                        <span>${data.email}</span>
+                    </div>
+                </a>
+            `;
+        }
+        
+        if (data.endereco) {
+            contactHTML += `
+                <div class="contact-item">
+                    <i class="bi bi-geo-alt fs-3"></i>
+                    <div>
+                        <strong>Endereço</strong><br>
+                        <span>${data.endereco}</span>
+                    </div>
                 </div>
-            </a>
-        `;
+            `;
+        }
+        
+        contactInfo.innerHTML = contactHTML;
     }
-    
-    if (data.instagram) {
-        contactHTML += `
-            <a href="https://instagram.com/${data.instagram.replace('@', '')}" target="_blank" class="contact-item">
-                <i class="bi bi-instagram fs-3"></i>
-                <div>
-                    <strong>Instagram</strong><br>
-                    <span>${data.instagram}</span>
-                </div>
-            </a>
-        `;
-    }
-    
-    if (data.email) {
-        contactHTML += `
-            <a href="mailto:${data.email}" class="contact-item">
-                <i class="bi bi-envelope fs-3"></i>
-                <div>
-                    <strong>E-mail</strong><br>
-                    <span>${data.email}</span>
-                </div>
-            </a>
-        `;
-    }
-    
-    if (data.endereco) {
-        contactHTML += `
-            <div class="contact-item">
-                <i class="bi bi-geo-alt fs-3"></i>
-                <div>
-                    <strong>Endereço</strong><br>
-                    <span>${data.endereco}</span>
-                </div>
-            </div>
-        `;
-    }
-    
-    contactInfo.innerHTML = contactHTML;
     
     // Redes sociais no footer
     const footerSocial = document.getElementById('footerSocial');
-    let socialHTML = '<h6 class="fw-bold mb-3">Redes Sociais</h6>';
-    
-    if (data.whatsapp) {
-        socialHTML += `<a href="https://wa.me/${data.whatsapp}" target="_blank" class="text-white me-3"><i class="bi bi-whatsapp"></i></a>`;
+    if (footerSocial) {
+        let socialHTML = '<h6 class="fw-bold mb-3">Redes Sociais</h6>';
+        
+        if (data.whatsapp) {
+            socialHTML += `<a href="https://wa.me/${data.whatsapp}" target="_blank" class="text-white me-3"><i class="bi bi-whatsapp fs-4"></i></a>`;
+        }
+        if (data.instagram) {
+            socialHTML += `<a href="https://instagram.com/${data.instagram.replace('@', '')}" target="_blank" class="text-white me-3"><i class="bi bi-instagram fs-4"></i></a>`;
+        }
+        if (data.email) {
+            socialHTML += `<a href="mailto:${data.email}" class="text-white me-3"><i class="bi bi-envelope fs-4"></i></a>`;
+        }
+        
+        footerSocial.innerHTML = socialHTML;
     }
-    if (data.instagram) {
-        socialHTML += `<a href="https://instagram.com/${data.instagram.replace('@', '')}" target="_blank" class="text-white me-3"><i class="bi bi-instagram"></i></a>`;
-    }
-    if (data.email) {
-        socialHTML += `<a href="mailto:${data.email}" class="text-white me-3"><i class="bi bi-envelope"></i></a>`;
-    }
-    
-    footerSocial.innerHTML = socialHTML;
 }
 
 function formatWhatsapp(number) {
+    if (!number) return '';
     const cleaned = number.replace(/\D/g, '');
     if (cleaned.length === 13) {
         return `(${cleaned.substring(2,4)}) ${cleaned.substring(4,9)}-${cleaned.substring(9)}`;
@@ -188,22 +232,24 @@ function formatWhatsapp(number) {
 // ==================== CARROSSEL DE IMAGENS ====================
 async function loadCarouselImages() {
     try {
-        const imagesRef = collection(db, IMAGES_COLLECTION);
-        const q = query(imagesRef, orderBy('ordem', 'asc'));
+        // ✅ CORRIGIDO: Usando referência correta da coleção
+        const q = query(IMAGES_COLLECTION_REF, orderBy('ordem', 'asc'));
         const querySnapshot = await getDocs(q);
         
         const carouselInner = document.getElementById('carouselInner');
         const placeholder = document.getElementById('carouselPlaceholder');
         const mainCarousel = document.getElementById('mainCarousel');
         
+        if (!carouselInner) return;
+        
         if (querySnapshot.empty) {
-            mainCarousel.style.display = 'none';
-            placeholder.classList.remove('d-none');
+            if (mainCarousel) mainCarousel.style.display = 'none';
+            if (placeholder) placeholder.classList.remove('d-none');
             return;
         }
         
-        mainCarousel.style.display = 'block';
-        placeholder.classList.add('d-none');
+        if (mainCarousel) mainCarousel.style.display = 'block';
+        if (placeholder) placeholder.classList.add('d-none');
         
         let slidesHTML = '';
         let isFirst = true;
@@ -212,7 +258,7 @@ async function loadCarouselImages() {
             const img = doc.data();
             slidesHTML += `
                 <div class="carousel-item ${isFirst ? 'active' : ''}">
-                    <img src="${img.url}" class="d-block w-100" alt="${img.titulo || 'Imagem do portfólio'}">
+                    <img src="${img.url}" class="d-block w-100" alt="${img.titulo || 'Imagem do portfólio'}" style="height: 500px; object-fit: cover;">
                     ${img.titulo ? `
                         <div class="carousel-caption d-none d-md-block">
                             <h5>${img.titulo}</h5>
@@ -225,20 +271,22 @@ async function loadCarouselImages() {
         });
         
         carouselInner.innerHTML = slidesHTML;
+        console.log('✅ Carrossel carregado com', querySnapshot.size, 'imagens');
         
     } catch (error) {
-        console.error('Erro ao carregar imagens:', error);
+        console.error('❌ Erro ao carregar imagens:', error);
     }
 }
 
 // ==================== SERVIÇOS ====================
 async function loadServices() {
     try {
-        const servicesRef = collection(db, SERVICES_COLLECTION);
-        const q = query(servicesRef, orderBy('ordem', 'asc'));
+        // ✅ CORRIGIDO: Usando referência correta da coleção
+        const q = query(SERVICES_COLLECTION_REF, orderBy('ordem', 'asc'));
         const querySnapshot = await getDocs(q);
         
         const servicesGrid = document.getElementById('servicesGrid');
+        if (!servicesGrid) return;
         
         if (querySnapshot.empty) {
             servicesGrid.innerHTML = '<div class="col-12 text-center text-muted py-5">Nenhum serviço cadastrado ainda</div>';
@@ -264,9 +312,10 @@ async function loadServices() {
         });
         
         servicesGrid.innerHTML = servicesHTML;
+        console.log('✅ Serviços carregados:', querySnapshot.size);
         
     } catch (error) {
-        console.error('Erro ao carregar serviços:', error);
+        console.error('❌ Erro ao carregar serviços:', error);
     }
 }
 
@@ -274,15 +323,20 @@ async function loadServices() {
 async function handleAdminLogin(e) {
     e.preventDefault();
     
-    const login = document.getElementById('adminLogin').value.trim();
-    const password = document.getElementById('adminPassword').value;
+    const loginInput = document.getElementById('adminLogin');
+    const passwordInput = document.getElementById('adminPassword');
     const errorDiv = document.getElementById('loginError');
     const errorMessage = document.getElementById('loginErrorMessage');
     const submitBtn = document.getElementById('btnLoginSubmit');
     
+    if (!loginInput || !passwordInput) return;
+    
+    const login = loginInput.value.trim();
+    const password = passwordInput.value;
+    
     if (!login || !password) {
-        errorMessage.textContent = 'Preencha todos os campos!';
-        errorDiv.classList.remove('d-none');
+        if (errorMessage) errorMessage.textContent = 'Preencha todos os campos!';
+        if (errorDiv) errorDiv.classList.remove('d-none');
         return;
     }
     
@@ -301,8 +355,8 @@ async function handleAdminLogin(e) {
         
         if (!userDoc.exists()) {
             await auth.signOut();
-            errorMessage.textContent = 'Usuário não encontrado!';
-            errorDiv.classList.remove('d-none');
+            if (errorMessage) errorMessage.textContent = 'Usuário não encontrado!';
+            if (errorDiv) errorDiv.classList.remove('d-none');
             return;
         }
         
@@ -311,37 +365,38 @@ async function handleAdminLogin(e) {
         // 3. Verificar se está ativo
         if (!userData.status_ativo) {
             await auth.signOut();
-            errorMessage.textContent = 'Sua conta está desativada!';
-            errorDiv.classList.remove('d-none');
+            if (errorMessage) errorMessage.textContent = 'Sua conta está desativada!';
+            if (errorDiv) errorDiv.classList.remove('d-none');
             return;
         }
         
         // 4. Verificar permissão de edição do portfólio
         if (!userData.habilitar_edicao_portfolio) {
             await auth.signOut();
-            errorMessage.textContent = 'Você não tem permissão para editar portfólios!';
-            errorDiv.classList.remove('d-none');
+            if (errorMessage) errorMessage.textContent = 'Você não tem permissão para editar portfólios!';
+            if (errorDiv) errorDiv.classList.remove('d-none');
             return;
         }
         
         // 5. Verificar se é o dono do portfólio
         if (login !== PROFESSIONAL_ID) {
             await auth.signOut();
-            errorMessage.textContent = 'Você só pode editar seu próprio portfólio!';
-            errorDiv.classList.remove('d-none');
+            if (errorMessage) errorMessage.textContent = 'Você só pode editar seu próprio portfólio!';
+            if (errorDiv) errorDiv.classList.remove('d-none');
             return;
         }
         
         // Login bem-sucedido
+        console.log('✅ Login administrativo realizado:', login);
         await updateDoc(userRef, { ultimo_login: serverTimestamp() });
         
         // Fechar modal de login
         const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-        loginModal.hide();
+        if (loginModal) loginModal.hide();
         
         // Limpar formulário
         document.getElementById('adminLoginForm').reset();
-        errorDiv.classList.add('d-none');
+        if (errorDiv) errorDiv.classList.add('d-none');
         
         // Abrir modal de administração
         const adminModal = new bootstrap.Modal(document.getElementById('adminModal'));
@@ -351,19 +406,21 @@ async function handleAdminLogin(e) {
         await loadAdminData();
         
     } catch (error) {
-        console.error('Erro no login:', error);
+        console.error('❌ Erro no login:', error);
         
         if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-            errorMessage.textContent = 'Login ou senha incorretos!';
+            if (errorMessage) errorMessage.textContent = 'Login ou senha incorretos!';
         } else if (error.code === 'auth/user-not-found') {
-            errorMessage.textContent = 'Usuário não cadastrado!';
+            if (errorMessage) errorMessage.textContent = 'Usuário não cadastrado!';
         } else {
-            errorMessage.textContent = 'Erro na autenticação: ' + error.message;
+            if (errorMessage) errorMessage.textContent = 'Erro na autenticação: ' + error.message;
         }
-        errorDiv.classList.remove('d-none');
+        if (errorDiv) errorDiv.classList.remove('d-none');
     } finally {
-        submitBtn.innerHTML = originalHTML;
-        submitBtn.disabled = false;
+        if (submitBtn) {
+            submitBtn.innerHTML = originalHTML;
+            submitBtn.disabled = false;
+        }
     }
 }
 
@@ -372,11 +429,11 @@ async function handleLogout() {
         await auth.signOut();
         
         const adminModal = bootstrap.Modal.getInstance(document.getElementById('adminModal'));
-        adminModal.hide();
+        if (adminModal) adminModal.hide();
         
         showToast('Logout realizado com sucesso!', 'success');
     } catch (error) {
-        console.error('Erro ao fazer logout:', error);
+        console.error('❌ Erro ao fazer logout:', error);
     }
 }
 
@@ -389,11 +446,12 @@ async function loadAdminData() {
 
 async function loadCurrentImages() {
     try {
-        const imagesRef = collection(db, IMAGES_COLLECTION);
-        const q = query(imagesRef, orderBy('ordem', 'asc'));
+        // ✅ CORRIGIDO
+        const q = query(IMAGES_COLLECTION_REF, orderBy('ordem', 'asc'));
         const querySnapshot = await getDocs(q);
         
         const container = document.getElementById('currentImages');
+        if (!container) return;
         
         if (querySnapshot.empty) {
             container.innerHTML = '<p class="text-muted text-center">Nenhuma imagem cadastrada</p>';
@@ -421,35 +479,43 @@ async function loadCurrentImages() {
         container.innerHTML = html;
         
     } catch (error) {
-        console.error('Erro ao carregar imagens:', error);
+        console.error('❌ Erro ao carregar imagens admin:', error);
     }
 }
 
 async function loadContentForm() {
     try {
-        const contentRef = doc(db, CONTENT_DOC);
-        const contentDoc = await getDoc(contentRef);
+        // ✅ CORRIGIDO
+        const contentDoc = await getDoc(CONTENT_DOC_REF);
         
         if (contentDoc.exists()) {
             const data = contentDoc.data();
-            document.getElementById('aboutText').value = data.sobre || '';
-            document.getElementById('whatsapp').value = data.whatsapp || '';
-            document.getElementById('instagram').value = data.instagram || '';
-            document.getElementById('email').value = data.email || '';
-            document.getElementById('endereco').value = data.endereco || '';
+            
+            const aboutText = document.getElementById('aboutText');
+            const whatsapp = document.getElementById('whatsapp');
+            const instagram = document.getElementById('instagram');
+            const email = document.getElementById('email');
+            const endereco = document.getElementById('endereco');
+            
+            if (aboutText) aboutText.value = data.sobre || '';
+            if (whatsapp) whatsapp.value = data.whatsapp || '';
+            if (instagram) instagram.value = data.instagram || '';
+            if (email) email.value = data.email || '';
+            if (endereco) endereco.value = data.endereco || '';
         }
     } catch (error) {
-        console.error('Erro ao carregar conteúdo:', error);
+        console.error('❌ Erro ao carregar conteúdo admin:', error);
     }
 }
 
 async function loadCurrentServices() {
     try {
-        const servicesRef = collection(db, SERVICES_COLLECTION);
-        const q = query(servicesRef, orderBy('ordem', 'asc'));
+        // ✅ CORRIGIDO
+        const q = query(SERVICES_COLLECTION_REF, orderBy('ordem', 'asc'));
         const querySnapshot = await getDocs(q);
         
         const container = document.getElementById('currentServices');
+        if (!container) return;
         
         if (querySnapshot.empty) {
             container.innerHTML = '<p class="text-muted text-center">Nenhum serviço cadastrado</p>';
@@ -477,7 +543,7 @@ async function loadCurrentServices() {
         container.innerHTML = html;
         
     } catch (error) {
-        console.error('Erro ao carregar serviços:', error);
+        console.error('❌ Erro ao carregar serviços admin:', error);
     }
 }
 
@@ -492,7 +558,7 @@ async function handleImageUpload(e) {
     const progressDiv = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('uploadProgressBar');
     
-    if (!fileInput.files || !fileInput.files[0]) {
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
         showToast('Selecione uma imagem!', 'danger');
         return;
     }
@@ -500,24 +566,24 @@ async function handleImageUpload(e) {
     const file = fileInput.files[0];
     
     // Mostrar progresso
-    progressDiv.classList.remove('d-none');
-    progressBar.style.width = '0%';
+    if (progressDiv) progressDiv.classList.remove('d-none');
+    if (progressBar) progressBar.style.width = '0%';
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
     
     try {
         // Converter para base64
         const base64 = await fileToBase64(file);
-        progressBar.style.width = '50%';
+        if (progressBar) progressBar.style.width = '50%';
         
         // Upload para ImgBB
         const result = await uploadParaImgbb(base64);
-        progressBar.style.width = '100%';
+        if (progressBar) progressBar.style.width = '100%';
         
         if (result.success) {
             // Buscar última ordem
-            const imagesRef = collection(db, IMAGES_COLLECTION);
-            const q = query(imagesRef, orderBy('ordem', 'desc'), limit(1));
+            // ✅ CORRIGIDO
+            const q = query(IMAGES_COLLECTION_REF, orderBy('ordem', 'desc'), limit(1));
             const querySnapshot = await getDocs(q);
             let nextOrder = 0;
             
@@ -526,12 +592,13 @@ async function handleImageUpload(e) {
             }
             
             // Salvar no Firestore
-            await addDoc(imagesRef, {
+            // ✅ CORRIGIDO
+            await addDoc(IMAGES_COLLECTION_REF, {
                 url: result.url,
                 thumb: result.thumb,
                 delete_url: result.delete_url,
-                titulo: titleInput.value,
-                descricao: descriptionInput.value,
+                titulo: titleInput ? titleInput.value : '',
+                descricao: descriptionInput ? descriptionInput.value : '',
                 ordem: nextOrder,
                 data_upload: serverTimestamp()
             });
@@ -540,8 +607,8 @@ async function handleImageUpload(e) {
             
             // Limpar formulário
             fileInput.value = '';
-            titleInput.value = '';
-            descriptionInput.value = '';
+            if (titleInput) titleInput.value = '';
+            if (descriptionInput) descriptionInput.value = '';
             
             // Recarregar dados
             await loadCurrentImages();
@@ -549,11 +616,11 @@ async function handleImageUpload(e) {
         }
         
     } catch (error) {
-        console.error('Erro no upload:', error);
+        console.error('❌ Erro no upload:', error);
         showToast('Erro ao fazer upload: ' + error.message, 'danger');
     } finally {
-        progressDiv.classList.add('d-none');
-        progressBar.style.width = '0%';
+        if (progressDiv) progressDiv.classList.add('d-none');
+        if (progressBar) progressBar.style.width = '0%';
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Fazer Upload';
     }
@@ -577,17 +644,23 @@ async function handleContentSave(e) {
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
     
     try {
+        const aboutText = document.getElementById('aboutText');
+        const whatsapp = document.getElementById('whatsapp');
+        const instagram = document.getElementById('instagram');
+        const email = document.getElementById('email');
+        const endereco = document.getElementById('endereco');
+        
         const data = {
-            sobre: document.getElementById('aboutText').value,
-            whatsapp: document.getElementById('whatsapp').value,
-            instagram: document.getElementById('instagram').value,
-            email: document.getElementById('email').value,
-            endereco: document.getElementById('endereco').value,
+            sobre: aboutText ? aboutText.value : '',
+            whatsapp: whatsapp ? whatsapp.value : '',
+            instagram: instagram ? instagram.value : '',
+            email: email ? email.value : '',
+            endereco: endereco ? endereco.value : '',
             atualizado_em: serverTimestamp()
         };
         
-        const contentRef = doc(db, CONTENT_DOC);
-        await setDoc(contentRef, data, { merge: true });
+        // ✅ CORRIGIDO: Salvando no documento correto
+        await setDoc(CONTENT_DOC_REF, data, { merge: true });
         
         showToast('Informações salvas com sucesso!', 'success');
         
@@ -595,7 +668,7 @@ async function handleContentSave(e) {
         populatePortfolioContent(data);
         
     } catch (error) {
-        console.error('Erro ao salvar conteúdo:', error);
+        console.error('❌ Erro ao salvar conteúdo:', error);
         showToast('Erro ao salvar: ' + error.message, 'danger');
     } finally {
         submitBtn.disabled = false;
@@ -607,9 +680,13 @@ async function handleContentSave(e) {
 async function handleServiceAdd(e) {
     e.preventDefault();
     
-    const nome = document.getElementById('serviceName').value;
-    const descricao = document.getElementById('serviceDescription').value;
-    const preco = document.getElementById('servicePrice').value;
+    const serviceName = document.getElementById('serviceName');
+    const serviceDescription = document.getElementById('serviceDescription');
+    const servicePrice = document.getElementById('servicePrice');
+    
+    const nome = serviceName ? serviceName.value : '';
+    const descricao = serviceDescription ? serviceDescription.value : '';
+    const preco = servicePrice ? servicePrice.value : '';
     
     if (!nome) {
         showToast('Informe o nome do serviço!', 'danger');
@@ -621,10 +698,9 @@ async function handleServiceAdd(e) {
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adicionando...';
     
     try {
-        const servicesRef = collection(db, SERVICES_COLLECTION);
-        
         // Buscar última ordem
-        const q = query(servicesRef, orderBy('ordem', 'desc'), limit(1));
+        // ✅ CORRIGIDO
+        const q = query(SERVICES_COLLECTION_REF, orderBy('ordem', 'desc'), limit(1));
         const querySnapshot = await getDocs(q);
         let nextOrder = 0;
         
@@ -632,7 +708,8 @@ async function handleServiceAdd(e) {
             nextOrder = querySnapshot.docs[0].data().ordem + 1;
         }
         
-        await addDoc(servicesRef, {
+        // ✅ CORRIGIDO
+        await addDoc(SERVICES_COLLECTION_REF, {
             nome: nome,
             descricao: descricao,
             preco: preco,
@@ -643,16 +720,16 @@ async function handleServiceAdd(e) {
         showToast('Serviço adicionado!', 'success');
         
         // Limpar formulário
-        document.getElementById('serviceName').value = '';
-        document.getElementById('serviceDescription').value = '';
-        document.getElementById('servicePrice').value = '';
+        if (serviceName) serviceName.value = '';
+        if (serviceDescription) serviceDescription.value = '';
+        if (servicePrice) servicePrice.value = '';
         
         // Recarregar
         await loadCurrentServices();
         await loadServices();
         
     } catch (error) {
-        console.error('Erro ao adicionar serviço:', error);
+        console.error('❌ Erro ao adicionar serviço:', error);
         showToast('Erro: ' + error.message, 'danger');
     } finally {
         submitBtn.disabled = false;
@@ -665,7 +742,8 @@ window.deleteImage = async function(imageId) {
     if (!confirm('Tem certeza que deseja excluir esta imagem?')) return;
     
     try {
-        const imageRef = doc(db, IMAGES_COLLECTION, imageId);
+        // ✅ CORRIGIDO: Referência correta ao documento na subcoleção
+        const imageRef = doc(IMAGES_COLLECTION_REF, imageId);
         await deleteDoc(imageRef);
         
         showToast('Imagem excluída!', 'success');
@@ -673,7 +751,7 @@ window.deleteImage = async function(imageId) {
         await loadCarouselImages();
         
     } catch (error) {
-        console.error('Erro ao excluir imagem:', error);
+        console.error('❌ Erro ao excluir imagem:', error);
         showToast('Erro ao excluir: ' + error.message, 'danger');
     }
 };
@@ -682,7 +760,8 @@ window.deleteService = async function(serviceId) {
     if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
     
     try {
-        const serviceRef = doc(db, SERVICES_COLLECTION, serviceId);
+        // ✅ CORRIGIDO: Referência correta ao documento na subcoleção
+        const serviceRef = doc(SERVICES_COLLECTION_REF, serviceId);
         await deleteDoc(serviceRef);
         
         showToast('Serviço excluído!', 'success');
@@ -690,7 +769,7 @@ window.deleteService = async function(serviceId) {
         await loadServices();
         
     } catch (error) {
-        console.error('Erro ao excluir serviço:', error);
+        console.error('❌ Erro ao excluir serviço:', error);
         showToast('Erro ao excluir: ' + error.message, 'danger');
     }
 };
@@ -700,7 +779,10 @@ function showToast(message, type = 'success') {
     const toastEl = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
     
-    toastMessage.innerHTML = `<i class="bi bi-${type === 'success' ? 'check' : 'exclamation'}-circle me-2"></i>${message}`;
+    if (!toastEl || !toastMessage) return;
+    
+    const icon = type === 'success' ? 'check' : 'exclamation';
+    toastMessage.innerHTML = `<i class="bi bi-${icon}-circle me-2"></i>${message}`;
     toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
     
     const toast = new bootstrap.Toast(toastEl, {
