@@ -1,485 +1,62 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grazielle Carvalho | Nutricionista</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        /* Loading Screen */
-        #loadingScreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-        
-        /* Navbar */
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 1rem 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .navbar-brand {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        
-        /* Hero Section */
-        .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            position: relative;
-            padding-top: 80px;
-        }
-        
-        .hero-section h1 {
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
-        }
-        
-        /* Sections */
-        section {
-            padding: 80px 0;
-        }
-        
-        .bg-light {
-            background-color: #f8f9fa;
-        }
-        
-        /* Contact Items */
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: white;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            text-decoration: none;
-            color: #333;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .contact-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            color: #667eea;
-        }
-        
-        /* Service Cards */
-        .service-card {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            height: 100%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .service-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-        
-        .service-icon {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-        }
-        
-        .service-icon i {
-            font-size: 2rem;
-            color: white;
-        }
-        
-        .service-price {
-            display: inline-block;
-            margin-top: 1rem;
-            padding: 0.5rem 1rem;
-            background: #f8f9fa;
-            border-radius: 25px;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        /* Admin Items */
-        .admin-image-item, .admin-service-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem;
-            background: #2c3e50;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-        }
-        
-        .admin-image-item img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-        
-        .image-info {
-            flex: 1;
-            margin-left: 1rem;
-        }
-        
-        /* Carousel */
-        .carousel-item img {
-            height: 500px;
-            object-fit: cover;
-        }
-        
-        .carousel-placeholder {
-            text-align: center;
-            padding: 100px 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero-section h1 {
-                font-size: 2rem;
-            }
-            
-            section {
-                padding: 50px 0;
-            }
-            
-            .carousel-item img {
-                height: 300px;
-            }
-        }
-        
-        .text-primary-custom {
-            color: #667eea;
-        }
-        
-        .btn-primary-custom {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            color: white;
-        }
-        
-        .btn-primary-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Loading Screen -->
-    <div id="loadingScreen">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-            <span class="visually-hidden">Carregando...</span>
-        </div>
-        <p class="mt-3 text-muted">Carregando portfólio...</p>
-    </div>
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-heart-fill me-2"></i>
-                <span id="navName">Grazielle Carvalho</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#home">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#galeria">Galeria</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#sobre">Sobre</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#servicos">Serviços</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#contato">Contato</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-warning" href="#" id="adminAccessBtn">
-                            <i class="bi bi-shield-lock"></i> Admin
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section id="home" class="hero-section">
-        <div class="container text-white text-center">
-            <h1 id="heroTitle">Transforme sua saúde com acompanhamento nutricional</h1>
-            <p class="lead mb-4" id="heroSubtitle">Especialista em nutrição clínica, esportiva e comportamental</p>
-            <a href="#" id="btnWhatsappHero" class="btn btn-success btn-lg rounded-pill px-5" target="_blank">
-                <i class="bi bi-whatsapp me-2"></i>Agende pelo WhatsApp
-            </a>
-        </div>
-    </section>
-
-    <!-- Galeria Section -->
-    <section id="galeria" class="bg-light">
-        <div class="container">
-            <h2 class="text-center mb-5" style="color: #667eea;">Meu Trabalho</h2>
-            <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
-                <div class="carousel-inner" id="carouselInner">
-                    <div class="carousel-item active">
-                        <div class="carousel-placeholder">
-                            <i class="bi bi-images" style="font-size: 4rem; color: #667eea;"></i>
-                            <h4 class="mt-3">Em breve, fotos do meu trabalho</h4>
-                            <p class="text-muted">Entre em contato para mais informações</p>
-                        </div>
+<!-- Após a hero section ou em uma nova seção -->
+<!-- SEÇÃO CONCEITOS (igual ao Setor de Acessos) -->
+<div class="conceitos-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="conceito-card" data-conceito="nutricao">
+                    <div class="conceito-icon">
+                        <i class="bi bi-egg-fried"></i>
                     </div>
+                    <h3>Nutrição Clínica</h3>
+                    <p>Clique para entender o conceito</p>
+                    <i class="bi bi-arrow-right-circle"></i>
                 </div>
             </div>
-            <div id="carouselPlaceholder" class="d-none"></div>
-        </div>
-    </section>
-
-    <!-- Sobre Section -->
-    <section id="sobre">
-        <div class="container">
-            <h2 class="text-center mb-5" style="color: #667eea;">Sobre Mim</h2>
-            <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <div id="aboutContent" class="text-center">
-                        <p>Carregando informações...</p>
+            <div class="col-md-4">
+                <div class="conceito-card" data-conceito="esportiva">
+                    <div class="conceito-icon">
+                        <i class="bi bi-bicycle"></i>
                     </div>
+                    <h3>Nutrição Esportiva</h3>
+                    <p>Clique para entender o conceito</p>
+                    <i class="bi bi-arrow-right-circle"></i>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Serviços Section -->
-    <section id="servicos" class="bg-light">
-        <div class="container">
-            <h2 class="text-center mb-5" style="color: #667eea;">Serviços</h2>
-            <div class="row g-4" id="servicesGrid">
-                <div class="col-12 text-center">
-                    <p>Carregando serviços...</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contato Section -->
-    <section id="contato">
-        <div class="container">
-            <h2 class="text-center mb-5" style="color: #667eea;">Contato</h2>
-            <div class="row">
-                <div class="col-lg-8 mx-auto" id="contactInfo">
-                    <p class="text-center">Carregando informações de contato...</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2026 Grazielle Carvalho - Todos os direitos reservados</p>
-            <div id="footerSocial" class="mt-3">
-                <!-- Redes sociais -->
-            </div>
-        </div>
-    </footer>
-
-    <!-- MODAL LOGIN -->
-    <div class="modal fade" id="loginModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title text-warning">Acesso Administrativo</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="adminLoginForm">
-                        <div class="mb-3">
-                            <label class="form-label">Login</label>
-                            <input type="text" class="form-control bg-dark text-white border-secondary" id="adminLogin" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Senha</label>
-                            <input type="password" class="form-control bg-dark text-white border-secondary" id="adminPassword" required>
-                        </div>
-                        <div id="loginError" class="alert alert-danger d-none"></div>
-                        <button type="submit" class="btn btn-warning w-100">Entrar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL ADMIN -->
-    <div class="modal fade" id="adminModal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-warning">
-                    <h5 class="modal-title text-warning">Painel Administrativo</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs border-secondary mb-4">
-                        <li class="nav-item">
-                            <button class="nav-link active text-white" data-bs-toggle="tab" data-bs-target="#imagesTab">Imagens</button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link text-white" data-bs-toggle="tab" data-bs-target="#contentTab">Conteúdo</button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link text-white" data-bs-toggle="tab" data-bs-target="#servicesTab">Serviços</button>
-                        </li>
-                    </ul>
-                    
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="imagesTab">
-                            <form id="imageUploadForm">
-                                <div class="mb-3">
-                                    <label class="form-label">Imagem</label>
-                                    <input type="file" class="form-control bg-dark text-white border-secondary" id="imageFile" accept="image/*">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Título</label>
-                                    <input type="text" class="form-control bg-dark text-white border-secondary" id="imageTitle">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Descrição</label>
-                                    <textarea class="form-control bg-dark text-white border-secondary" id="imageDescription" rows="2"></textarea>
-                                </div>
-                                <div id="uploadProgress" class="progress mb-3 d-none">
-                                    <div class="progress-bar" id="uploadProgressBar" style="width: 0%"></div>
-                                </div>
-                                <button type="submit" class="btn btn-warning w-100">Upload</button>
-                            </form>
-                            <hr class="border-secondary my-4">
-                            <h6 class="text-warning">Imagens Atuais</h6>
-                            <div id="currentImages"></div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="contentTab">
-                            <form id="contentForm">
-                                <div class="mb-3">
-                                    <label class="form-label">Sobre</label>
-                                    <textarea class="form-control bg-dark text-white border-secondary" id="aboutText" rows="5"></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">WhatsApp</label>
-                                    <input type="text" class="form-control bg-dark text-white border-secondary" id="whatsapp">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Instagram</label>
-                                    <input type="text" class="form-control bg-dark text-white border-secondary" id="instagram">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control bg-dark text-white border-secondary" id="email">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Endereço</label>
-                                    <input type="text" class="form-control bg-dark text-white border-secondary" id="endereco">
-                                </div>
-                                <button type="submit" class="btn btn-warning w-100">Salvar</button>
-                            </form>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="servicesTab">
-                            <form id="serviceForm">
-                                <div class="mb-3">
-                                    <label class="form-label">Serviço</label>
-                                    <input type="text" class="form-control bg-dark text-white border-secondary" id="serviceName" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Descrição</label>
-                                    <textarea class="form-control bg-dark text-white border-secondary" id="serviceDescription" rows="2"></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Preço</label>
-                                    <input type="text" class="form-control bg-dark text-white border-secondary" id="servicePrice">
-                                </div>
-                                <button type="submit" class="btn btn-warning w-100">Adicionar</button>
-                            </form>
-                            <hr class="border-secondary my-4">
-                            <h6 class="text-warning">Serviços Atuais</h6>
-                            <div id="currentServices"></div>
-                        </div>
+            <div class="col-md-4">
+                <div class="conceito-card" data-conceito="comportamental">
+                    <div class="conceito-icon">
+                        <i class="bi bi-heart"></i>
                     </div>
-                </div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-danger" id="logoutBtn">Sair</button>
+                    <h3>Nutrição Comportamental</h3>
+                    <p>Clique para entender o conceito</p>
+                    <i class="bi bi-arrow-right-circle"></i>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Toast -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
-        <div id="toast" class="toast align-items-center text-white bg-success border-0" role="alert">
-            <div class="d-flex">
-                <div class="toast-body" id="toastMessage"></div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+<!-- CARROSSEL 3D (em vez do Bootstrap Carousel) -->
+<div class="gestoras-section">
+    <div class="container">
+        <h2 class="section-title">
+            <i class="bi bi-camera-fill me-2"></i>
+            Meu Trabalho
+        </h2>
+        <div class="carousel-container">
+            <div class="carousel-wrapper">
+                <div id="carrossel3d" class="carousel-3d"></div>
+            </div>
+            <div class="carousel-controls">
+                <button id="btnPrev" class="btn-carousel">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span id="gestoraCounter" class="carousel-counter">1 / 8</span>
+                <button id="btnNext" class="btn-carousel">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
             </div>
         </div>
     </div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="module" src="../0_firebase_api_config.js"></script>
-    <script type="module" src="grazielle_carvalho.js"></script>
-    
-    <script>
-        // Forçar ocultar loading após 3 segundos se algo falhar
-        setTimeout(() => {
-            const loading = document.getElementById('loadingScreen');
-            if (loading && loading.style.display !== 'none') {
-                loading.style.display = 'none';
-                console.log('⚠️ Loading forced hidden after timeout');
-            }
-        }, 3000);
-    </script>
-</body>
-</html>
+</div>
