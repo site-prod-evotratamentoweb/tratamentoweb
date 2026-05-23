@@ -1,4 +1,5 @@
 // grazielle_carvalho.js - Portfolio Manager
+
 import { 
     db, 
     auth, 
@@ -8,14 +9,15 @@ import {
     updateDoc,
     setDoc,
     deleteDoc,
+    addDoc,
     getDocs,
     collection,
     query,
-    where,
     orderBy,
+    limit,
     serverTimestamp,
     uploadParaImgbb
-} from '../../0_firebase_api_config.js';
+} from '../0_firebase_api_config.js';
 
 // ==================== CONFIGURAÇÃO ====================
 const PROFESSIONAL_ID = 'grazielle.carvalho';
@@ -24,19 +26,11 @@ const IMAGES_COLLECTION = `${PORTFOLIO_PATH}/imagens`;
 const CONTENT_DOC = `${PORTFOLIO_PATH}/conteudo`;
 const SERVICES_COLLECTION = `${PORTFOLIO_PATH}/servicos`;
 
-// ==================== ESTADO GLOBAL ====================
-let currentUser = null;
-let carouselImages = [];
-let currentSlide = 0;
-let autoSlideInterval = null;
-
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Inicializando portfólio de:', PROFESSIONAL_ID);
     
-    setupNavigation();
-    setupMenuDropdown();
-    setupModals();
+    setupEventListeners();
     await loadPortfolioData();
     
     // Esconder loading screen
@@ -45,248 +39,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 500);
 });
 
-// ==================== NAVEGAÇÃO ====================
-function setupNavigation() {
-    // Smooth scroll para links internos
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                
-                // Atualizar link ativo
-                document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-                if (this.classList.contains('nav-link')) {
-                    this.classList.add('active');
-                }
-                
-                // Fechar menu mobile se aberto
-                document.getElementById('dropdownMenu').classList.remove('show');
-            }
-        });
-    });
-    
-    // Header scroll effect
-    window.addEventListener('scroll', () => {
-        const header = document.getElementById('mainHeader');
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    });
-}
-
-function setupMenuDropdown() {
-    const menuToggle = document.getElementById('menuToggle');
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    
-    menuToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle('show');
-    });
-    
-    // Fechar menu ao clicar fora
-    document.addEventListener('click', (e) => {
-        if (!dropdownMenu.contains(e.target) && e.target !== menuToggle) {
-            dropdownMenu.classList.remove('show');
-        }
-    });
-    
-    // Botão de acesso administrativo
+// ==================== EVENT LISTENERS ====================
+function setupEventListeners() {
+    // Acesso Administrativo
     document.getElementById('adminAccessBtn').addEventListener('click', (e) => {
         e.preventDefault();
-        dropdownMenu.classList.remove('show');
-        openLoginModal();
+        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        loginModal.show();
     });
-}
-
-// ==================== MODAIS ====================
-function setupModals() {
-    // Login Modal
-    document.getElementById('closeLoginModal').addEventListener('click', closeLoginModal);
+    
+    // Form de Login
     document.getElementById('adminLoginForm').addEventListener('submit', handleAdminLogin);
     
-    // Admin Modal
-    document.getElementById('closeAdminModal').addEventListener('click', closeAdminModal);
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-    
-    // Admin Tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tab = this.getAttribute('data-tab');
-            switchAdminTab(tab);
-        });
-    });
-    
-    // Forms
+    // Forms do Admin
     document.getElementById('imageUploadForm').addEventListener('submit', handleImageUpload);
     document.getElementById('contentForm').addEventListener('submit', handleContentSave);
     document.getElementById('serviceForm').addEventListener('submit', handleServiceAdd);
     
-    // Fechar modais ao clicar fora
-    window.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal')) {
-            e.target.style.display = 'none';
-        }
-    });
-}
-
-function openLoginModal() {
-    document.getElementById('loginModal').style.display = 'block';
-    document.getElementById('adminLogin').focus();
-}
-
-function closeLoginModal() {
-    document.getElementById('loginModal').style.display = 'none';
-    document.getElementById('adminLoginForm').reset();
-    document.getElementById('loginError').style.display = 'none';
-}
-
-function openAdminModal() {
-    document.getElementById('adminModal').style.display = 'block';
-    loadAdminData();
-}
-
-function closeAdminModal() {
-    document.getElementById('adminModal').style.display = 'none';
-}
-
-function switchAdminTab(tabName) {
-    // Atualizar botões
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('data-tab') === tabName) {
-            btn.classList.add('active');
-        }
-    });
-    
-    // Atualizar conteúdo
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    switch(tabName) {
-        case 'images':
-            document.getElementById('imagesTab').classList.add('active');
-            loadCurrentImages();
-            break;
-        case 'content':
-            document.getElementById('contentTab').classList.add('active');
-            loadContentForm();
-            break;
-        case 'services':
-            document.getElementById('servicesTab').classList.add('active');
-            loadCurrentServices();
-            break;
-    }
-}
-
-// ==================== AUTENTICAÇÃO ====================
-async function handleAdminLogin(e) {
-    e.preventDefault();
-    
-    const login = document.getElementById('adminLogin').value.trim();
-    const password = document.getElementById('adminPassword').value;
-    
-    if (!login || !password) {
-        showLoginError('Preencha todos os campos!');
-        return;
-    }
-    
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Autenticando...';
-    submitBtn.disabled = true;
-    
-    try {
-        // 1. Autenticar no Firebase Auth
-        const email = `${login.toLowerCase()}@tratamentoweb.com`;
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        
-        // 2. Verificar no Firestore
-        const userRef = doc(db, 'logins', login);
-        const userDoc = await getDoc(userRef);
-        
-        if (!userDoc.exists()) {
-            await auth.signOut();
-            showLoginError('Usuário não encontrado!');
-            return;
-        }
-        
-        const userData = userDoc.data();
-        
-        // 3. Verificar se está ativo
-        if (!userData.status_ativo) {
-            await auth.signOut();
-            showLoginError('Sua conta está desativada!');
-            return;
-        }
-        
-        // 4. Verificar permissão de edição do portfólio
-        if (!userData.habilitar_edicao_portfolio) {
-            await auth.signOut();
-            showLoginError('Você não tem permissão para editar portfólios!');
-            return;
-        }
-        
-        // 5. Verificar se é o dono do portfólio
-        if (login !== PROFESSIONAL_ID) {
-            await auth.signOut();
-            showLoginError('Você só pode editar seu próprio portfólio!');
-            return;
-        }
-        
-        // Login bem-sucedido
-        currentUser = {
-            ...userData,
-            login: login,
-            email: email,
-            uid: userCredential.user.uid
-        };
-        
-        // Atualizar último login
-        await updateDoc(userRef, { ultimo_login: serverTimestamp() });
-        
-        closeLoginModal();
-        openAdminModal();
-        
-    } catch (error) {
-        console.error('Erro no login:', error);
-        
-        if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-            showLoginError('Login ou senha incorretos!');
-        } else if (error.code === 'auth/user-not-found') {
-            showLoginError('Usuário não cadastrado!');
-        } else {
-            showLoginError('Erro na autenticação: ' + error.message);
-        }
-    } finally {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }
-}
-
-function showLoginError(message) {
-    const errorDiv = document.getElementById('loginError');
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
-    
-    setTimeout(() => {
-        errorDiv.style.display = 'none';
-    }, 5000);
-}
-
-async function handleLogout() {
-    try {
-        await auth.signOut();
-        currentUser = null;
-        closeAdminModal();
-        showToast('Logout realizado com sucesso!');
-    } catch (error) {
-        console.error('Erro ao fazer logout:', error);
-    }
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 }
 
 // ==================== CARREGAR DADOS DO PORTFÓLIO ====================
@@ -315,28 +86,36 @@ async function loadPortfolioData() {
 function populatePortfolioContent(data) {
     // Atualizar nome e título
     if (data.nome) {
-        document.getElementById('professionalName').textContent = data.nome;
+        document.getElementById('navName').textContent = data.nome;
         document.title = `${data.nome} | Nutricionista - TratamentoWeb`;
     }
     if (data.titulo) {
-        document.getElementById('professionalTitle').textContent = data.titulo;
+        document.getElementById('navTitle').textContent = data.titulo;
     }
     
     // Sobre
     if (data.sobre) {
-        document.getElementById('aboutContent').innerHTML = `<p>${data.sobre}</p>`;
+        document.getElementById('aboutContent').innerHTML = `
+            <h3 class="mb-4">Minha História</h3>
+            <p class="lead">${data.sobre}</p>
+        `;
+    }
+    
+    // WhatsApp
+    if (data.whatsapp) {
+        document.getElementById('btnWhatsappHero').href = `https://wa.me/${data.whatsapp}`;
     }
     
     // Contato
     const contactInfo = document.getElementById('contactInfo');
-    let contactHTML = '<div class="contact-list">';
+    let contactHTML = '<h3 class="mb-4">Informações de Contato</h3>';
     
     if (data.whatsapp) {
         contactHTML += `
             <a href="https://wa.me/${data.whatsapp}" target="_blank" class="contact-item">
-                <i class="bi bi-whatsapp"></i>
+                <i class="bi bi-whatsapp fs-3"></i>
                 <div>
-                    <strong>WhatsApp</strong>
+                    <strong>WhatsApp</strong><br>
                     <span>${formatWhatsapp(data.whatsapp)}</span>
                 </div>
             </a>
@@ -346,9 +125,9 @@ function populatePortfolioContent(data) {
     if (data.instagram) {
         contactHTML += `
             <a href="https://instagram.com/${data.instagram.replace('@', '')}" target="_blank" class="contact-item">
-                <i class="bi bi-instagram"></i>
+                <i class="bi bi-instagram fs-3"></i>
                 <div>
-                    <strong>Instagram</strong>
+                    <strong>Instagram</strong><br>
                     <span>${data.instagram}</span>
                 </div>
             </a>
@@ -358,9 +137,9 @@ function populatePortfolioContent(data) {
     if (data.email) {
         contactHTML += `
             <a href="mailto:${data.email}" class="contact-item">
-                <i class="bi bi-envelope"></i>
+                <i class="bi bi-envelope fs-3"></i>
                 <div>
-                    <strong>E-mail</strong>
+                    <strong>E-mail</strong><br>
                     <span>${data.email}</span>
                 </div>
             </a>
@@ -370,30 +149,29 @@ function populatePortfolioContent(data) {
     if (data.endereco) {
         contactHTML += `
             <div class="contact-item">
-                <i class="bi bi-geo-alt"></i>
+                <i class="bi bi-geo-alt fs-3"></i>
                 <div>
-                    <strong>Endereço</strong>
+                    <strong>Endereço</strong><br>
                     <span>${data.endereco}</span>
                 </div>
             </div>
         `;
     }
     
-    contactHTML += '</div>';
     contactInfo.innerHTML = contactHTML;
     
     // Redes sociais no footer
     const footerSocial = document.getElementById('footerSocial');
-    let socialHTML = '';
+    let socialHTML = '<h6 class="fw-bold mb-3">Redes Sociais</h6>';
     
     if (data.whatsapp) {
-        socialHTML += `<a href="https://wa.me/${data.whatsapp}" target="_blank"><i class="bi bi-whatsapp"></i></a>`;
+        socialHTML += `<a href="https://wa.me/${data.whatsapp}" target="_blank" class="text-white me-3"><i class="bi bi-whatsapp"></i></a>`;
     }
     if (data.instagram) {
-        socialHTML += `<a href="https://instagram.com/${data.instagram.replace('@', '')}" target="_blank"><i class="bi bi-instagram"></i></a>`;
+        socialHTML += `<a href="https://instagram.com/${data.instagram.replace('@', '')}" target="_blank" class="text-white me-3"><i class="bi bi-instagram"></i></a>`;
     }
     if (data.email) {
-        socialHTML += `<a href="mailto:${data.email}"><i class="bi bi-envelope"></i></a>`;
+        socialHTML += `<a href="mailto:${data.email}" class="text-white me-3"><i class="bi bi-envelope"></i></a>`;
     }
     
     footerSocial.innerHTML = socialHTML;
@@ -414,128 +192,44 @@ async function loadCarouselImages() {
         const q = query(imagesRef, orderBy('ordem', 'asc'));
         const querySnapshot = await getDocs(q);
         
-        carouselImages = [];
+        const carouselInner = document.getElementById('carouselInner');
+        const placeholder = document.getElementById('carouselPlaceholder');
+        const mainCarousel = document.getElementById('mainCarousel');
+        
+        if (querySnapshot.empty) {
+            mainCarousel.style.display = 'none';
+            placeholder.classList.remove('d-none');
+            return;
+        }
+        
+        mainCarousel.style.display = 'block';
+        placeholder.classList.add('d-none');
+        
+        let slidesHTML = '';
+        let isFirst = true;
+        
         querySnapshot.forEach((doc) => {
-            carouselImages.push({
-                id: doc.id,
-                ...doc.data()
-            });
+            const img = doc.data();
+            slidesHTML += `
+                <div class="carousel-item ${isFirst ? 'active' : ''}">
+                    <img src="${img.url}" class="d-block w-100" alt="${img.titulo || 'Imagem do portfólio'}">
+                    ${img.titulo ? `
+                        <div class="carousel-caption d-none d-md-block">
+                            <h5>${img.titulo}</h5>
+                            ${img.descricao ? `<p>${img.descricao}</p>` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            isFirst = false;
         });
         
-        renderCarousel();
-        startAutoSlide();
+        carouselInner.innerHTML = slidesHTML;
         
     } catch (error) {
         console.error('Erro ao carregar imagens:', error);
-        // Se não houver imagens, mostrar placeholder
-        if (carouselImages.length === 0) {
-            document.getElementById('mainCarousel').innerHTML = `
-                <div class="carousel-placeholder">
-                    <i class="bi bi-image"></i>
-                    <p>Nenhuma imagem no portfólio ainda</p>
-                </div>
-            `;
-        }
     }
 }
-
-function renderCarousel() {
-    const carousel = document.getElementById('mainCarousel');
-    const indicators = document.getElementById('carouselIndicators');
-    
-    if (carouselImages.length === 0) {
-        carousel.innerHTML = `
-            <div class="carousel-placeholder">
-                <i class="bi bi-image"></i>
-                <p>Nenhuma imagem no portfólio ainda</p>
-            </div>
-        `;
-        indicators.innerHTML = '';
-        return;
-    }
-    
-    // Renderizar slides
-    carousel.innerHTML = carouselImages.map((img, index) => `
-        <div class="carousel-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
-            <img src="${img.url}" alt="${img.titulo || 'Imagem do portfólio'}">
-            ${img.titulo ? `
-                <div class="carousel-caption">
-                    <h3>${img.titulo}</h3>
-                    ${img.descricao ? `<p>${img.descricao}</p>` : ''}
-                </div>
-            ` : ''}
-        </div>
-    `).join('');
-    
-    // Renderizar indicadores
-    indicators.innerHTML = carouselImages.map((_, index) => `
-        <button class="indicator ${index === 0 ? 'active' : ''}" 
-                data-index="${index}" 
-                aria-label="Slide ${index + 1}">
-        </button>
-    `).join('');
-    
-    // Event listeners dos indicadores
-    indicators.querySelectorAll('.indicator').forEach(dot => {
-        dot.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            goToSlide(index);
-        });
-    });
-    
-    // Event listeners dos controles
-    document.getElementById('prevSlide').addEventListener('click', () => prevSlide());
-    document.getElementById('nextSlide').addEventListener('click', () => nextSlide());
-    
-    currentSlide = 0;
-}
-
-function goToSlide(index) {
-    const slides = document.querySelectorAll('.carousel-slide');
-    const indicators = document.querySelectorAll('.indicator');
-    
-    slides.forEach(slide => slide.classList.remove('active'));
-    indicators.forEach(dot => dot.classList.remove('active'));
-    
-    slides[index].classList.add('active');
-    indicators[index].classList.add('active');
-    
-    currentSlide = index;
-}
-
-function nextSlide() {
-    const next = (currentSlide + 1) % carouselImages.length;
-    goToSlide(next);
-}
-
-function prevSlide() {
-    const prev = (currentSlide - 1 + carouselImages.length) % carouselImages.length;
-    goToSlide(prev);
-}
-
-function startAutoSlide() {
-    if (autoSlideInterval) clearInterval(autoSlideInterval);
-    
-    if (carouselImages.length > 1) {
-        autoSlideInterval = setInterval(() => {
-            nextSlide();
-        }, 5000);
-    }
-}
-
-// Pausar autoplay quando mouse estiver sobre o carrossel
-document.addEventListener('DOMContentLoaded', () => {
-    const carouselContainer = document.querySelector('.carousel-container');
-    if (carouselContainer) {
-        carouselContainer.addEventListener('mouseenter', () => {
-            if (autoSlideInterval) clearInterval(autoSlideInterval);
-        });
-        
-        carouselContainer.addEventListener('mouseleave', () => {
-            startAutoSlide();
-        });
-    }
-});
 
 // ==================== SERVIÇOS ====================
 async function loadServices() {
@@ -545,28 +239,144 @@ async function loadServices() {
         const querySnapshot = await getDocs(q);
         
         const servicesGrid = document.getElementById('servicesGrid');
+        
+        if (querySnapshot.empty) {
+            servicesGrid.innerHTML = '<div class="col-12 text-center text-muted py-5">Nenhum serviço cadastrado ainda</div>';
+            return;
+        }
+        
         let servicesHTML = '';
         
         querySnapshot.forEach((doc) => {
             const service = doc.data();
             servicesHTML += `
-                <div class="service-card">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <h3>${service.nome}</h3>
-                    <p>${service.descricao || ''}</p>
-                    ${service.preco ? `<span class="service-price">${service.preco}</span>` : ''}
+                <div class="col-md-6 col-lg-4">
+                    <div class="service-card">
+                        <div class="service-icon">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <h5>${service.nome}</h5>
+                        <p class="text-muted">${service.descricao || ''}</p>
+                        ${service.preco ? `<span class="service-price">${service.preco}</span>` : ''}
+                    </div>
                 </div>
             `;
         });
-        
-        if (!servicesHTML) {
-            servicesHTML = '<p class="no-data">Nenhum serviço cadastrado ainda</p>';
-        }
         
         servicesGrid.innerHTML = servicesHTML;
         
     } catch (error) {
         console.error('Erro ao carregar serviços:', error);
+    }
+}
+
+// ==================== AUTENTICAÇÃO ====================
+async function handleAdminLogin(e) {
+    e.preventDefault();
+    
+    const login = document.getElementById('adminLogin').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    const errorMessage = document.getElementById('loginErrorMessage');
+    const submitBtn = document.getElementById('btnLoginSubmit');
+    
+    if (!login || !password) {
+        errorMessage.textContent = 'Preencha todos os campos!';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    const originalHTML = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Autenticando...';
+    submitBtn.disabled = true;
+    
+    try {
+        // 1. Autenticar no Firebase Auth
+        const email = `${login.toLowerCase()}@tratamentoweb.com`;
+        await signInWithEmailAndPassword(auth, email, password);
+        
+        // 2. Verificar no Firestore
+        const userRef = doc(db, 'logins', login);
+        const userDoc = await getDoc(userRef);
+        
+        if (!userDoc.exists()) {
+            await auth.signOut();
+            errorMessage.textContent = 'Usuário não encontrado!';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        
+        const userData = userDoc.data();
+        
+        // 3. Verificar se está ativo
+        if (!userData.status_ativo) {
+            await auth.signOut();
+            errorMessage.textContent = 'Sua conta está desativada!';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        
+        // 4. Verificar permissão de edição do portfólio
+        if (!userData.habilitar_edicao_portfolio) {
+            await auth.signOut();
+            errorMessage.textContent = 'Você não tem permissão para editar portfólios!';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        
+        // 5. Verificar se é o dono do portfólio
+        if (login !== PROFESSIONAL_ID) {
+            await auth.signOut();
+            errorMessage.textContent = 'Você só pode editar seu próprio portfólio!';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        
+        // Login bem-sucedido
+        await updateDoc(userRef, { ultimo_login: serverTimestamp() });
+        
+        // Fechar modal de login
+        const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+        loginModal.hide();
+        
+        // Limpar formulário
+        document.getElementById('adminLoginForm').reset();
+        errorDiv.classList.add('d-none');
+        
+        // Abrir modal de administração
+        const adminModal = new bootstrap.Modal(document.getElementById('adminModal'));
+        adminModal.show();
+        
+        // Carregar dados para edição
+        await loadAdminData();
+        
+    } catch (error) {
+        console.error('Erro no login:', error);
+        
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+            errorMessage.textContent = 'Login ou senha incorretos!';
+        } else if (error.code === 'auth/user-not-found') {
+            errorMessage.textContent = 'Usuário não cadastrado!';
+        } else {
+            errorMessage.textContent = 'Erro na autenticação: ' + error.message;
+        }
+        errorDiv.classList.remove('d-none');
+    } finally {
+        submitBtn.innerHTML = originalHTML;
+        submitBtn.disabled = false;
+    }
+}
+
+async function handleLogout() {
+    try {
+        await auth.signOut();
+        
+        const adminModal = bootstrap.Modal.getInstance(document.getElementById('adminModal'));
+        adminModal.hide();
+        
+        showToast('Logout realizado com sucesso!', 'success');
+    } catch (error) {
+        console.error('Erro ao fazer logout:', error);
     }
 }
 
@@ -584,29 +394,29 @@ async function loadCurrentImages() {
         const querySnapshot = await getDocs(q);
         
         const container = document.getElementById('currentImages');
+        
+        if (querySnapshot.empty) {
+            container.innerHTML = '<p class="text-muted text-center">Nenhuma imagem cadastrada</p>';
+            return;
+        }
+        
         let html = '';
         
         querySnapshot.forEach((doc) => {
             const img = doc.data();
             html += `
-                <div class="image-item">
+                <div class="admin-image-item">
                     <img src="${img.thumb || img.url}" alt="${img.titulo || ''}">
                     <div class="image-info">
                         <strong>${img.titulo || 'Sem título'}</strong>
-                        <p>${img.descricao || ''}</p>
+                        <p class="mb-0 text-white-50 small">${img.descricao || ''}</p>
                     </div>
-                    <div class="image-actions">
-                        <button onclick="deleteImage('${doc.id}')" class="btn-danger">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="window.deleteImage('${doc.id}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>
             `;
         });
-        
-        if (!html) {
-            html = '<p class="no-data">Nenhuma imagem cadastrada</p>';
-        }
         
         container.innerHTML = html;
         
@@ -640,27 +450,29 @@ async function loadCurrentServices() {
         const querySnapshot = await getDocs(q);
         
         const container = document.getElementById('currentServices');
+        
+        if (querySnapshot.empty) {
+            container.innerHTML = '<p class="text-muted text-center">Nenhum serviço cadastrado</p>';
+            return;
+        }
+        
         let html = '';
         
         querySnapshot.forEach((doc) => {
             const service = doc.data();
             html += `
-                <div class="service-admin-item">
-                    <div class="service-info">
+                <div class="admin-service-item">
+                    <div>
                         <strong>${service.nome}</strong>
-                        <p>${service.descricao || ''}</p>
-                        ${service.preco ? `<span>${service.preco}</span>` : ''}
+                        <p class="mb-0 text-white-50 small">${service.descricao || ''}</p>
+                        ${service.preco ? `<span class="badge bg-warning text-dark">${service.preco}</span>` : ''}
                     </div>
-                    <button onclick="deleteService('${doc.id}')" class="btn-danger">
+                    <button class="btn btn-danger btn-sm" onclick="window.deleteService('${doc.id}')">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
             `;
         });
-        
-        if (!html) {
-            html = '<p class="no-data">Nenhum serviço cadastrado</p>';
-        }
         
         container.innerHTML = html;
         
@@ -676,49 +488,55 @@ async function handleImageUpload(e) {
     const fileInput = document.getElementById('imageFile');
     const titleInput = document.getElementById('imageTitle');
     const descriptionInput = document.getElementById('imageDescription');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const progressDiv = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('uploadProgressBar');
     
     if (!fileInput.files || !fileInput.files[0]) {
-        showToast('Selecione uma imagem!', 'error');
+        showToast('Selecione uma imagem!', 'danger');
         return;
     }
     
     const file = fileInput.files[0];
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const progressBar = document.getElementById('uploadProgress');
-    const progressFill = progressBar.querySelector('.progress-fill');
     
     // Mostrar progresso
-    progressBar.style.display = 'block';
-    progressFill.style.width = '0%';
+    progressDiv.classList.remove('d-none');
+    progressBar.style.width = '0%';
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Enviando...';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
     
     try {
         // Converter para base64
         const base64 = await fileToBase64(file);
-        
-        // Atualizar progresso
-        progressFill.style.width = '50%';
+        progressBar.style.width = '50%';
         
         // Upload para ImgBB
         const result = await uploadParaImgbb(base64);
-        
-        progressFill.style.width = '100%';
+        progressBar.style.width = '100%';
         
         if (result.success) {
-            // Salvar no Firestore
+            // Buscar última ordem
             const imagesRef = collection(db, IMAGES_COLLECTION);
+            const q = query(imagesRef, orderBy('ordem', 'desc'), limit(1));
+            const querySnapshot = await getDocs(q);
+            let nextOrder = 0;
+            
+            if (!querySnapshot.empty) {
+                nextOrder = querySnapshot.docs[0].data().ordem + 1;
+            }
+            
+            // Salvar no Firestore
             await addDoc(imagesRef, {
                 url: result.url,
                 thumb: result.thumb,
                 delete_url: result.delete_url,
                 titulo: titleInput.value,
                 descricao: descriptionInput.value,
-                ordem: carouselImages.length,
+                ordem: nextOrder,
                 data_upload: serverTimestamp()
             });
             
-            showToast('Imagem adicionada com sucesso!');
+            showToast('Imagem adicionada com sucesso!', 'success');
             
             // Limpar formulário
             fileInput.value = '';
@@ -732,12 +550,12 @@ async function handleImageUpload(e) {
         
     } catch (error) {
         console.error('Erro no upload:', error);
-        showToast('Erro ao fazer upload: ' + error.message, 'error');
+        showToast('Erro ao fazer upload: ' + error.message, 'danger');
     } finally {
-        progressBar.style.display = 'none';
-        progressFill.style.width = '0%';
+        progressDiv.classList.add('d-none');
+        progressBar.style.width = '0%';
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="bi bi-cloud-upload"></i> Fazer Upload';
+        submitBtn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Fazer Upload';
     }
 }
 
@@ -756,7 +574,7 @@ async function handleContentSave(e) {
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Salvando...';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
     
     try {
         const data = {
@@ -771,17 +589,17 @@ async function handleContentSave(e) {
         const contentRef = doc(db, CONTENT_DOC);
         await setDoc(contentRef, data, { merge: true });
         
-        showToast('Informações salvas com sucesso!');
+        showToast('Informações salvas com sucesso!', 'success');
         
         // Atualizar visualização
         populatePortfolioContent(data);
         
     } catch (error) {
         console.error('Erro ao salvar conteúdo:', error);
-        showToast('Erro ao salvar: ' + error.message, 'error');
+        showToast('Erro ao salvar: ' + error.message, 'danger');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="bi bi-check-lg"></i> Salvar Informações';
+        submitBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Salvar Informações';
     }
 }
 
@@ -794,12 +612,13 @@ async function handleServiceAdd(e) {
     const preco = document.getElementById('servicePrice').value;
     
     if (!nome) {
-        showToast('Informe o nome do serviço!', 'error');
+        showToast('Informe o nome do serviço!', 'danger');
         return;
     }
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adicionando...';
     
     try {
         const servicesRef = collection(db, SERVICES_COLLECTION);
@@ -821,7 +640,7 @@ async function handleServiceAdd(e) {
             criado_em: serverTimestamp()
         });
         
-        showToast('Serviço adicionado!');
+        showToast('Serviço adicionado!', 'success');
         
         // Limpar formulário
         document.getElementById('serviceName').value = '';
@@ -834,13 +653,14 @@ async function handleServiceAdd(e) {
         
     } catch (error) {
         console.error('Erro ao adicionar serviço:', error);
-        showToast('Erro: ' + error.message, 'error');
+        showToast('Erro: ' + error.message, 'danger');
     } finally {
         submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>Adicionar Serviço';
     }
 }
 
-// ==================== FUNÇÕES GLOBAIS PARA OS BOTÕES ====================
+// ==================== FUNÇÕES GLOBAIS ====================
 window.deleteImage = async function(imageId) {
     if (!confirm('Tem certeza que deseja excluir esta imagem?')) return;
     
@@ -848,13 +668,13 @@ window.deleteImage = async function(imageId) {
         const imageRef = doc(db, IMAGES_COLLECTION, imageId);
         await deleteDoc(imageRef);
         
-        showToast('Imagem excluída!');
+        showToast('Imagem excluída!', 'success');
         await loadCurrentImages();
         await loadCarouselImages();
         
     } catch (error) {
         console.error('Erro ao excluir imagem:', error);
-        showToast('Erro ao excluir: ' + error.message, 'error');
+        showToast('Erro ao excluir: ' + error.message, 'danger');
     }
 };
 
@@ -865,35 +685,26 @@ window.deleteService = async function(serviceId) {
         const serviceRef = doc(db, SERVICES_COLLECTION, serviceId);
         await deleteDoc(serviceRef);
         
-        showToast('Serviço excluído!');
+        showToast('Serviço excluído!', 'success');
         await loadCurrentServices();
         await loadServices();
         
     } catch (error) {
         console.error('Erro ao excluir serviço:', error);
-        showToast('Erro ao excluir: ' + error.message, 'error');
+        showToast('Erro ao excluir: ' + error.message, 'danger');
     }
 };
 
 // ==================== UTILITÁRIOS ====================
 function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
+    const toastEl = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
-    const icon = toast.querySelector('i');
     
-    toastMessage.textContent = message;
+    toastMessage.innerHTML = `<i class="bi bi-${type === 'success' ? 'check' : 'exclamation'}-circle me-2"></i>${message}`;
+    toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
     
-    if (type === 'error') {
-        toast.classList.add('toast-error');
-        icon.className = 'bi bi-exclamation-circle';
-    } else {
-        toast.classList.remove('toast-error');
-        icon.className = 'bi bi-check-circle';
-    }
-    
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+    const toast = new bootstrap.Toast(toastEl, {
+        delay: 3000
+    });
+    toast.show();
 }
