@@ -1,11 +1,35 @@
-// DADOS DAS IMAGENS
+// DADOS DO CARROSSEL - 5 SERVIÇOS
 const trabalhosImagens = [
-    { id: 1, imagem: "grazielle_carvalho_imagens/trabalho1.jpg", titulo: "Alimentação Saudável", subtitulo: "Refeições balanceadas" },
-    { id: 2, imagem: "grazielle_carvalho_imagens/trabalho2.jpg", titulo: "Cardápio Personalizado", subtitulo: "Plano alimentar exclusivo" },
-    { id: 3, imagem: "grazielle_carvalho_imagens/trabalho3.jpg", titulo: "Acompanhamento", subtitulo: "Evolução constante" },
-    { id: 4, imagem: "grazielle_carvalho_imagens/trabalho4.jpg", titulo: "Receitas Saudáveis", subtitulo: "Sabor e saúde" },
-    { id: 5, imagem: "grazielle_carvalho_imagens/trabalho5.jpg", titulo: "Consultas", subtitulo: "Atendimento humanizado" },
-    { id: 6, imagem: "grazielle_carvalho_imagens/trabalho6.jpg", titulo: "Resultados", subtitulo: "Clientes satisfeitos" }
+    { 
+        id: 1, 
+        imagem: "grazielle_carvalho_imagens/trabalho1.jpg", 
+        titulo: "Acompanhamento Web Personalizado", 
+        subtitulo: "Suporte nutricional online sob medida para você" 
+    },
+    { 
+        id: 2, 
+        imagem: "grazielle_carvalho_imagens/trabalho2.jpg", 
+        titulo: "Consultoria e Assessoria Nutricional", 
+        subtitulo: "Orientação especializada para seus objetivos" 
+    },
+    { 
+        id: 3, 
+        imagem: "grazielle_carvalho_imagens/trabalho3.jpg", 
+        titulo: "Atendimento Nutricional", 
+        subtitulo: "Individualizado e em grupo" 
+    },
+    { 
+        id: 4, 
+        imagem: "grazielle_carvalho_imagens/trabalho4.jpg", 
+        titulo: "Especialização em Saúde Coletiva", 
+        subtitulo: "Nutrição para toda comunidade" 
+    },
+    { 
+        id: 5, 
+        imagem: "grazielle_carvalho_imagens/trabalho5.jpg", 
+        titulo: "Especialização 60+", 
+        subtitulo: "Cuidado nutricional para a melhor idade" 
+    }
 ];
 
 let anguloGestoras = 0;
@@ -25,7 +49,7 @@ function inicializarCarrossel() {
     containerGestoras.innerHTML = "";
     const total = trabalhosImagens.length;
     const anguloStep = 360 / total;
-    const raio = 380;
+    const raio = 420;
 
     for (let i = 0; i < total; i++) {
         const item = trabalhosImagens[i];
@@ -51,15 +75,24 @@ function criarSlide(item) {
     img.src = item.imagem;
     img.alt = item.titulo;
     img.onerror = () => {
-        img.src = `https://via.placeholder.com/400x400/667eea/white?text=${encodeURIComponent(item.titulo)}`;
+        img.src = `https://via.placeholder.com/400x400/667eea/white?text=${encodeURIComponent(item.titulo.substring(0, 20))}`;
     };
     
     const overlay = document.createElement("div");
     overlay.className = "image-overlay";
-    overlay.innerHTML = `<h3 class="image-title">${item.titulo}</h3><p class="image-subtitle">${item.subtitulo}</p>`;
+    overlay.innerHTML = `
+        <h3 class="image-title">${item.titulo}</h3>
+        <p class="image-subtitle">${item.subtitulo}</p>
+    `;
     
     slide.appendChild(img);
     slide.appendChild(overlay);
+    
+    // Clique na imagem
+    slide.addEventListener('click', () => {
+        alert(`🍎 ${item.titulo}\n\n${item.subtitulo}\n\nAgende sua consulta!`);
+    });
+    
     return slide;
 }
 
