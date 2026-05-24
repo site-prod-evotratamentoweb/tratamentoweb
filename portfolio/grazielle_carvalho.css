@@ -30,7 +30,7 @@ body {
     align-items: center;
 }
 
-/* LOGO - AUMENTADA */
+/* LOGO */
 .logo {
     display: flex;
     align-items: center;
@@ -106,12 +106,13 @@ body {
     justify-content: center;
     scroll-margin-top: 80px;
     background-size: cover;
-    background-position: center;
+    background-position: center center;
+    background-repeat: no-repeat;
     background-attachment: fixed;
     position: relative;
 }
 
-/* Overlay escuro para melhor contraste */
+/* Overlay mais suave */
 .section::before {
     content: '';
     position: absolute;
@@ -119,7 +120,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     z-index: 0;
 }
 
@@ -133,18 +134,23 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 .sobre-section.fallback {
-    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
 }
 .servicos-section.fallback {
-    background: linear-gradient(135deg, #1a2a3a 0%, #2a5a4a 100%);
+    background: linear-gradient(135deg, #1a2a3a 0%, #2a3a4a 100%);
 }
 .contatos-section.fallback {
-    background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 100%);
+    background: linear-gradient(135deg, #3a1a2a 0%, #4a2a3a 100%);
 }
 
-/* Quando tem fallback, remove overlay */
 .section.fallback::before {
     display: none;
+}
+
+.section:not(.fallback) {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
 }
 
 .section-header {
@@ -233,7 +239,6 @@ body {
     display: block;
 }
 
-/* Fallback do carrossel */
 .carousel-item-3d .fallback-icon {
     display: flex;
     flex-direction: column;
@@ -290,7 +295,6 @@ body {
     text-align: center;
 }
 
-/* Controles */
 .carousel-controls {
     display: flex;
     align-items: center;
