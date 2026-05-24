@@ -16,30 +16,103 @@
     <!-- HEADER COM LOGO E BOTÃO -->
     <div class="header">
         <div class="header-container">
-            <div class="logo">
-                <div class="logo-icone">🍎</div>
-                <span>Grazielle Carvalho</span>
-            </div>
-            <a href="https://tratamentoweb.com.br" target="_blank" class="btn-acessar">
+            <div class="logo">🍎</div>
+            <a href="https://tratamentoweb.com.br" target="_self" class="btn-acessar">
                 <i class="bi bi-box-arrow-up-right"></i>
                 Acessar Sistema
             </a>
         </div>
     </div>
 
-    <!-- CARROSSEL 3D -->
-    <div class="carrossel-container">
-        <div class="carousel-wrapper">
-            <div id="carrossel3d" class="carousel-3d"></div>
+    <!-- ABAS -->
+    <div class="abas-container">
+        <button class="aba-btn active" data-aba="novidades">
+            <i class="bi bi-megaphone"></i> Novidades
+        </button>
+        <button class="aba-btn" data-aba="sobre">
+            <i class="bi bi-person"></i> Sobre
+        </button>
+        <button class="aba-btn" data-aba="servicos">
+            <i class="bi bi-grid"></i> Serviços
+        </button>
+        <button class="aba-btn" data-aba="contatos">
+            <i class="bi bi-envelope"></i> Contatos
+        </button>
+    </div>
+
+    <!-- CONTEÚDO DAS ABAS -->
+    <div class="conteudo-aba" id="aba-novidades">
+        <div class="carrossel-container">
+            <div class="carousel-wrapper">
+                <div id="carrosselNovidades" class="carousel-3d"></div>
+            </div>
+            <div class="carousel-controls">
+                <button id="btnPrevNovidades" class="btn-carousel">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span id="novidadesCounter" class="carousel-counter">1 / 3</span>
+                <button id="btnNextNovidades" class="btn-carousel">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
         </div>
-        <div class="carousel-controls">
-            <button id="btnPrev" class="btn-carousel">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-            <span id="gestoraCounter" class="carousel-counter">1 / 5</span>
-            <button id="btnNext" class="btn-carousel">
-                <i class="bi bi-chevron-right"></i>
-            </button>
+    </div>
+
+    <div class="conteudo-aba" id="aba-sobre" style="display: none;">
+        <div class="sobre-container">
+            <div class="sobre-card">
+                <div class="sobre-icone">🍎</div>
+                <h2>Grazielle Carvalho</h2>
+                <p class="cargo">Nutricionista · CRN 12345</p>
+                <p class="descricao">
+                    Especialista em nutrição clínica, esportiva e comportamental. 
+                    Acredito que uma alimentação saudável deve ser prazerosa e sustentável.
+                </p>
+                <div class="especialidades">
+                    <span class="badge">Nutrição Clínica</span>
+                    <span class="badge">Nutrição Esportiva</span>
+                    <span class="badge">Nutrição Comportamental</span>
+                    <span class="badge">Saúde Coletiva</span>
+                    <span class="badge">Especialização 60+</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="conteudo-aba" id="aba-servicos" style="display: none;">
+        <div class="carrossel-container">
+            <div class="carousel-wrapper">
+                <div id="carrosselServicos" class="carousel-3d"></div>
+            </div>
+            <div class="carousel-controls">
+                <button id="btnPrevServicos" class="btn-carousel">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span id="servicosCounter" class="carousel-counter">1 / 5</span>
+                <button id="btnNextServicos" class="btn-carousel">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="conteudo-aba" id="aba-contatos" style="display: none;">
+        <div class="contatos-container">
+            <div class="contatos-card">
+                <h2><i class="bi bi-envelope"></i> Contato</h2>
+                <a href="https://wa.me/5511999999999" target="_blank" class="contato-item">
+                    <i class="bi bi-whatsapp"></i>
+                    <span>(11) 99999-9999</span>
+                </a>
+                <a href="mailto:contato@graziellecarvalho.com" class="contato-item">
+                    <i class="bi bi-envelope-fill"></i>
+                    <span>contato@graziellecarvalho.com</span>
+                </a>
+                <a href="https://instagram.com/grazielle.nutri" target="_blank" class="contato-item">
+                    <i class="bi bi-instagram"></i>
+                    <span>@grazielle.nutri</span>
+                </a>
+            </div>
         </div>
     </div>
 
