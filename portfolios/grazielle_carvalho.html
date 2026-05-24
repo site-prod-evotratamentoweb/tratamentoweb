@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Grazielle Carvalho | Nutricionista</title>
     
     <!-- Bootstrap Icons -->
@@ -13,56 +13,59 @@
 </head>
 <body>
 
-    <!-- HEADER COM LOGO E BOTÃO -->
-    <div class="header">
+    <!-- HEADER FIXO COM LOGO E MENU -->
+    <header class="header">
         <div class="header-container">
             <div class="logo">🍎</div>
-            <a href="https://tratamentoweb.com.br" target="_self" class="btn-acessar">
-                <i class="bi bi-box-arrow-up-right"></i>
-                Acessar Sistema
-            </a>
+            
+            <!-- Menu Hamburguer para Mobile -->
+            <button class="menu-toggle" id="menuToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <!-- Navegação -->
+            <nav class="nav-menu" id="navMenu">
+                <a href="#novidades" class="nav-link">Novidades</a>
+                <a href="#sobre" class="nav-link">Sobre</a>
+                <a href="#servicos" class="nav-link">Serviços</a>
+                <a href="#contatos" class="nav-link">Contatos</a>
+                <a href="https://tratamentoweb.com.br" target="_self" class="nav-link btn-acessar-nav">
+                    <i class="bi bi-box-arrow-up-right"></i> Acessar
+                </a>
+            </nav>
         </div>
-    </div>
+    </header>
 
-    <!-- ABAS -->
-    <div class="abas-container">
-        <button class="aba-btn active" data-aba="novidades">
-            <i class="bi bi-megaphone"></i> Novidades
-        </button>
-        <button class="aba-btn" data-aba="sobre">
-            <i class="bi bi-person"></i> Sobre
-        </button>
-        <button class="aba-btn" data-aba="servicos">
-            <i class="bi bi-grid"></i> Serviços
-        </button>
-        <button class="aba-btn" data-aba="contatos">
-            <i class="bi bi-envelope"></i> Contatos
-        </button>
-    </div>
-
-    <!-- CONTEÚDO DAS ABAS -->
-    <div class="conteudo-aba" id="aba-novidades">
-        <div class="carrossel-container">
-            <div class="carousel-wrapper">
-                <div id="carrosselNovidades" class="carousel-3d"></div>
+    <main class="main-content">
+        <!-- SEÇÃO NOVIDADES -->
+        <section id="novidades" class="section novidades-section">
+            <div class="section-header">
+                <h2><i class="bi bi-megaphone"></i> Novidades</h2>
+                <div class="carousel-controls">
+                    <button id="btnPrevNovidades" class="btn-carousel-sm">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="novidadesCounter" class="carousel-counter-sm">1 / 3</span>
+                    <button id="btnNextNovidades" class="btn-carousel-sm">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
             </div>
-            <div class="carousel-controls">
-                <button id="btnPrevNovidades" class="btn-carousel">
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-                <span id="novidadesCounter" class="carousel-counter">1 / 3</span>
-                <button id="btnNextNovidades" class="btn-carousel">
-                    <i class="bi bi-chevron-right"></i>
-                </button>
+            <div class="carousel-container">
+                <div class="carousel-wrapper">
+                    <div id="carrosselNovidades" class="carousel-3d"></div>
+                </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <div class="conteudo-aba" id="aba-sobre" style="display: none;">
-        <div class="sobre-container">
+        <!-- SEÇÃO SOBRE -->
+        <section id="sobre" class="section sobre-section">
+            <div class="section-header">
+                <h2><i class="bi bi-person"></i> Sobre</h2>
+            </div>
             <div class="sobre-card">
                 <div class="sobre-icone">🍎</div>
-                <h2>Grazielle Carvalho</h2>
+                <h3>Grazielle Carvalho</h3>
                 <p class="cargo">Nutricionista · CRN 12345</p>
                 <p class="descricao">
                     Especialista em nutrição clínica, esportiva e comportamental. 
@@ -76,30 +79,35 @@
                     <span class="badge">Especialização 60+</span>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <div class="conteudo-aba" id="aba-servicos" style="display: none;">
-        <div class="carrossel-container">
-            <div class="carousel-wrapper">
-                <div id="carrosselServicos" class="carousel-3d"></div>
+        <!-- SEÇÃO SERVIÇOS -->
+        <section id="servicos" class="section servicos-section">
+            <div class="section-header">
+                <h2><i class="bi bi-grid"></i> Serviços</h2>
+                <div class="carousel-controls">
+                    <button id="btnPrevServicos" class="btn-carousel-sm">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="servicosCounter" class="carousel-counter-sm">1 / 5</span>
+                    <button id="btnNextServicos" class="btn-carousel-sm">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
             </div>
-            <div class="carousel-controls">
-                <button id="btnPrevServicos" class="btn-carousel">
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-                <span id="servicosCounter" class="carousel-counter">1 / 5</span>
-                <button id="btnNextServicos" class="btn-carousel">
-                    <i class="bi bi-chevron-right"></i>
-                </button>
+            <div class="carousel-container">
+                <div class="carousel-wrapper">
+                    <div id="carrosselServicos" class="carousel-3d"></div>
+                </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <div class="conteudo-aba" id="aba-contatos" style="display: none;">
-        <div class="contatos-container">
+        <!-- SEÇÃO CONTATOS -->
+        <section id="contatos" class="section contatos-section">
+            <div class="section-header">
+                <h2><i class="bi bi-envelope"></i> Contatos</h2>
+            </div>
             <div class="contatos-card">
-                <h2><i class="bi bi-envelope"></i> Contato</h2>
                 <a href="https://wa.me/5511999999999" target="_blank" class="contato-item">
                     <i class="bi bi-whatsapp"></i>
                     <span>(11) 99999-9999</span>
@@ -113,8 +121,8 @@
                     <span>@grazielle.nutri</span>
                 </a>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <script src="grazielle_carvalho.js"></script>
 </body>
