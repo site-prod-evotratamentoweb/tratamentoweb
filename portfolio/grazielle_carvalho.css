@@ -6,7 +6,6 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
 }
 
@@ -31,21 +30,21 @@ body {
     align-items: center;
 }
 
-/* LOGO */
+/* LOGO - AUMENTADA */
 .logo {
     display: flex;
     align-items: center;
 }
 
 .logo-img {
-    height: 45px;
+    height: 60px;
     width: auto;
-    max-width: 150px;
+    max-width: 200px;
     object-fit: contain;
 }
 
 .logo-fallback {
-    font-size: 2rem;
+    font-size: 2.5rem;
 }
 
 /* MENU */
@@ -71,7 +70,7 @@ body {
 .btn-acessar-nav {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 6px 16px;
+    padding: 8px 20px;
     border-radius: 50px;
     display: flex;
     align-items: center;
@@ -95,17 +94,57 @@ body {
 
 /* MAIN CONTENT */
 .main-content {
-    padding-top: 70px;
+    padding-top: 80px;
 }
 
 /* SEÇÕES */
 .section {
     min-height: 100vh;
-    padding: 40px 20px;
+    padding: 60px 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    scroll-margin-top: 70px;
+    scroll-margin-top: 80px;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    position: relative;
+}
+
+/* Overlay escuro para melhor contraste */
+.section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 0;
+}
+
+.section > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* FUNDOS PADRÃO (FALLBACK) */
+.novidades-section.fallback {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.sobre-section.fallback {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+}
+.servicos-section.fallback {
+    background: linear-gradient(135deg, #1a2a3a 0%, #2a5a4a 100%);
+}
+.contatos-section.fallback {
+    background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 100%);
+}
+
+/* Quando tem fallback, remove overlay */
+.section.fallback::before {
+    display: none;
 }
 
 .section-header {
@@ -124,6 +163,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
 .section-header h2 i {
@@ -193,7 +233,7 @@ body {
     display: block;
 }
 
-/* Fallback */
+/* Fallback do carrossel */
 .carousel-item-3d .fallback-icon {
     display: flex;
     flex-direction: column;
@@ -250,7 +290,7 @@ body {
     text-align: center;
 }
 
-/* Controles pequenos */
+/* Controles */
 .carousel-controls {
     display: flex;
     align-items: center;
@@ -388,7 +428,7 @@ body {
     
     .nav-menu {
         position: fixed;
-        top: 70px;
+        top: 80px;
         left: -100%;
         width: 100%;
         background: white;
@@ -415,16 +455,17 @@ body {
     }
     
     .logo-img {
-        height: 35px;
+        height: 45px;
     }
     
     .logo-fallback {
-        font-size: 1.6rem;
+        font-size: 2rem;
     }
     
     .section {
-        padding: 30px 16px;
-        scroll-margin-top: 70px;
+        padding: 40px 16px;
+        scroll-margin-top: 80px;
+        background-attachment: scroll;
     }
     
     .section-header {
