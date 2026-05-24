@@ -67,6 +67,12 @@ body {
     color: #667eea;
 }
 
+.nav-link.active {
+    color: #667eea;
+    font-weight: bold;
+    border-bottom: 2px solid #667eea;
+}
+
 .btn-acessar-nav {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -80,6 +86,12 @@ body {
 .btn-acessar-nav:hover {
     color: white;
     transform: scale(1.02);
+}
+
+.btn-acessar-nav.active {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
 }
 
 /* Menu Hamburguer (Mobile) */
@@ -110,9 +122,10 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     position: relative;
+    transition: all 0.3s ease;
 }
 
-/* Overlay */
+/* Overlay padrão (seção fechada) - mais escuro */
 .section::before {
     content: '';
     position: absolute;
@@ -120,8 +133,19 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.7);
     z-index: 0;
+    transition: background 0.3s ease;
+}
+
+/* Quando a seção está aberta (com conteúdo visível), overlay fica mais leve */
+.section.conteudo-aberto::before {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Quando a seção está aberta e tem fundo personalizado, overlay mais transparente ainda */
+.section.conteudo-aberto:not(.fallback)::before {
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .section > * {
@@ -143,7 +167,13 @@ body {
     background: linear-gradient(135deg, #3a1a2a 0%, #4a2a3a 100%);
 }
 
+/* Fallback sem overlay */
 .section.fallback::before {
+    display: none;
+}
+
+/* Quando fallback está aberto, mantém cor original */
+.section.fallback.conteudo-aberto::before {
     display: none;
 }
 
@@ -548,17 +578,4 @@ body {
         width: 150px;
         height: 150px;
     }
-}
-
-/* Menu ativo (scroll spy) */
-.nav-link.active {
-    color: #667eea;
-    font-weight: bold;
-    border-bottom: 2px solid #667eea;
-}
-
-.btn-acessar-nav.active {
-    background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
 }
