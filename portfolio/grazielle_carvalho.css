@@ -112,7 +112,7 @@ body {
     position: relative;
 }
 
-/* Overlay mais suave */
+/* Overlay */
 .section::before {
     content: '';
     position: absolute;
@@ -153,29 +153,54 @@ body {
     background-repeat: no-repeat;
 }
 
+/* HEADER DAS SEÇÕES */
 .section-header {
     text-align: center;
     margin-bottom: 40px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
 }
 
 .section-header h2 {
     color: white;
     font-size: 1.8rem;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 10px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 12px 24px;
+    border-radius: 60px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
+}
+
+.section-header h2:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
 }
 
 .section-header h2 i {
-    background: rgba(255,255,255,0.2);
-    padding: 10px;
-    border-radius: 50%;
+    font-size: 1.6rem;
+}
+
+/* Carrossel wrapper */
+.carrossel-wrapper {
+    margin-top: 30px;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* CARROSSEL 3D */
@@ -299,6 +324,8 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
 }
 
 .btn-carousel-sm {
@@ -472,13 +499,13 @@ body {
         background-attachment: scroll;
     }
     
-    .section-header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
     .section-header h2 {
         font-size: 1.4rem;
+        padding: 8px 18px;
+    }
+    
+    .section-header h2 i {
+        font-size: 1.2rem;
     }
     
     .carousel-3d {
@@ -515,71 +542,5 @@ body {
     .carousel-item-3d {
         width: 150px;
         height: 150px;
-    }
-}
-
-/* Botão ativar carrossel */
-.carrossel-trigger {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 300px;
-}
-
-.btn-ativar-carrossel {
-    background: rgba(255, 255, 255, 0.95);
-    border: none;
-    padding: 16px 32px;
-    border-radius: 60px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #667eea;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-}
-
-.btn-ativar-carrossel i {
-    font-size: 1.5rem;
-}
-
-.btn-ativar-carrossel:hover {
-    transform: scale(1.05);
-    background: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-/* Carrossel wrapper (inicialmente oculto) */
-.carrossel-wrapper {
-    animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Responsivo */
-@media (max-width: 768px) {
-    .btn-ativar-carrossel {
-        padding: 12px 24px;
-        font-size: 1rem;
-    }
-    
-    .btn-ativar-carrossel i {
-        font-size: 1.2rem;
-    }
-    
-    .carrossel-trigger {
-        min-height: 250px;
     }
 }
