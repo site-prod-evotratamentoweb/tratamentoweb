@@ -48,19 +48,31 @@
         <section id="novidades" class="section novidades-section" data-fundo="novidades">
             <div class="section-header">
                 <h2><i class="bi bi-megaphone"></i> Novidades</h2>
-                <div class="carousel-controls">
-                    <button id="btnPrevNovidades" class="btn-carousel-sm">
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                    <span id="novidadesCounter" class="carousel-counter-sm">1 / 3</span>
-                    <button id="btnNextNovidades" class="btn-carousel-sm">
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
             </div>
-            <div class="carousel-container">
-                <div class="carousel-wrapper">
-                    <div id="carrosselNovidades" class="carousel-3d"></div>
+            
+            <!-- Botão para ativar carrossel -->
+            <div class="carrossel-trigger" id="triggerNovidades">
+                <button class="btn-ativar-carrossel">
+                    <i class="bi bi-play-circle"></i>
+                    Ver Novidades
+                </button>
+            </div>
+            
+            <!-- Carrossel (inicialmente oculto) -->
+            <div class="carrossel-wrapper" id="carrosselWrapperNovidades" style="display: none;">
+                <div class="carousel-container">
+                    <div class="carousel-wrapper">
+                        <div id="carrosselNovidades" class="carousel-3d"></div>
+                    </div>
+                    <div class="carousel-controls">
+                        <button id="btnPrevNovidades" class="btn-carousel-sm">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <span id="novidadesCounter" class="carousel-counter-sm">1 / 3</span>
+                        <button id="btnNextNovidades" class="btn-carousel-sm">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -92,19 +104,31 @@
         <section id="servicos" class="section servicos-section" data-fundo="servicos">
             <div class="section-header">
                 <h2><i class="bi bi-grid"></i> Serviços</h2>
-                <div class="carousel-controls">
-                    <button id="btnPrevServicos" class="btn-carousel-sm">
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                    <span id="servicosCounter" class="carousel-counter-sm">1 / 5</span>
-                    <button id="btnNextServicos" class="btn-carousel-sm">
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
             </div>
-            <div class="carousel-container">
-                <div class="carousel-wrapper">
-                    <div id="carrosselServicos" class="carousel-3d"></div>
+            
+            <!-- Botão para ativar carrossel -->
+            <div class="carrossel-trigger" id="triggerServicos">
+                <button class="btn-ativar-carrossel">
+                    <i class="bi bi-play-circle"></i>
+                    Ver Serviços
+                </button>
+            </div>
+            
+            <!-- Carrossel (inicialmente oculto) -->
+            <div class="carrossel-wrapper" id="carrosselWrapperServicos" style="display: none;">
+                <div class="carousel-container">
+                    <div class="carousel-wrapper">
+                        <div id="carrosselServicos" class="carousel-3d"></div>
+                    </div>
+                    <div class="carousel-controls">
+                        <button id="btnPrevServicos" class="btn-carousel-sm">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <span id="servicosCounter" class="carousel-counter-sm">1 / 5</span>
+                        <button id="btnNextServicos" class="btn-carousel-sm">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
