@@ -6,129 +6,123 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    transition: background-image 0.3s ease;
-}
-
-/* FUNDO PADRÃO (fallback) */
-body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
 }
 
-body.fundo-novidades { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-body.fundo-sobre { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); }
-body.fundo-servicos { background: linear-gradient(135deg, #1a2a3a 0%, #2a5a4a 100%); }
-body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 100%); }
-
-/* HEADER */
+/* HEADER FIXO */
 .header {
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 15px 0;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     z-index: 1000;
+    padding: 12px 0;
 }
 
 .header-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .logo {
-    font-size: 2.2rem;
+    font-size: 2rem;
 }
 
-.btn-acessar {
+/* MENU */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #555;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.nav-link:hover {
+    color: #667eea;
+}
+
+.btn-acessar-nav {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border: none;
-    padding: 10px 24px;
+    padding: 6px 16px;
     border-radius: 50px;
-    text-decoration: none;
-    font-weight: bold;
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    cursor: pointer;
+    gap: 6px;
 }
 
-.btn-acessar:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-/* ABAS */
-.abas-container {
-    position: fixed;
-    top: 80px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px 20px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    z-index: 999;
-    flex-wrap: wrap;
-}
-
-.aba-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    padding: 10px 24px;
-    border-radius: 50px;
+.btn-acessar-nav:hover {
     color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    transform: scale(1.02);
 }
 
-.aba-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-}
-
-.aba-btn.active {
-    background: white;
+/* Menu Hamburguer (Mobile) */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.8rem;
     color: #667eea;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
 }
 
-/* CONTEÚDO DAS ABAS */
-.conteudo-aba {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* MAIN CONTENT */
+.main-content {
+    padding-top: 70px;
+}
+
+/* SEÇÕES */
+.section {
     min-height: 100vh;
-    padding-top: 160px;
-    padding-bottom: 40px;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    scroll-margin-top: 70px;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.section-header h2 {
+    color: white;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header h2 i {
+    background: rgba(255,255,255,0.2);
+    padding: 10px;
+    border-radius: 50%;
 }
 
 /* CARROSSEL 3D */
-.carrossel-container {
+.carousel-container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
+    justify-content: center;
     width: 100%;
 }
 
@@ -136,8 +130,8 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 450px;
-    perspective: 1200px;
+    min-height: 400px;
+    perspective: 1000px;
     perspective-origin: 50% 50%;
     width: 100%;
     overflow: visible;
@@ -145,10 +139,10 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
 
 .carousel-3d {
     position: relative;
-    width: 280px;
-    height: 280px;
+    width: 260px;
+    height: 260px;
     transform-style: preserve-3d;
-    transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.45, 1);
+    transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.45, 1);
     cursor: grab;
 }
 
@@ -158,26 +152,25 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
 
 .carousel-item-3d {
     position: absolute;
-    width: 250px;
-    height: 250px;
+    width: 230px;
+    height: 230px;
     left: 15px;
     top: 15px;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     cursor: pointer;
-    border: 3px solid transparent;
+    border: 2px solid rgba(255,255,255,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .carousel-item-3d:hover {
-    transform: scale(1.08);
+    transform: scale(1.05);
     border-color: #ffd700;
-    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.4);
 }
 
 .carousel-item-3d img {
@@ -197,18 +190,18 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
     height: 100%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    text-align: center;
+    padding: 20px;
 }
 
 .carousel-item-3d .fallback-icon i {
-    font-size: 4rem;
-    margin-bottom: 15px;
+    font-size: 3rem;
+    margin-bottom: 10px;
 }
 
 .carousel-item-3d .fallback-icon span {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: bold;
-    text-align: center;
-    padding: 0 10px;
 }
 
 .image-overlay {
@@ -217,7 +210,7 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
     left: 0;
     right: 0;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.95), transparent);
-    padding: 20px 10px;
+    padding: 15px 8px;
     opacity: 0;
     transform: translateY(100%);
     transition: all 0.3s ease;
@@ -231,89 +224,77 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
 
 .image-title {
     color: #ffd700;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: bold;
     margin: 0;
     text-align: center;
-    line-height: 1.3;
 }
 
 .image-subtitle {
     color: white;
-    font-size: 0.65rem;
-    margin: 5px 0 0;
+    font-size: 0.6rem;
+    margin: 3px 0 0;
     text-align: center;
 }
 
-/* Controles do carrossel */
+/* Controles pequenos */
 .carousel-controls {
     display: flex;
     align-items: center;
-    gap: 30px;
-    margin-top: 20px;
+    gap: 15px;
 }
 
-.btn-carousel {
+.btn-carousel-sm {
     background: rgba(255, 255, 255, 0.9);
     border: none;
     color: #667eea;
-    width: 55px;
-    height: 55px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
     cursor: pointer;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
 }
 
-.btn-carousel:hover {
-    transform: scale(1.1);
+.btn-carousel-sm:hover {
+    transform: scale(1.05);
     background: white;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
-.btn-carousel i {
-    font-size: 1.8rem;
-}
-
-.carousel-counter {
-    color: white;
+.btn-carousel-sm i {
     font-size: 1.2rem;
+}
+
+.carousel-counter-sm {
+    color: white;
+    font-size: 0.9rem;
     background: rgba(0, 0, 0, 0.5);
-    padding: 10px 25px;
+    padding: 5px 15px;
     border-radius: 50px;
     font-weight: bold;
-    backdrop-filter: blur(10px);
 }
 
 /* SOBRE */
-.sobre-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    padding: 20px;
-}
-
 .sobre-card {
     background: rgba(255, 255, 255, 0.95);
-    border-radius: 30px;
-    padding: 40px;
-    max-width: 600px;
+    border-radius: 24px;
+    padding: 30px 25px;
+    max-width: 500px;
+    margin: 0 auto;
     text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
 .sobre-icone {
-    font-size: 4rem;
-    margin-bottom: 20px;
+    font-size: 3rem;
+    margin-bottom: 15px;
 }
 
-.sobre-card h2 {
+.sobre-card h3 {
     color: #333;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .cargo {
@@ -324,57 +305,44 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
 
 .descricao {
     color: #555;
-    line-height: 1.6;
-    margin-bottom: 25px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
 }
 
 .especialidades {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
 }
 
 .badge {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 8px 16px;
+    padding: 5px 12px;
     border-radius: 50px;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
 }
 
 /* CONTATOS */
-.contatos-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    padding: 20px;
-}
-
 .contatos-card {
     background: rgba(255, 255, 255, 0.95);
-    border-radius: 30px;
-    padding: 40px;
-    max-width: 500px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-
-.contatos-card h2 {
-    color: #333;
-    margin-bottom: 30px;
+    border-radius: 24px;
+    padding: 30px 25px;
+    max-width: 400px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
 .contato-item {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 15px 20px;
+    padding: 12px 15px;
     background: #f8f9fa;
-    border-radius: 15px;
-    margin-bottom: 15px;
+    border-radius: 12px;
+    margin-bottom: 12px;
     text-decoration: none;
     color: #333;
     transition: all 0.3s ease;
@@ -387,7 +355,7 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
 }
 
 .contato-item i {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     color: #667eea;
 }
 
@@ -395,33 +363,56 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
     color: white;
 }
 
-/* Responsivo */
+.contato-item span {
+    font-size: 0.85rem;
+}
+
+/* RESPONSIVO */
 @media (max-width: 768px) {
-    .logo {
-        font-size: 1.6rem;
+    .menu-toggle {
+        display: block;
     }
     
-    .btn-acessar {
-        padding: 6px 16px;
-        font-size: 0.8rem;
-    }
-    
-    .abas-container {
+    .nav-menu {
+        position: fixed;
         top: 70px;
-        gap: 5px;
+        left: -100%;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        padding: 20px;
+        gap: 15px;
+        transition: left 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
     
-    .aba-btn {
-        padding: 6px 12px;
-        font-size: 0.75rem;
+    .nav-menu.active {
+        left: 0;
     }
     
-    .aba-btn i {
-        font-size: 0.8rem;
+    .nav-link {
+        font-size: 1rem;
+        padding: 10px;
+        width: 100%;
+        text-align: center;
     }
     
-    .conteudo-aba {
-        padding-top: 140px;
+    .btn-acessar-nav {
+        justify-content: center;
+    }
+    
+    .section {
+        padding: 30px 16px;
+        scroll-margin-top: 70px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .section-header h2 {
+        font-size: 1.4rem;
     }
     
     .carousel-3d {
@@ -436,25 +427,31 @@ body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 10
         top: 10px;
     }
     
-    .btn-carousel {
-        width: 45px;
-        height: 45px;
+    .carousel-item-3d .fallback-icon i {
+        font-size: 2.5rem;
     }
     
-    .btn-carousel i {
-        font-size: 1.4rem;
+    .carousel-item-3d .fallback-icon span {
+        font-size: 0.7rem;
     }
     
     .sobre-card, .contatos-card {
-        padding: 25px;
-        margin: 20px;
+        padding: 25px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        font-size: 1.6rem;
     }
     
-    .sobre-icone {
-        font-size: 3rem;
+    .carousel-3d {
+        width: 170px;
+        height: 170px;
     }
     
-    .descricao {
-        font-size: 0.9rem;
+    .carousel-item-3d {
+        width: 150px;
+        height: 150px;
     }
 }
