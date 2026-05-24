@@ -125,7 +125,7 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Overlay padrão (seção fechada) - mais escuro */
+/* Overlay padrão (seção fechada) - sem overlay, fundo claro */
 .section::before {
     content: '';
     position: absolute;
@@ -133,19 +133,14 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0);
     z-index: 0;
     transition: background 0.3s ease;
 }
 
-/* Quando a seção está aberta (com conteúdo visível), overlay fica mais leve */
+/* Quando a seção está aberta (com conteúdo visível), overlay escurece o fundo */
 .section.conteudo-aberto::before {
-    background: rgba(0, 0, 0, 0.3);
-}
-
-/* Quando a seção está aberta e tem fundo personalizado, overlay mais transparente ainda */
-.section.conteudo-aberto:not(.fallback)::before {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.6);
 }
 
 .section > * {
@@ -172,9 +167,10 @@ body {
     display: none;
 }
 
-/* Quando fallback está aberto, mantém cor original */
+/* Fallback quando aberto - adiciona um leve escurecimento */
 .section.fallback.conteudo-aberto::before {
-    display: none;
+    display: block;
+    background: rgba(0, 0, 0, 0.4);
 }
 
 .section:not(.fallback) {
