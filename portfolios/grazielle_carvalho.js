@@ -1,5 +1,5 @@
 // ============================================
-// DADOS DO CARROSSEL
+// DADOS DOS CARROSSEIS
 // ============================================
 
 // NOVIDADES (3 itens)
@@ -18,16 +18,8 @@ const servicosItens = [
     { id: 5, imagem: "grazielle_carvalho_imagens/servico5.jpg", icone: "bi bi-emoji-smile", titulo: "Especialização 60+", subtitulo: "Cuidado para melhor idade" }
 ];
 
-// IMAGENS DE FUNDO DAS ABAS (fallback se não carregar)
-const fundosAbas = {
-    novidades: "grazielle_carvalho_imagens/fundo_novidades.jpg",
-    sobre: "grazielle_carvalho_imagens/fundo_sobre.jpg",
-    servicos: "grazielle_carvalho_imagens/fundo_servicos.jpg",
-    contatos: "grazielle_carvalho_imagens/fundo_contatos.jpg"
-};
-
 // ============================================
-// VARIÁVEIS DOS CARROSSEIS
+// VARIÁVEIS
 // ============================================
 let carrosselNovidades = null;
 let carrosselServicos = null;
@@ -44,32 +36,9 @@ let autoRotateServicos = null;
 document.addEventListener("DOMContentLoaded", () => {
     inicializarCarrossel("carrosselNovidades", novidadesItens, "novidades");
     inicializarCarrossel("carrosselServicos", servicosItens, "servicos");
-    configurarAbas();
-    carregarFundoAtivo("novidades");
+    configurarMenuMobile();
+    configurarScrollSuave();
 });
-
-// ============================================
-// CARREGAR IMAGEM DE FUNDO COM FALLBACK
-// ============================================
-function carregarFundoAtivo(aba) {
-    const imgUrl = fundosAbas[aba];
-    const img = new Image();
-    
-    img.onload = () => {
-        document.body.style.backgroundImage = `url('${imgUrl}')`;
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-        document.body.style.backgroundAttachment = "fixed";
-    };
-    
-    img.onerror = () => {
-        // Fallback: remove imagem de fundo, usa cor gradiente
-        document.body.style.backgroundImage = "";
-        document.body.className = `fundo-${aba}`;
-    };
-    
-    img.src = imgUrl;
-}
 
 // ============================================
 // INICIALIZAR CARROSSEL
@@ -81,7 +50,7 @@ function inicializarCarrossel(containerId, itens, tipo) {
     container.innerHTML = "";
     const total = itens.length;
     const anguloStep = 360 / total;
-    const raio = 420;
+    const raio = 380;
     
     for (let i = 0; i < total; i++) {
         const item = itens[i];
@@ -182,7 +151,7 @@ function configurarEventosNovidades() {
 function iniciarRotacaoNovidades() {
     autoRotateNovidades = setInterval(() => {
         proximoNovidades();
-    }, 4000);
+    }, 5000);
 }
 
 function resetarRotacaoNovidades() {
@@ -221,7 +190,7 @@ function configurarEventosServicos() {
 function iniciarRotacaoServicos() {
     autoRotateServicos = setInterval(() => {
         proximoServicos();
-    }, 4000);
+    }, 5000);
 }
 
 function resetarRotacaoServicos() {
@@ -230,38 +199,39 @@ function resetarRotacaoServicos() {
 }
 
 // ============================================
-// CONFIGURAR ABAS
+// MENU MOBILE
 // ============================================
-function configurarAbas() {
-    const abas = document.querySelectorAll(".aba-btn");
-    const conteudos = {
-        novidades: document.getElementById("aba-novidades"),
-        sobre: document.getElementById("aba-sobre"),
-        servicos: document.getElementById("aba-servicos"),
-        contatos: document.getElementById("aba-contatos")
-    };
+function configurarMenuMobile() {
+    const menuToggle = document.getElementById("menuToggle");
+    const navMenu = document.getElementById("navMenu");
     
-    abas.forEach(aba => {
-        aba.addEventListener("click", () => {
-            const abaId = aba.getAttribute("data-aba");
-            
-            // Atualizar botões ativos
-            abas.forEach(btn => btn.classList.remove("active"));
-            aba.classList.add("active");
-            
-            // Mostrar conteúdo correto
-            Object.keys(conteudos).forEach(key => {
-                conteudos[key].style.display = key === abaId ? "flex" : "none";
-            });
-            
-            // Trocar imagem de fundo
-            carregarFundoAtivo(abaId);
-            
-            // Resetar rotação do carrossel visível
-            if (abaId === "novidades") {
-                resetarRotacaoNovidades();
-            } else if (abaId === "servicos") {
-                resetarRotacaoServicos();
+    if (menuToggle) {
+        menuToggle.addEventListener("click", () => {
+            navMenu.classList.toggle("active");
+        });
+    }
+    
+    // Fechar menu ao clicar em um link
+    document.querySelectorAll(".nav-link").forEach(link => {
+        link.addEventListener("click", () => {
+            navMenu.classList.remove("active");
+        });
+    });
+}
+
+// ============================================
+// SCROLL SUAVE
+// ============================================
+function configurarScrollSuave() {
+    document.querySelectorAll('.nav-link[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         });
     });
