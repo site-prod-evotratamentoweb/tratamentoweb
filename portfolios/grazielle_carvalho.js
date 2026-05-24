@@ -3,30 +3,35 @@ const trabalhosImagens = [
     { 
         id: 1, 
         imagem: "grazielle_carvalho_imagens/trabalho1.jpg", 
+        icone: "bi bi-laptop",
         titulo: "Acompanhamento Web Personalizado", 
         subtitulo: "Suporte nutricional online sob medida para você" 
     },
     { 
         id: 2, 
         imagem: "grazielle_carvalho_imagens/trabalho2.jpg", 
+        icone: "bi bi-people",
         titulo: "Consultoria e Assessoria Nutricional", 
         subtitulo: "Orientação especializada para seus objetivos" 
     },
     { 
         id: 3, 
         imagem: "grazielle_carvalho_imagens/trabalho3.jpg", 
+        icone: "bi bi-person-arms-up",
         titulo: "Atendimento Nutricional", 
         subtitulo: "Individualizado e em grupo" 
     },
     { 
         id: 4, 
         imagem: "grazielle_carvalho_imagens/trabalho4.jpg", 
+        icone: "bi bi-people-fill",
         titulo: "Especialização em Saúde Coletiva", 
         subtitulo: "Nutrição para toda comunidade" 
     },
     { 
         id: 5, 
         imagem: "grazielle_carvalho_imagens/trabalho5.jpg", 
+        icone: "bi bi-emoji-smile",
         titulo: "Especialização 60+", 
         subtitulo: "Cuidado nutricional para a melhor idade" 
     }
@@ -71,12 +76,35 @@ function criarSlide(item) {
     const slide = document.createElement("div");
     slide.className = "carousel-item-3d";
     
+    // Criar imagem
     const img = document.createElement("img");
     img.src = item.imagem;
     img.alt = item.titulo;
-    img.onerror = () => {
-        img.src = `https://via.placeholder.com/400x400/667eea/white?text=${encodeURIComponent(item.titulo.substring(0, 20))}`;
+    img.style.display = "none"; // Começa escondida
+    
+    // Criar fallback (ícone)
+    const fallback = document.createElement("div");
+    fallback.className = "fallback-icon";
+    fallback.innerHTML = `<i class="${item.icone}"></i><span>${item.titulo}</span>`;
+    
+    slide.appendChild(img);
+    slide.appendChild(fallback);
+    
+    // Tentar carregar a imagem
+    img.onload = () => {
+        // Se carregou, mostra imagem e esconde fallback
+        img.style.display = "block";
+        fallback.style.display = "none";
     };
+    
+    img.onerror = () => {
+        // Se falhou, mantém fallback visível
+        img.style.display = "none";
+        fallback.style.display = "flex";
+    };
+    
+    // Forçar tentativa de carregamento
+    img.src = item.imagem;
     
     const overlay = document.createElement("div");
     overlay.className = "image-overlay";
@@ -85,7 +113,6 @@ function criarSlide(item) {
         <p class="image-subtitle">${item.subtitulo}</p>
     `;
     
-    slide.appendChild(img);
     slide.appendChild(overlay);
     
     // Clique na imagem
