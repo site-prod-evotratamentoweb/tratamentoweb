@@ -51,18 +51,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ============================================
-// CONFIGURAR TRIGGERS (Botões de ativação)
+// CONFIGURAR TRIGGERS (Títulos como botões)
 // ============================================
 function configurarTriggers() {
-    // Trigger Novidades
-    const triggerNovidades = document.getElementById("triggerNovidades");
+    // Trigger Novidades - clicando no título
+    const tituloNovidades = document.querySelector('.btn-titulo[data-tipo="novidades"]');
     const wrapperNovidades = document.getElementById("carrosselWrapperNovidades");
     
-    if (triggerNovidades) {
-        triggerNovidades.addEventListener("click", () => {
+    if (tituloNovidades) {
+        tituloNovidades.addEventListener("click", () => {
             if (!novidadesAtivado) {
                 wrapperNovidades.style.display = "block";
-                triggerNovidades.style.display = "none";
                 inicializarCarrossel("carrosselNovidades", novidadesItens, "novidades");
                 novidadesAtivado = true;
                 
@@ -74,15 +73,14 @@ function configurarTriggers() {
         });
     }
     
-    // Trigger Serviços
-    const triggerServicos = document.getElementById("triggerServicos");
+    // Trigger Serviços - clicando no título
+    const tituloServicos = document.querySelector('.btn-titulo[data-tipo="servicos"]');
     const wrapperServicos = document.getElementById("carrosselWrapperServicos");
     
-    if (triggerServicos) {
-        triggerServicos.addEventListener("click", () => {
+    if (tituloServicos) {
+        tituloServicos.addEventListener("click", () => {
             if (!servicosAtivado) {
                 wrapperServicos.style.display = "block";
-                triggerServicos.style.display = "none";
                 inicializarCarrossel("carrosselServicos", servicosItens, "servicos");
                 servicosAtivado = true;
                 
