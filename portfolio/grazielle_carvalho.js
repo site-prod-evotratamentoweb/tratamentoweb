@@ -37,17 +37,63 @@ let currentNovidadesIndex = 0;
 let currentServicosIndex = 0;
 let autoRotateNovidades = null;
 let autoRotateServicos = null;
+let novidadesAtivado = false;
+let servicosAtivado = false;
 
 // ============================================
 // INICIALIZAÇÃO
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
-    inicializarCarrossel("carrosselNovidades", novidadesItens, "novidades");
-    inicializarCarrossel("carrosselServicos", servicosItens, "servicos");
     configurarMenuMobile();
     configurarScrollSuave();
     carregarFundosSecoes();
+    configurarTriggers();
 });
+
+// ============================================
+// CONFIGURAR TRIGGERS (Botões de ativação)
+// ============================================
+function configurarTriggers() {
+    // Trigger Novidades
+    const triggerNovidades = document.getElementById("triggerNovidades");
+    const wrapperNovidades = document.getElementById("carrosselWrapperNovidades");
+    
+    if (triggerNovidades) {
+        triggerNovidades.addEventListener("click", () => {
+            if (!novidadesAtivado) {
+                wrapperNovidades.style.display = "block";
+                triggerNovidades.style.display = "none";
+                inicializarCarrossel("carrosselNovidades", novidadesItens, "novidades");
+                novidadesAtivado = true;
+                
+                // Scroll suave para o carrossel
+                setTimeout(() => {
+                    wrapperNovidades.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        });
+    }
+    
+    // Trigger Serviços
+    const triggerServicos = document.getElementById("triggerServicos");
+    const wrapperServicos = document.getElementById("carrosselWrapperServicos");
+    
+    if (triggerServicos) {
+        triggerServicos.addEventListener("click", () => {
+            if (!servicosAtivado) {
+                wrapperServicos.style.display = "block";
+                triggerServicos.style.display = "none";
+                inicializarCarrossel("carrosselServicos", servicosItens, "servicos");
+                servicosAtivado = true;
+                
+                // Scroll suave para o carrossel
+                setTimeout(() => {
+                    wrapperServicos.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        });
+    }
+}
 
 // ============================================
 // CARREGAR FUNDOS DAS SEÇÕES
@@ -160,8 +206,13 @@ function irParaItemNovidades(index) {
     currentNovidadesIndex = index;
     const anguloPorItem = 360 / novidadesItens.length;
     anguloNovidades = -(currentNovidadesIndex * anguloPorItem);
-    carrosselNovidades.style.transform = `rotateY(${anguloNovidades}deg)`;
-    document.getElementById("novidadesCounter").innerText = `${currentNovidadesIndex + 1} / ${novidadesItens.length}`;
+    if (carrosselNovidades) {
+        carrosselNovidades.style.transform = `rotateY(${anguloNovidades}deg)`;
+    }
+    const counter = document.getElementById("novidadesCounter");
+    if (counter) {
+        counter.innerText = `${currentNovidadesIndex + 1} / ${novidadesItens.length}`;
+    }
 }
 
 function proximoNovidades() {
@@ -177,13 +228,15 @@ function anteriorNovidades() {
 }
 
 function configurarEventosNovidades() {
-    document.getElementById("btnPrevNovidades").addEventListener("click", anteriorNovidades);
-    document.getElementById("btnNextNovidades").addEventListener("click", proximoNovidades);
+    const btnPrev = document.getElementById("btnPrevNovidades");
+    const btnNext = document.getElementById("btnNextNovidades");
+    if (btnPrev) btnPrev.addEventListener("click", anteriorNovidades);
+    if (btnNext) btnNext.addEventListener("click", proximoNovidades);
 }
 
 function iniciarRotacaoNovidades() {
     autoRotateNovidades = setInterval(() => {
-        proximoNovidades();
+        if (novidadesAtivado) proximoNovidades();
     }, 5000);
 }
 
@@ -199,8 +252,13 @@ function irParaItemServicos(index) {
     currentServicosIndex = index;
     const anguloPorItem = 360 / servicosItens.length;
     anguloServicos = -(currentServicosIndex * anguloPorItem);
-    carrosselServicos.style.transform = `rotateY(${anguloServicos}deg)`;
-    document.getElementById("servicosCounter").innerText = `${currentServicosIndex + 1} / ${servicosItens.length}`;
+    if (carrosselServicos) {
+        carrosselServicos.style.transform = `rotateY(${anguloServicos}deg)`;
+    }
+    const counter = document.getElementById("servicosCounter");
+    if (counter) {
+        counter.innerText = `${currentServicosIndex + 1} / ${servicosItens.length}`;
+    }
 }
 
 function proximoServicos() {
@@ -216,13 +274,15 @@ function anteriorServicos() {
 }
 
 function configurarEventosServicos() {
-    document.getElementById("btnPrevServicos").addEventListener("click", anteriorServicos);
-    document.getElementById("btnNextServicos").addEventListener("click", proximoServicos);
+    const btnPrev = document.getElementById("btnPrevServicos");
+    const btnNext = document.getElementById("btnNextServicos");
+    if (btnPrev) btnPrev.addEventListener("click", anteriorServicos);
+    if (btnNext) btnNext.addEventListener("click", proximoServicos);
 }
 
 function iniciarRotacaoServicos() {
     autoRotateServicos = setInterval(() => {
-        proximoServicos();
+        if (servicosAtivado) proximoServicos();
     }, 5000);
 }
 
