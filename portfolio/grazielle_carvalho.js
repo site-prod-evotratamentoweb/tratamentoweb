@@ -18,6 +18,14 @@ const servicosItens = [
     { id: 5, imagem: "grazielle_carvalho_imagens/servico5.jpg", icone: "bi bi-emoji-smile", titulo: "Especialização 60+", subtitulo: "Cuidado para melhor idade" }
 ];
 
+// FUNDOS DAS SEÇÕES
+const fundosSecoes = {
+    novidades: "grazielle_carvalho_imagens/fundo_novidades.jpg",
+    sobre: "grazielle_carvalho_imagens/fundo_sobre.jpg",
+    servicos: "grazielle_carvalho_imagens/fundo_servicos.jpg",
+    contatos: "grazielle_carvalho_imagens/fundo_contatos.jpg"
+};
+
 // ============================================
 // VARIÁVEIS
 // ============================================
@@ -38,7 +46,32 @@ document.addEventListener("DOMContentLoaded", () => {
     inicializarCarrossel("carrosselServicos", servicosItens, "servicos");
     configurarMenuMobile();
     configurarScrollSuave();
+    carregarFundosSecoes();
 });
+
+// ============================================
+// CARREGAR FUNDOS DAS SEÇÕES
+// ============================================
+function carregarFundosSecoes() {
+    Object.keys(fundosSecoes).forEach(secao => {
+        const section = document.querySelector(`[data-fundo="${secao}"]`);
+        if (!section) return;
+        
+        const imgUrl = fundosSecoes[secao];
+        const img = new Image();
+        
+        img.onload = () => {
+            section.style.backgroundImage = `url('${imgUrl}')`;
+            section.classList.remove('fallback');
+        };
+        
+        img.onerror = () => {
+            section.classList.add('fallback');
+        };
+        
+        img.src = imgUrl;
+    });
+}
 
 // ============================================
 // INICIALIZAR CARROSSEL
@@ -211,7 +244,6 @@ function configurarMenuMobile() {
         });
     }
     
-    // Fechar menu ao clicar em um link
     document.querySelectorAll(".nav-link").forEach(link => {
         link.addEventListener("click", () => {
             navMenu.classList.remove("active");
