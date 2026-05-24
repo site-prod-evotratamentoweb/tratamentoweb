@@ -549,3 +549,16 @@ body {
         height: 150px;
     }
 }
+
+/* Menu ativo (scroll spy) */
+.nav-link.active {
+    color: #667eea;
+    font-weight: bold;
+    border-bottom: 2px solid #667eea;
+}
+
+.btn-acessar-nav.active {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
