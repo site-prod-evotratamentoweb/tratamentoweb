@@ -46,7 +46,41 @@ document.addEventListener("DOMContentLoaded", () => {
     configurarScrollSuave();
     carregarFundosSecoes();
     configurarToggleSections();
+    configurarScrollSpy(); // Nova função para destacar menu ativo
 });
+
+// ============================================
+// SCROLL SPY - Destacar menu ativo conforme rolagem
+// ============================================
+function configurarScrollSpy() {
+    const sections = document.querySelectorAll('.section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    function atualizarMenuAtivo() {
+        let currentSection = '';
+        const scrollPosition = window.scrollY + 100; // Offset para header
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionBottom = sectionTop + section.offsetHeight;
+            
+            if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                currentSection = section.getAttribute('id');
+            }
+        });
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const href = link.getAttribute('href');
+            if (href === `#${currentSection}`) {
+                link.classList.add('active');
+            }
+        });
+    }
+    
+    window.addEventListener('scroll', atualizarMenuAtivo);
+    atualizarMenuAtivo(); // Chamar uma vez ao carregar
+}
 
 // ============================================
 // CONFIGURAR TOGGLE DAS SEÇÕES (Botão exibe/oculta conteúdo)
