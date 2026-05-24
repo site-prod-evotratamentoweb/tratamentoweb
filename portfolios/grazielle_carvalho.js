@@ -1,65 +1,92 @@
-// DADOS DO CARROSSEL - 5 SERVIÇOS
-const trabalhosImagens = [
-    { 
-        id: 1, 
-        imagem: "grazielle_carvalho_imagens/trabalho1.jpg", 
-        icone: "bi bi-laptop",
-        titulo: "Acompanhamento Web Personalizado", 
-        subtitulo: "Suporte nutricional online sob medida para você" 
-    },
-    { 
-        id: 2, 
-        imagem: "grazielle_carvalho_imagens/trabalho2.jpg", 
-        icone: "bi bi-people",
-        titulo: "Consultoria e Assessoria Nutricional", 
-        subtitulo: "Orientação especializada para seus objetivos" 
-    },
-    { 
-        id: 3, 
-        imagem: "grazielle_carvalho_imagens/trabalho3.jpg", 
-        icone: "bi bi-person-arms-up",
-        titulo: "Atendimento Nutricional", 
-        subtitulo: "Individualizado e em grupo" 
-    },
-    { 
-        id: 4, 
-        imagem: "grazielle_carvalho_imagens/trabalho4.jpg", 
-        icone: "bi bi-people-fill",
-        titulo: "Especialização em Saúde Coletiva", 
-        subtitulo: "Nutrição para toda comunidade" 
-    },
-    { 
-        id: 5, 
-        imagem: "grazielle_carvalho_imagens/trabalho5.jpg", 
-        icone: "bi bi-emoji-smile",
-        titulo: "Especialização 60+", 
-        subtitulo: "Cuidado nutricional para a melhor idade" 
-    }
+// ============================================
+// DADOS DO CARROSSEL
+// ============================================
+
+// NOVIDADES (3 itens)
+const novidadesItens = [
+    { id: 1, imagem: "grazielle_carvalho_imagens/novidade1.jpg", icone: "bi bi-megaphone", titulo: "Nova Unidade", subtitulo: "Inauguramos nossa nova clínica" },
+    { id: 2, imagem: "grazielle_carvalho_imagens/novidade2.jpg", icone: "bi bi-calendar", titulo: "Campanha de Saúde", subtitulo: "Mutirão de atendimentos em setembro" },
+    { id: 3, imagem: "grazielle_carvalho_imagens/novidade3.jpg", icone: "bi bi-star", titulo: "Parceria", subtitulo: "Nova parceria com academias" }
 ];
 
-let anguloGestoras = 0;
-let containerGestoras = null;
-let currentGestoraIndex = 0;
-let autoRotateInterval = null;
+// SERVIÇOS (5 itens)
+const servicosItens = [
+    { id: 1, imagem: "grazielle_carvalho_imagens/servico1.jpg", icone: "bi bi-laptop", titulo: "Acompanhamento Web Personalizado", subtitulo: "Suporte nutricional online" },
+    { id: 2, imagem: "grazielle_carvalho_imagens/servico2.jpg", icone: "bi bi-people", titulo: "Consultoria e Assessoria", subtitulo: "Orientação especializada" },
+    { id: 3, imagem: "grazielle_carvalho_imagens/servico3.jpg", icone: "bi bi-person-arms-up", titulo: "Atendimento Nutricional", subtitulo: "Individualizado e em grupo" },
+    { id: 4, imagem: "grazielle_carvalho_imagens/servico4.jpg", icone: "bi bi-people-fill", titulo: "Especialização em Saúde Coletiva", subtitulo: "Nutrição para comunidade" },
+    { id: 5, imagem: "grazielle_carvalho_imagens/servico5.jpg", icone: "bi bi-emoji-smile", titulo: "Especialização 60+", subtitulo: "Cuidado para melhor idade" }
+];
 
-// INICIAR
+// IMAGENS DE FUNDO DAS ABAS (fallback se não carregar)
+const fundosAbas = {
+    novidades: "grazielle_carvalho_imagens/fundo_novidades.jpg",
+    sobre: "grazielle_carvalho_imagens/fundo_sobre.jpg",
+    servicos: "grazielle_carvalho_imagens/fundo_servicos.jpg",
+    contatos: "grazielle_carvalho_imagens/fundo_contatos.jpg"
+};
+
+// ============================================
+// VARIÁVEIS DOS CARROSSEIS
+// ============================================
+let carrosselNovidades = null;
+let carrosselServicos = null;
+let anguloNovidades = 0;
+let anguloServicos = 0;
+let currentNovidadesIndex = 0;
+let currentServicosIndex = 0;
+let autoRotateNovidades = null;
+let autoRotateServicos = null;
+
+// ============================================
+// INICIALIZAÇÃO
+// ============================================
 document.addEventListener("DOMContentLoaded", () => {
-    inicializarCarrossel();
+    inicializarCarrossel("carrosselNovidades", novidadesItens, "novidades");
+    inicializarCarrossel("carrosselServicos", servicosItens, "servicos");
+    configurarAbas();
+    carregarFundoAtivo("novidades");
 });
 
-function inicializarCarrossel() {
-    containerGestoras = document.getElementById("carrossel3d");
-    if (!containerGestoras) return;
+// ============================================
+// CARREGAR IMAGEM DE FUNDO COM FALLBACK
+// ============================================
+function carregarFundoAtivo(aba) {
+    const imgUrl = fundosAbas[aba];
+    const img = new Image();
+    
+    img.onload = () => {
+        document.body.style.backgroundImage = `url('${imgUrl}')`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundAttachment = "fixed";
+    };
+    
+    img.onerror = () => {
+        // Fallback: remove imagem de fundo, usa cor gradiente
+        document.body.style.backgroundImage = "";
+        document.body.className = `fundo-${aba}`;
+    };
+    
+    img.src = imgUrl;
+}
 
-    containerGestoras.innerHTML = "";
-    const total = trabalhosImagens.length;
+// ============================================
+// INICIALIZAR CARROSSEL
+// ============================================
+function inicializarCarrossel(containerId, itens, tipo) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = "";
+    const total = itens.length;
     const anguloStep = 360 / total;
     const raio = 420;
-
+    
     for (let i = 0; i < total; i++) {
-        const item = trabalhosImagens[i];
+        const item = itens[i];
         const slide = criarSlide(item);
-        containerGestoras.appendChild(slide);
+        container.appendChild(slide);
         
         const anguloRad = (i * anguloStep) * (Math.PI / 180);
         const x = Math.sin(anguloRad) * raio;
@@ -67,22 +94,28 @@ function inicializarCarrossel() {
         slide.style.transform = `translateX(${x}px) translateZ(${z}px) rotateY(${i * anguloStep}deg)`;
     }
     
-    irParaItem(0);
-    configurarEventos();
-    iniciarRotacaoAutomatica();
+    if (tipo === "novidades") {
+        carrosselNovidades = container;
+        irParaItemNovidades(0);
+        configurarEventosNovidades();
+        iniciarRotacaoNovidades();
+    } else {
+        carrosselServicos = container;
+        irParaItemServicos(0);
+        configurarEventosServicos();
+        iniciarRotacaoServicos();
+    }
 }
 
 function criarSlide(item) {
     const slide = document.createElement("div");
     slide.className = "carousel-item-3d";
     
-    // Criar imagem
     const img = document.createElement("img");
     img.src = item.imagem;
     img.alt = item.titulo;
-    img.style.display = "none"; // Começa escondida
+    img.style.display = "none";
     
-    // Criar fallback (ícone)
     const fallback = document.createElement("div");
     fallback.className = "fallback-icon";
     fallback.innerHTML = `<i class="${item.icone}"></i><span>${item.titulo}</span>`;
@@ -90,20 +123,16 @@ function criarSlide(item) {
     slide.appendChild(img);
     slide.appendChild(fallback);
     
-    // Tentar carregar a imagem
     img.onload = () => {
-        // Se carregou, mostra imagem e esconde fallback
         img.style.display = "block";
         fallback.style.display = "none";
     };
     
     img.onerror = () => {
-        // Se falhou, mantém fallback visível
         img.style.display = "none";
         fallback.style.display = "flex";
     };
     
-    // Forçar tentativa de carregamento
     img.src = item.imagem;
     
     const overlay = document.createElement("div");
@@ -115,46 +144,125 @@ function criarSlide(item) {
     
     slide.appendChild(overlay);
     
-    // Clique na imagem
     slide.addEventListener('click', () => {
-        alert(`🍎 ${item.titulo}\n\n${item.subtitulo}\n\nAgende sua consulta!`);
+        alert(`📢 ${item.titulo}\n\n${item.subtitulo}`);
     });
     
     return slide;
 }
 
-function irParaItem(index) {
-    currentGestoraIndex = index;
-    const anguloPorItem = 360 / trabalhosImagens.length;
-    anguloGestoras = -(currentGestoraIndex * anguloPorItem);
-    containerGestoras.style.transform = `rotateY(${anguloGestoras}deg)`;
-    document.getElementById("gestoraCounter").innerText = `${currentGestoraIndex + 1} / ${trabalhosImagens.length}`;
+// ============================================
+// CONTROLE NOVIDADES
+// ============================================
+function irParaItemNovidades(index) {
+    currentNovidadesIndex = index;
+    const anguloPorItem = 360 / novidadesItens.length;
+    anguloNovidades = -(currentNovidadesIndex * anguloPorItem);
+    carrosselNovidades.style.transform = `rotateY(${anguloNovidades}deg)`;
+    document.getElementById("novidadesCounter").innerText = `${currentNovidadesIndex + 1} / ${novidadesItens.length}`;
 }
 
-function proximoItem() {
-    currentGestoraIndex = (currentGestoraIndex + 1) % trabalhosImagens.length;
-    irParaItem(currentGestoraIndex);
-    resetarAutoRotacao();
+function proximoNovidades() {
+    currentNovidadesIndex = (currentNovidadesIndex + 1) % novidadesItens.length;
+    irParaItemNovidades(currentNovidadesIndex);
+    resetarRotacaoNovidades();
 }
 
-function anteriorItem() {
-    currentGestoraIndex = (currentGestoraIndex - 1 + trabalhosImagens.length) % trabalhosImagens.length;
-    irParaItem(currentGestoraIndex);
-    resetarAutoRotacao();
+function anteriorNovidades() {
+    currentNovidadesIndex = (currentNovidadesIndex - 1 + novidadesItens.length) % novidadesItens.length;
+    irParaItemNovidades(currentNovidadesIndex);
+    resetarRotacaoNovidades();
 }
 
-function configurarEventos() {
-    document.getElementById("btnPrev").addEventListener("click", anteriorItem);
-    document.getElementById("btnNext").addEventListener("click", proximoItem);
+function configurarEventosNovidades() {
+    document.getElementById("btnPrevNovidades").addEventListener("click", anteriorNovidades);
+    document.getElementById("btnNextNovidades").addEventListener("click", proximoNovidades);
 }
 
-function iniciarRotacaoAutomatica() {
-    autoRotateInterval = setInterval(() => {
-        proximoItem();
+function iniciarRotacaoNovidades() {
+    autoRotateNovidades = setInterval(() => {
+        proximoNovidades();
     }, 4000);
 }
 
-function resetarAutoRotacao() {
-    clearInterval(autoRotateInterval);
-    iniciarRotacaoAutomatica();
+function resetarRotacaoNovidades() {
+    clearInterval(autoRotateNovidades);
+    iniciarRotacaoNovidades();
+}
+
+// ============================================
+// CONTROLE SERVIÇOS
+// ============================================
+function irParaItemServicos(index) {
+    currentServicosIndex = index;
+    const anguloPorItem = 360 / servicosItens.length;
+    anguloServicos = -(currentServicosIndex * anguloPorItem);
+    carrosselServicos.style.transform = `rotateY(${anguloServicos}deg)`;
+    document.getElementById("servicosCounter").innerText = `${currentServicosIndex + 1} / ${servicosItens.length}`;
+}
+
+function proximoServicos() {
+    currentServicosIndex = (currentServicosIndex + 1) % servicosItens.length;
+    irParaItemServicos(currentServicosIndex);
+    resetarRotacaoServicos();
+}
+
+function anteriorServicos() {
+    currentServicosIndex = (currentServicosIndex - 1 + servicosItens.length) % servicosItens.length;
+    irParaItemServicos(currentServicosIndex);
+    resetarRotacaoServicos();
+}
+
+function configurarEventosServicos() {
+    document.getElementById("btnPrevServicos").addEventListener("click", anteriorServicos);
+    document.getElementById("btnNextServicos").addEventListener("click", proximoServicos);
+}
+
+function iniciarRotacaoServicos() {
+    autoRotateServicos = setInterval(() => {
+        proximoServicos();
+    }, 4000);
+}
+
+function resetarRotacaoServicos() {
+    clearInterval(autoRotateServicos);
+    iniciarRotacaoServicos();
+}
+
+// ============================================
+// CONFIGURAR ABAS
+// ============================================
+function configurarAbas() {
+    const abas = document.querySelectorAll(".aba-btn");
+    const conteudos = {
+        novidades: document.getElementById("aba-novidades"),
+        sobre: document.getElementById("aba-sobre"),
+        servicos: document.getElementById("aba-servicos"),
+        contatos: document.getElementById("aba-contatos")
+    };
+    
+    abas.forEach(aba => {
+        aba.addEventListener("click", () => {
+            const abaId = aba.getAttribute("data-aba");
+            
+            // Atualizar botões ativos
+            abas.forEach(btn => btn.classList.remove("active"));
+            aba.classList.add("active");
+            
+            // Mostrar conteúdo correto
+            Object.keys(conteudos).forEach(key => {
+                conteudos[key].style.display = key === abaId ? "flex" : "none";
+            });
+            
+            // Trocar imagem de fundo
+            carregarFundoAtivo(abaId);
+            
+            // Resetar rotação do carrossel visível
+            if (abaId === "novidades") {
+                resetarRotacaoNovidades();
+            } else if (abaId === "servicos") {
+                resetarRotacaoServicos();
+            }
+        });
+    });
 }
