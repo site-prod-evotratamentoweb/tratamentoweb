@@ -6,11 +6,24 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    transition: background-image 0.3s ease;
 }
+
+/* FUNDO PADRÃO (fallback) */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+body.fundo-novidades { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+body.fundo-sobre { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); }
+body.fundo-servicos { background: linear-gradient(135deg, #1a2a3a 0%, #2a5a4a 100%); }
+body.fundo-contatos { background: linear-gradient(135deg, #3a1a2a 0%, #6a3a5a 100%); }
 
 /* HEADER */
 .header {
@@ -34,22 +47,7 @@ body {
 }
 
 .logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo-icone {
-    font-size: 2rem;
-}
-
-.logo span {
-    font-size: 1.2rem;
-    font-weight: bold;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    font-size: 2.2rem;
 }
 
 .btn-acessar {
@@ -65,6 +63,7 @@ body {
     gap: 8px;
     transition: all 0.3s ease;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer;
 }
 
 .btn-acessar:hover {
@@ -72,15 +71,65 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-/* CARROSSEL 3D */
-.carrossel-container {
+/* ABAS */
+.abas-container {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    z-index: 999;
+    flex-wrap: wrap;
+}
+
+.aba-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 10px 24px;
+    border-radius: 50px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.aba-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.aba-btn.active {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* CONTEÚDO DAS ABAS */
+.conteudo-aba {
     flex: 1;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding-top: 80px;
+    padding-top: 160px;
+    padding-bottom: 40px;
+}
+
+/* CARROSSEL 3D */
+.carrossel-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    width: 100%;
 }
 
 .carousel-wrapper {
@@ -138,7 +187,7 @@ body {
     display: block;
 }
 
-/* Fallback quando não tem imagem */
+/* Fallback */
 .carousel-item-3d .fallback-icon {
     display: flex;
     flex-direction: column;
@@ -156,7 +205,7 @@ body {
 }
 
 .carousel-item-3d .fallback-icon span {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: bold;
     text-align: center;
     padding: 0 10px;
@@ -196,11 +245,12 @@ body {
     text-align: center;
 }
 
+/* Controles do carrossel */
 .carousel-controls {
     display: flex;
     align-items: center;
     gap: 30px;
-    margin-top: 40px;
+    margin-top: 20px;
 }
 
 .btn-carousel {
@@ -238,19 +288,140 @@ body {
     backdrop-filter: blur(10px);
 }
 
+/* SOBRE */
+.sobre-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+}
+
+.sobre-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 30px;
+    padding: 40px;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.sobre-icone {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.sobre-card h2 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.cargo {
+    color: #667eea;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.descricao {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.especialidades {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+}
+
+/* CONTATOS */
+.contatos-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+}
+
+.contatos-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 30px;
+    padding: 40px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.contatos-card h2 {
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.contato-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.contato-item:hover {
+    transform: translateX(5px);
+    background: #667eea;
+    color: white;
+}
+
+.contato-item i {
+    font-size: 1.5rem;
+    color: #667eea;
+}
+
+.contato-item:hover i {
+    color: white;
+}
+
 /* Responsivo */
 @media (max-width: 768px) {
-    .logo span {
-        font-size: 0.9rem;
-    }
-    
-    .logo-icone {
-        font-size: 1.5rem;
+    .logo {
+        font-size: 1.6rem;
     }
     
     .btn-acessar {
         padding: 6px 16px;
         font-size: 0.8rem;
+    }
+    
+    .abas-container {
+        top: 70px;
+        gap: 5px;
+    }
+    
+    .aba-btn {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+    
+    .aba-btn i {
+        font-size: 0.8rem;
+    }
+    
+    .conteudo-aba {
+        padding-top: 140px;
     }
     
     .carousel-3d {
@@ -274,15 +445,16 @@ body {
         font-size: 1.4rem;
     }
     
-    .image-title {
-        font-size: 0.75rem;
+    .sobre-card, .contatos-card {
+        padding: 25px;
+        margin: 20px;
     }
     
-    .carousel-item-3d .fallback-icon i {
-        font-size: 2.5rem;
+    .sobre-icone {
+        font-size: 3rem;
     }
     
-    .carousel-item-3d .fallback-icon span {
-        font-size: 0.7rem;
+    .descricao {
+        font-size: 0.9rem;
     }
 }
