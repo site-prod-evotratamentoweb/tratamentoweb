@@ -20,7 +20,6 @@
                 <img src="grazielle_carvalho_imagens/logo_grazielle_carvalho.jpeg" 
                      alt="Logo" 
                      class="logo-img"
-                     id="mainLogo"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                 <span class="logo-fallback" style="display: none;">🍎</span>
             </div>
@@ -46,14 +45,14 @@
     <main class="main-content">
         <!-- SEÇÃO NOVIDADES -->
         <section id="novidades" class="section novidades-section" data-fundo="novidades">
-            <div class="section-header">
-                <h2 class="btn-titulo" data-tipo="novidades">
-                    <i class="bi bi-megaphone"></i> Novidades
-                </h2>
+            <div class="section-header-left">
+                <button class="btn-toggle-section" data-target="novidades">
+                    <i class="bi bi-megaphone"></i>
+                    <span>Novidades</span>
+                    <i class="bi bi-chevron-down toggle-icon"></i>
+                </button>
             </div>
-            
-            <!-- Carrossel (inicialmente oculto) -->
-            <div class="carrossel-wrapper" id="carrosselWrapperNovidades" style="display: none;">
+            <div class="section-content" id="conteudoNovidades" style="display: none;">
                 <div class="carousel-container">
                     <div class="carousel-wrapper">
                         <div id="carrosselNovidades" class="carousel-3d"></div>
@@ -73,37 +72,43 @@
 
         <!-- SEÇÃO SOBRE -->
         <section id="sobre" class="section sobre-section" data-fundo="sobre">
-            <div class="section-header">
-                <h2><i class="bi bi-person"></i> Sobre</h2>
+            <div class="section-header-left">
+                <button class="btn-toggle-section" data-target="sobre">
+                    <i class="bi bi-person"></i>
+                    <span>Sobre</span>
+                    <i class="bi bi-chevron-down toggle-icon"></i>
+                </button>
             </div>
-            <div class="sobre-card">
-                <div class="sobre-icone">🍎</div>
-                <h3>Grazielle Carvalho</h3>
-                <p class="cargo">Nutricionista · CRN 12345</p>
-                <p class="descricao">
-                    Especialista em nutrição clínica, esportiva e comportamental. 
-                    Acredito que uma alimentação saudável deve ser prazerosa e sustentável.
-                </p>
-                <div class="especialidades">
-                    <span class="badge">Nutrição Clínica</span>
-                    <span class="badge">Nutrição Esportiva</span>
-                    <span class="badge">Nutrição Comportamental</span>
-                    <span class="badge">Saúde Coletiva</span>
-                    <span class="badge">Especialização 60+</span>
+            <div class="section-content" id="conteudoSobre" style="display: none;">
+                <div class="sobre-card">
+                    <div class="sobre-icone">🍎</div>
+                    <h3>Grazielle Carvalho</h3>
+                    <p class="cargo">Nutricionista · CRN 12345</p>
+                    <p class="descricao">
+                        Especialista em nutrição clínica, esportiva e comportamental. 
+                        Acredito que uma alimentação saudável deve ser prazerosa e sustentável.
+                    </p>
+                    <div class="especialidades">
+                        <span class="badge">Nutrição Clínica</span>
+                        <span class="badge">Nutrição Esportiva</span>
+                        <span class="badge">Nutrição Comportamental</span>
+                        <span class="badge">Saúde Coletiva</span>
+                        <span class="badge">Especialização 60+</span>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- SEÇÃO SERVIÇOS -->
         <section id="servicos" class="section servicos-section" data-fundo="servicos">
-            <div class="section-header">
-                <h2 class="btn-titulo" data-tipo="servicos">
-                    <i class="bi bi-grid"></i> Serviços
-                </h2>
+            <div class="section-header-left">
+                <button class="btn-toggle-section" data-target="servicos">
+                    <i class="bi bi-grid"></i>
+                    <span>Serviços</span>
+                    <i class="bi bi-chevron-down toggle-icon"></i>
+                </button>
             </div>
-            
-            <!-- Carrossel (inicialmente oculto) -->
-            <div class="carrossel-wrapper" id="carrosselWrapperServicos" style="display: none;">
+            <div class="section-content" id="conteudoServicos" style="display: none;">
                 <div class="carousel-container">
                     <div class="carousel-wrapper">
                         <div id="carrosselServicos" class="carousel-3d"></div>
@@ -123,22 +128,28 @@
 
         <!-- SEÇÃO CONTATOS -->
         <section id="contatos" class="section contatos-section" data-fundo="contatos">
-            <div class="section-header">
-                <h2><i class="bi bi-envelope"></i> Contatos</h2>
+            <div class="section-header-left">
+                <button class="btn-toggle-section" data-target="contatos">
+                    <i class="bi bi-envelope"></i>
+                    <span>Contatos</span>
+                    <i class="bi bi-chevron-down toggle-icon"></i>
+                </button>
             </div>
-            <div class="contatos-card">
-                <a href="https://wa.me/5511999999999" target="_blank" class="contato-item">
-                    <i class="bi bi-whatsapp"></i>
-                    <span>(11) 99999-9999</span>
-                </a>
-                <a href="mailto:contato@graziellecarvalho.com" class="contato-item">
-                    <i class="bi bi-envelope-fill"></i>
-                    <span>contato@graziellecarvalho.com</span>
-                </a>
-                <a href="https://instagram.com/grazielle.nutri" target="_blank" class="contato-item">
-                    <i class="bi bi-instagram"></i>
-                    <span>@grazielle.nutri</span>
-                </a>
+            <div class="section-content" id="conteudoContatos" style="display: none;">
+                <div class="contatos-card">
+                    <a href="https://wa.me/5511999999999" target="_blank" class="contato-item">
+                        <i class="bi bi-whatsapp"></i>
+                        <span>(11) 99999-9999</span>
+                    </a>
+                    <a href="mailto:contato@graziellecarvalho.com" class="contato-item">
+                        <i class="bi bi-envelope-fill"></i>
+                        <span>contato@graziellecarvalho.com</span>
+                    </a>
+                    <a href="https://instagram.com/grazielle.nutri" target="_blank" class="contato-item">
+                        <i class="bi bi-instagram"></i>
+                        <span>@grazielle.nutri</span>
+                    </a>
+                </div>
             </div>
         </section>
     </main>
