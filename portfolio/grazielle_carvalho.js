@@ -92,6 +92,7 @@ function configurarToggleSections() {
         botao.addEventListener('click', () => {
             const target = botao.getAttribute('data-target');
             const conteudo = document.getElementById(`conteudo${target.charAt(0).toUpperCase() + target.slice(1)}`);
+            const section = botao.closest('.section');
             
             if (conteudo) {
                 const isVisible = conteudo.style.display !== 'none';
@@ -99,9 +100,11 @@ function configurarToggleSections() {
                 if (isVisible) {
                     conteudo.style.display = 'none';
                     botao.classList.remove('active');
+                    section.classList.remove('conteudo-aberto');
                 } else {
                     conteudo.style.display = 'block';
                     botao.classList.add('active');
+                    section.classList.add('conteudo-aberto');
                     
                     // Inicializar carrossel se necessário (apenas para novidades e servicos)
                     if (target === 'novidades' && !carrosselNovidades) {
