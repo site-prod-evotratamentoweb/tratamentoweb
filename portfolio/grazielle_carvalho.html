@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Grazielle Carvalho | Nutricionista</title>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- CSS Custom -->
+    <link rel="stylesheet" href="grazielle_carvalho.css">
+</head>
+<body>
+
+    <!-- HEADER FIXO COM LOGO E MENU -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">🍎</div>
+            
+            <!-- Menu Hamburguer para Mobile -->
+            <button class="menu-toggle" id="menuToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <!-- Navegação -->
+            <nav class="nav-menu" id="navMenu">
+                <a href="#novidades" class="nav-link">Novidades</a>
+                <a href="#sobre" class="nav-link">Sobre</a>
+                <a href="#servicos" class="nav-link">Serviços</a>
+                <a href="#contatos" class="nav-link">Contatos</a>
+                <a href="https://tratamentoweb.com.br" target="_self" class="nav-link btn-acessar-nav">
+                    <i class="bi bi-box-arrow-up-right"></i> Acessar
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- SEÇÃO NOVIDADES -->
+        <section id="novidades" class="section novidades-section">
+            <div class="section-header">
+                <h2><i class="bi bi-megaphone"></i> Novidades</h2>
+                <div class="carousel-controls">
+                    <button id="btnPrevNovidades" class="btn-carousel-sm">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="novidadesCounter" class="carousel-counter-sm">1 / 3</span>
+                    <button id="btnNextNovidades" class="btn-carousel-sm">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="carousel-container">
+                <div class="carousel-wrapper">
+                    <div id="carrosselNovidades" class="carousel-3d"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO SOBRE -->
+        <section id="sobre" class="section sobre-section">
+            <div class="section-header">
+                <h2><i class="bi bi-person"></i> Sobre</h2>
+            </div>
+            <div class="sobre-card">
+                <div class="sobre-icone">🍎</div>
+                <h3>Grazielle Carvalho</h3>
+                <p class="cargo">Nutricionista · CRN 12345</p>
+                <p class="descricao">
+                    Especialista em nutrição clínica, esportiva e comportamental. 
+                    Acredito que uma alimentação saudável deve ser prazerosa e sustentável.
+                </p>
+                <div class="especialidades">
+                    <span class="badge">Nutrição Clínica</span>
+                    <span class="badge">Nutrição Esportiva</span>
+                    <span class="badge">Nutrição Comportamental</span>
+                    <span class="badge">Saúde Coletiva</span>
+                    <span class="badge">Especialização 60+</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO SERVIÇOS -->
+        <section id="servicos" class="section servicos-section">
+            <div class="section-header">
+                <h2><i class="bi bi-grid"></i> Serviços</h2>
+                <div class="carousel-controls">
+                    <button id="btnPrevServicos" class="btn-carousel-sm">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="servicosCounter" class="carousel-counter-sm">1 / 5</span>
+                    <button id="btnNextServicos" class="btn-carousel-sm">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="carousel-container">
+                <div class="carousel-wrapper">
+                    <div id="carrosselServicos" class="carousel-3d"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO CONTATOS -->
+        <section id="contatos" class="section contatos-section">
+            <div class="section-header">
+                <h2><i class="bi bi-envelope"></i> Contatos</h2>
+            </div>
+            <div class="contatos-card">
+                <a href="https://wa.me/5511999999999" target="_blank" class="contato-item">
+                    <i class="bi bi-whatsapp"></i>
+                    <span>(11) 99999-9999</span>
+                </a>
+                <a href="mailto:contato@graziellecarvalho.com" class="contato-item">
+                    <i class="bi bi-envelope-fill"></i>
+                    <span>contato@graziellecarvalho.com</span>
+                </a>
+                <a href="https://instagram.com/grazielle.nutri" target="_blank" class="contato-item">
+                    <i class="bi bi-instagram"></i>
+                    <span>@grazielle.nutri</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <script src="grazielle_carvalho.js"></script>
+</body>
+</html>

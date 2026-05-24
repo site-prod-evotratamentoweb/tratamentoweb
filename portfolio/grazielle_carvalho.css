@@ -1,0 +1,457 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+/* HEADER FIXO */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    padding: 12px 0;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 2rem;
+}
+
+/* MENU */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #555;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.nav-link:hover {
+    color: #667eea;
+}
+
+.btn-acessar-nav {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-acessar-nav:hover {
+    color: white;
+    transform: scale(1.02);
+}
+
+/* Menu Hamburguer (Mobile) */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #667eea;
+    cursor: pointer;
+}
+
+/* MAIN CONTENT */
+.main-content {
+    padding-top: 70px;
+}
+
+/* SEÇÕES */
+.section {
+    min-height: 100vh;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    scroll-margin-top: 70px;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.section-header h2 {
+    color: white;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header h2 i {
+    background: rgba(255,255,255,0.2);
+    padding: 10px;
+    border-radius: 50%;
+}
+
+/* CARROSSEL 3D */
+.carousel-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.carousel-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    perspective: 1000px;
+    perspective-origin: 50% 50%;
+    width: 100%;
+    overflow: visible;
+}
+
+.carousel-3d {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.45, 1);
+    cursor: grab;
+}
+
+.carousel-3d:active {
+    cursor: grabbing;
+}
+
+.carousel-item-3d {
+    position: absolute;
+    width: 230px;
+    height: 230px;
+    left: 15px;
+    top: 15px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-item-3d:hover {
+    transform: scale(1.05);
+    border-color: #ffd700;
+}
+
+.carousel-item-3d img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Fallback */
+.carousel-item-3d .fallback-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.carousel-item-3d .fallback-icon i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.carousel-item-3d .fallback-icon span {
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.image-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95), transparent);
+    padding: 15px 8px;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.carousel-item-3d:hover .image-overlay {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.image-title {
+    color: #ffd700;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin: 0;
+    text-align: center;
+}
+
+.image-subtitle {
+    color: white;
+    font-size: 0.6rem;
+    margin: 3px 0 0;
+    text-align: center;
+}
+
+/* Controles pequenos */
+.carousel-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-carousel-sm {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    color: #667eea;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-carousel-sm:hover {
+    transform: scale(1.05);
+    background: white;
+}
+
+.btn-carousel-sm i {
+    font-size: 1.2rem;
+}
+
+.carousel-counter-sm {
+    color: white;
+    font-size: 0.9rem;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-weight: bold;
+}
+
+/* SOBRE */
+.sobre-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 24px;
+    padding: 30px 25px;
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.sobre-icone {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.sobre-card h3 {
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.cargo {
+    color: #667eea;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.descricao {
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.especialidades {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+}
+
+/* CONTATOS */
+.contatos-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 24px;
+    padding: 30px 25px;
+    max-width: 400px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.contato-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.contato-item:hover {
+    transform: translateX(5px);
+    background: #667eea;
+    color: white;
+}
+
+.contato-item i {
+    font-size: 1.3rem;
+    color: #667eea;
+}
+
+.contato-item:hover i {
+    color: white;
+}
+
+.contato-item span {
+    font-size: 0.85rem;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+    
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        left: -100%;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        padding: 20px;
+        gap: 15px;
+        transition: left 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .nav-menu.active {
+        left: 0;
+    }
+    
+    .nav-link {
+        font-size: 1rem;
+        padding: 10px;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .btn-acessar-nav {
+        justify-content: center;
+    }
+    
+    .section {
+        padding: 30px 16px;
+        scroll-margin-top: 70px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .section-header h2 {
+        font-size: 1.4rem;
+    }
+    
+    .carousel-3d {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .carousel-item-3d {
+        width: 180px;
+        height: 180px;
+        left: 10px;
+        top: 10px;
+    }
+    
+    .carousel-item-3d .fallback-icon i {
+        font-size: 2.5rem;
+    }
+    
+    .carousel-item-3d .fallback-icon span {
+        font-size: 0.7rem;
+    }
+    
+    .sobre-card, .contatos-card {
+        padding: 25px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        font-size: 1.6rem;
+    }
+    
+    .carousel-3d {
+        width: 170px;
+        height: 170px;
+    }
+    
+    .carousel-item-3d {
+        width: 150px;
+        height: 150px;
+    }
+}
