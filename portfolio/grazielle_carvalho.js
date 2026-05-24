@@ -37,8 +37,6 @@ let currentNovidadesIndex = 0;
 let currentServicosIndex = 0;
 let autoRotateNovidades = null;
 let autoRotateServicos = null;
-let novidadesAtivado = false;
-let servicosAtivado = false;
 
 // ============================================
 // INICIALIZAÇÃO
@@ -47,50 +45,41 @@ document.addEventListener("DOMContentLoaded", () => {
     configurarMenuMobile();
     configurarScrollSuave();
     carregarFundosSecoes();
-    configurarTriggers();
+    configurarToggleSections();
 });
 
 // ============================================
-// CONFIGURAR TRIGGERS (Títulos como botões)
+// CONFIGURAR TOGGLE DAS SEÇÕES (Botão exibe/oculta conteúdo)
 // ============================================
-function configurarTriggers() {
-    // Trigger Novidades - clicando no título
-    const tituloNovidades = document.querySelector('.btn-titulo[data-tipo="novidades"]');
-    const wrapperNovidades = document.getElementById("carrosselWrapperNovidades");
+function configurarToggleSections() {
+    const botoes = document.querySelectorAll('.btn-toggle-section');
     
-    if (tituloNovidades) {
-        tituloNovidades.addEventListener("click", () => {
-            if (!novidadesAtivado) {
-                wrapperNovidades.style.display = "block";
-                inicializarCarrossel("carrosselNovidades", novidadesItens, "novidades");
-                novidadesAtivado = true;
+    botoes.forEach(botao => {
+        botao.addEventListener('click', () => {
+            const target = botao.getAttribute('data-target');
+            const conteudo = document.getElementById(`conteudo${target.charAt(0).toUpperCase() + target.slice(1)}`);
+            
+            if (conteudo) {
+                const isVisible = conteudo.style.display !== 'none';
                 
-                // Scroll suave para o carrossel
-                setTimeout(() => {
-                    wrapperNovidades.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
+                if (isVisible) {
+                    conteudo.style.display = 'none';
+                    botao.classList.remove('active');
+                } else {
+                    conteudo.style.display = 'block';
+                    botao.classList.add('active');
+                    
+                    // Inicializar carrossel se necessário (apenas para novidades e servicos)
+                    if (target === 'novidades' && !carrosselNovidades) {
+                        inicializarCarrossel("carrosselNovidades", novidadesItens, "novidades");
+                    }
+                    if (target === 'servicos' && !carrosselServicos) {
+                        inicializarCarrossel("carrosselServicos", servicosItens, "servicos");
+                    }
+                }
             }
         });
-    }
-    
-    // Trigger Serviços - clicando no título
-    const tituloServicos = document.querySelector('.btn-titulo[data-tipo="servicos"]');
-    const wrapperServicos = document.getElementById("carrosselWrapperServicos");
-    
-    if (tituloServicos) {
-        tituloServicos.addEventListener("click", () => {
-            if (!servicosAtivado) {
-                wrapperServicos.style.display = "block";
-                inicializarCarrossel("carrosselServicos", servicosItens, "servicos");
-                servicosAtivado = true;
-                
-                // Scroll suave para o carrossel
-                setTimeout(() => {
-                    wrapperServicos.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
-            }
-        });
-    }
+    });
 }
 
 // ============================================
@@ -234,7 +223,9 @@ function configurarEventosNovidades() {
 
 function iniciarRotacaoNovidades() {
     autoRotateNovidades = setInterval(() => {
-        if (novidadesAtivado) proximoNovidades();
+        if (carrosselNovidades && document.getElementById("conteudoNovidades").style.display !== 'none') {
+            proximoNovidades();
+        }
     }, 5000);
 }
 
@@ -280,7 +271,9 @@ function configurarEventosServicos() {
 
 function iniciarRotacaoServicos() {
     autoRotateServicos = setInterval(() => {
-        if (servicosAtivado) proximoServicos();
+        if (carrosselServicos && document.getElementById("conteudoServicos").style.display !== 'none') {
+            proximoServicos();
+        }
     }, 5000);
 }
 
