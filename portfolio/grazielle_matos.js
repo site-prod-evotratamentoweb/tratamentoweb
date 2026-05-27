@@ -4,26 +4,26 @@
 
 // NOVIDADES (3 itens)
 const novidadesItens = [
-    { id: 1, imagem: "grazielle_carvalho_imagens/novidade1.jpg", icone: "bi bi-megaphone", titulo: "Nova Unidade", subtitulo: "Inauguramos nossa nova clínica" },
-    { id: 2, imagem: "grazielle_carvalho_imagens/novidade2.jpg", icone: "bi bi-calendar", titulo: "Campanha de Saúde", subtitulo: "Mutirão de atendimentos em setembro" },
-    { id: 3, imagem: "grazielle_carvalho_imagens/novidade3.jpg", icone: "bi bi-star", titulo: "Parceria", subtitulo: "Nova parceria com academias" }
+    { id: 1, imagem: "grazielle_matos_imagens/novidade1.jpg", icone: "bi bi-megaphone", titulo: "Nova Unidade", subtitulo: "Inauguramos nossa nova clínica" },
+    { id: 2, imagem: "grazielle_matos_imagens/novidade2.jpg", icone: "bi bi-calendar", titulo: "Campanha de Saúde", subtitulo: "Mutirão de atendimentos em setembro" },
+    { id: 3, imagem: "grazielle_matos_imagens/novidade3.jpg", icone: "bi bi-star", titulo: "Parceria", subtitulo: "Nova parceria com academias" }
 ];
 
 // SERVIÇOS (5 itens)
 const servicosItens = [
-    { id: 1, imagem: "grazielle_carvalho_imagens/servico1.jpg", icone: "bi bi-laptop", titulo: "Acompanhamento Web Personalizado", subtitulo: "Suporte nutricional online" },
-    { id: 2, imagem: "grazielle_carvalho_imagens/servico2.jpg", icone: "bi bi-people", titulo: "Consultoria e Assessoria", subtitulo: "Orientação especializada" },
-    { id: 3, imagem: "grazielle_carvalho_imagens/servico3.jpg", icone: "bi bi-person-arms-up", titulo: "Atendimento Nutricional", subtitulo: "Individualizado e em grupo" },
-    { id: 4, imagem: "grazielle_carvalho_imagens/servico4.jpg", icone: "bi bi-people-fill", titulo: "Especialização em Saúde Coletiva", subtitulo: "Nutrição para comunidade" },
-    { id: 5, imagem: "grazielle_carvalho_imagens/servico5.jpg", icone: "bi bi-emoji-smile", titulo: "Especialização 60+", subtitulo: "Cuidado para melhor idade" }
+    { id: 1, imagem: "grazielle_matos_imagens/servico1.jpg", icone: "bi bi-laptop", titulo: "Acompanhamento Web Personalizado", subtitulo: "Suporte nutricional online" },
+    { id: 2, imagem: "grazielle_matos_imagens/servico2.jpg", icone: "bi bi-people", titulo: "Consultoria e Assessoria", subtitulo: "Orientação especializada" },
+    { id: 3, imagem: "grazielle_matos_imagens/servico3.jpg", icone: "bi bi-person-arms-up", titulo: "Atendimento Nutricional", subtitulo: "Individualizado e em grupo" },
+    { id: 4, imagem: "grazielle_matos_imagens/servico4.jpg", icone: "bi bi-people-fill", titulo: "Especialização em Saúde Coletiva", subtitulo: "Nutrição para comunidade" },
+    { id: 5, imagem: "grazielle_matos_imagens/servico5.jpg", icone: "bi bi-emoji-smile", titulo: "Especialização 60+", subtitulo: "Cuidado para melhor idade" }
 ];
 
 // FUNDOS DAS SEÇÕES
 const fundosSecoes = {
-    novidades: "grazielle_carvalho_imagens/fundo_novidades.jpg",
-    sobre: "grazielle_carvalho_imagens/fundo_sobre.jpg",
-    servicos: "grazielle_carvalho_imagens/fundo_servicos.jpg",
-    contatos: "grazielle_carvalho_imagens/fundo_contatos.jpg"
+    novidades: "grazielle_matos_imagens/fundo_novidades.jpg",
+    sobre: "grazielle_matos_imagens/fundo_sobre.jpg",
+    servicos: "grazielle_matos_imagens/fundo_servicos.jpg",
+    contatos: "grazielle_matos_imagens/fundo_contatos.jpg"
 };
 
 // ============================================
