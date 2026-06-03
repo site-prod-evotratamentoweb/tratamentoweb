@@ -114,11 +114,11 @@ body {
 }
 
 /* ============================================
-   SEÇÕES - ALTURA FIXA DE 400px
+   SEÇÕES - ALTURA TOTAL DA TELA (viewport)
    ============================================ */
 .section {
-    min-height: auto;
-    height: 830px;
+    min-height: calc(100vh - 80px);  /* Altura total da tela menos o header */
+    height: calc(100vh - 80px);      /* Força a altura total */
     padding: 60px 20px;
     display: flex;
     flex-direction: column;
@@ -131,33 +131,38 @@ body {
     background-repeat: no-repeat;
 }
 
-/* Quando a seção está aberta, ajusta altura automaticamente */
+/* Quando a seção está aberta (com conteúdo visível), 
+   altura automática mas no mínimo a tela toda */
 .section.conteudo-aberto {
     height: auto;
-    min-height: 830px;
+    min-height: calc(100vh - 80px);
 }
 
-/* Overlay padrão (seção fechada) */
-.section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0);
-    z-index: 0;
-    transition: background 0.3s ease;
+/* Para telas muito pequenas, garantir um mínimo */
+@media (max-width: 768px) {
+    .section {
+        min-height: calc(100vh - 80px);
+        height: calc(100vh - 80px);
+        padding: 40px 16px;
+        scroll-margin-top: 80px;
+    }
+    
+    .section.conteudo-aberto {
+        height: auto;
+        min-height: calc(100vh - 80px);
+    }
 }
 
-/* Quando a seção está aberta (com conteúdo visível), overlay escurece o fundo */
-.section.conteudo-aberto::before {
-    background: rgba(0, 0, 0, 0.6);
-}
-
-.section > * {
-    position: relative;
-    z-index: 1;
+@media (max-width: 480px) {
+    .section {
+        min-height: calc(100vh - 80px);
+        height: calc(100vh - 80px);
+    }
+    
+    .section.conteudo-aberto {
+        height: auto;
+        min-height: calc(100vh - 80px);
+    }
 }
 
 /* FUNDOS PADRÃO (FALLBACK) */
@@ -547,12 +552,6 @@ body {
     
     .logo-fallback {
         font-size: 2rem;
-    }
-    
-    .section {
-        height: 400px;
-        padding: 40px 16px;
-        scroll-margin-top: 80px;
     }
     
     .section.conteudo-aberto {
