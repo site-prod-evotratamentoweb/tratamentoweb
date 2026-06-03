@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     configurarScrollSuave();
     carregarFundosSecoes();
     configurarToggleSections();
-    configurarScrollSpy(); // Nova função para destacar menu ativo
+    configurarScrollSpy();
 });
 
 // ============================================
@@ -58,7 +58,7 @@ function configurarScrollSpy() {
     
     function atualizarMenuAtivo() {
         let currentSection = '';
-        const scrollPosition = window.scrollY + 100; // Offset para header
+        const scrollPosition = window.scrollY + 100;
         
         sections.forEach(section => {
             const sectionTop = section.offsetTop;
@@ -79,11 +79,11 @@ function configurarScrollSpy() {
     }
     
     window.addEventListener('scroll', atualizarMenuAtivo);
-    atualizarMenuAtivo(); // Chamar uma vez ao carregar
+    atualizarMenuAtivo();
 }
 
 // ============================================
-// CONFIGURAR TOGGLE DAS SEÇÕES (Botão exibe/oculta conteúdo)
+// CONFIGURAR TOGGLE DAS SEÇÕES
 // ============================================
 function configurarToggleSections() {
     const botoes = document.querySelectorAll('.btn-toggle-section');
@@ -106,7 +106,6 @@ function configurarToggleSections() {
                     botao.classList.add('active');
                     section.classList.add('conteudo-aberto');
                     
-                    // Inicializar carrossel se necessário (apenas para novidades e servicos)
                     if (target === 'novidades' && !carrosselNovidades) {
                         inicializarCarrossel("carrosselNovidades", novidadesItens, "novidades");
                     }
@@ -132,6 +131,9 @@ function carregarFundosSecoes() {
         
         img.onload = () => {
             section.style.backgroundImage = `url('${imgUrl}')`;
+            section.style.backgroundSize = 'cover';
+            section.style.backgroundPosition = 'center center';
+            section.style.backgroundRepeat = 'no-repeat';
             section.classList.remove('fallback');
         };
         
@@ -205,6 +207,7 @@ function criarSlide(item) {
         fallback.style.display = "flex";
     };
     
+    // Forçar o carregamento da imagem
     img.src = item.imagem;
     
     const overlay = document.createElement("div");
@@ -259,8 +262,10 @@ function configurarEventosNovidades() {
 }
 
 function iniciarRotacaoNovidades() {
+    if (autoRotateNovidades) clearInterval(autoRotateNovidades);
     autoRotateNovidades = setInterval(() => {
-        if (carrosselNovidades && document.getElementById("conteudoNovidades").style.display !== 'none') {
+        const conteudoNovidades = document.getElementById("conteudoNovidades");
+        if (carrosselNovidades && conteudoNovidades && conteudoNovidades.style.display !== 'none') {
             proximoNovidades();
         }
     }, 5000);
@@ -307,8 +312,10 @@ function configurarEventosServicos() {
 }
 
 function iniciarRotacaoServicos() {
+    if (autoRotateServicos) clearInterval(autoRotateServicos);
     autoRotateServicos = setInterval(() => {
-        if (carrosselServicos && document.getElementById("conteudoServicos").style.display !== 'none') {
+        const conteudoServicos = document.getElementById("conteudoServicos");
+        if (carrosselServicos && conteudoServicos && conteudoServicos.style.display !== 'none') {
             proximoServicos();
         }
     }, 5000);
