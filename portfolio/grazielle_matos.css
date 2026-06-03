@@ -1,3 +1,7 @@
+/* ============================================
+   SUBSTITUA TODO O CONTEÚDO DO SEU ARQUIVO CSS
+   ============================================ */
+
 * {
     margin: 0;
     padding: 0;
@@ -109,23 +113,31 @@ body {
     padding-top: 80px;
 }
 
-/* SEÇÕES */
+/* ============================================
+   SEÇÕES - ALTURA FIXA DE 400px
+   ============================================ */
 .section {
-    min-height: 100vh;
+    min-height: auto;
+    height: 400px;
     padding: 60px 20px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     scroll-margin-top: 80px;
+    position: relative;
+    transition: all 0.3s ease;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
-    position: relative;
-    transition: all 0.3s ease;
 }
 
-/* Overlay padrão (seção fechada) - sem overlay, fundo claro */
+/* Quando a seção está aberta, ajusta altura automaticamente */
+.section.conteudo-aberto {
+    height: auto;
+    min-height: 400px;
+}
+
+/* Overlay padrão (seção fechada) */
 .section::before {
     content: '';
     position: absolute;
@@ -171,12 +183,6 @@ body {
 .section.fallback.conteudo-aberto::before {
     display: block;
     background: rgba(0, 0, 0, 0.4);
-}
-
-.section:not(.fallback) {
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
 }
 
 /* BOTÃO TOGGLE DA SEÇÃO (alinhado à esquerda) */
@@ -482,6 +488,25 @@ body {
     font-size: 0.85rem;
 }
 
+/* ============================================
+   AJUSTE DAS IMAGENS DE FUNDO - FORÇAR 400px
+   ============================================ */
+.section[data-fundo] {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+/* Garantir que as imagens sejam redimensionadas corretamente */
+.novidades-section,
+.sobre-section,
+.servicos-section,
+.contatos-section {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
 /* RESPONSIVO */
 @media (max-width: 768px) {
     .menu-toggle {
@@ -525,9 +550,14 @@ body {
     }
     
     .section {
+        height: 400px;
         padding: 40px 16px;
         scroll-margin-top: 80px;
-        background-attachment: scroll;
+    }
+    
+    .section.conteudo-aberto {
+        height: auto;
+        min-height: 400px;
     }
     
     .btn-toggle-section {
