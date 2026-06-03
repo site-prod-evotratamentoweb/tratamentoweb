@@ -117,8 +117,8 @@ body {
    SEÇÕES - ALTURA TOTAL DA TELA (viewport)
    ============================================ */
 .section {
-    min-height: calc(100vh - 80px);  /* Altura total da tela menos o header */
-    height: calc(100vh - 80px);      /* Força a altura total */
+    min-height: calc(100vh - 80px);
+    height: calc(100vh - 80px);
     padding: 60px 20px;
     display: flex;
     flex-direction: column;
@@ -131,14 +131,58 @@ body {
     background-repeat: no-repeat;
 }
 
-/* Quando a seção está aberta (com conteúdo visível), 
-   altura automática mas no mínimo a tela toda */
+
+/* Overlay padrão (seção FECHADA) - SEM overlay escuro */
+.section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0);  /* TRANSPARENTE - sem escurecimento */
+    z-index: 0;
+    transition: background 0.3s ease;
+}
+
+/* Quando a seção está ABERTA (com conteúdo visível), 
+   adiciona overlay escuro para destacar o conteúdo */
+.section.conteudo-aberto::before {
+    background: rgba(0, 0, 0, 0.6);  /* ESCURECE O FUNDO quando aberto */
+}
+
+.section > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Quando a seção está aberta, ajusta altura automaticamente */
 .section.conteudo-aberto {
     height: auto;
     min-height: calc(100vh - 80px);
 }
 
-/* Para telas muito pequenas, garantir um mínimo */
+/* FUNDOS PADRÃO (FALLBACK) - sem overlay */
+.novidades-section.fallback {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.sobre-section.fallback {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+}
+.servicos-section.fallback {
+    background: linear-gradient(135deg, #1a2a3a 0%, #2a3a4a 100%);
+}
+.contatos-section.fallback {
+    background: linear-gradient(135deg, #3a1a2a 0%, #4a2a3a 100%);
+}
+
+/* Fallback quando aberto - adiciona escurecimento */
+.section.fallback.conteudo-aberto::before {
+    display: block;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Para telas menores */
 @media (max-width: 768px) {
     .section {
         min-height: calc(100vh - 80px);
@@ -163,31 +207,6 @@ body {
         height: auto;
         min-height: calc(100vh - 80px);
     }
-}
-
-/* FUNDOS PADRÃO (FALLBACK) */
-.novidades-section.fallback {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-.sobre-section.fallback {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-}
-.servicos-section.fallback {
-    background: linear-gradient(135deg, #1a2a3a 0%, #2a3a4a 100%);
-}
-.contatos-section.fallback {
-    background: linear-gradient(135deg, #3a1a2a 0%, #4a2a3a 100%);
-}
-
-/* Fallback sem overlay */
-.section.fallback::before {
-    display: none;
-}
-
-/* Fallback quando aberto - adiciona um leve escurecimento */
-.section.fallback.conteudo-aberto::before {
-    display: block;
-    background: rgba(0, 0, 0, 0.4);
 }
 
 /* BOTÃO TOGGLE DA SEÇÃO (alinhado à esquerda) */
