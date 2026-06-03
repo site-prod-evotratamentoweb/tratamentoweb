@@ -118,7 +118,7 @@ body {
    ============================================ */
 .section {
     min-height: calc(100vh - 80px);
-    height: calc(100vh - 80px);
+    height: calc(100vh - 80px);  /* Altura FIXA da tela */
     padding: 60px 20px;
     display: flex;
     flex-direction: column;
@@ -129,8 +129,8 @@ body {
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
+    overflow-y: auto;  /* Adiciona scroll interno se o conteúdo for muito grande */
 }
-
 
 /* Overlay padrão (seção FECHADA) - SEM overlay escuro */
 .section::before {
@@ -140,15 +140,21 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0);  /* TRANSPARENTE - sem escurecimento */
+    background: rgba(0, 0, 0, 0);  /* TRANSPARENTE */
     z-index: 0;
     transition: background 0.3s ease;
 }
 
-/* Quando a seção está ABERTA (com conteúdo visível), 
-   adiciona overlay escuro para destacar o conteúdo */
+/* Quando a seção está ABERTA - MANTÉM a mesma altura, só escurece */
 .section.conteudo-aberto::before {
-    background: rgba(0, 0, 0, 0.6);  /* ESCURECE O FUNDO quando aberto */
+    background: rgba(0, 0, 0, 0.6);  /* ESCURECE O FUNDO */
+}
+
+/* Quando a seção está ABERTA - PRESERVA a altura original */
+.section.conteudo-aberto {
+    height: calc(100vh - 80px);  /* MANTÉM a mesma altura */
+    min-height: calc(100vh - 80px);  /* MANTÉM o mínimo */
+    overflow-y: auto;  /* Scroll interno se necessário */
 }
 
 .section > * {
@@ -156,13 +162,7 @@ body {
     z-index: 1;
 }
 
-/* Quando a seção está aberta, ajusta altura automaticamente */
-.section.conteudo-aberto {
-    height: auto;
-    min-height: calc(100vh - 80px);
-}
-
-/* FUNDOS PADRÃO (FALLBACK) - sem overlay */
+/* FUNDOS PADRÃO (FALLBACK) */
 .novidades-section.fallback {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
@@ -176,10 +176,29 @@ body {
     background: linear-gradient(135deg, #3a1a2a 0%, #4a2a3a 100%);
 }
 
-/* Fallback quando aberto - adiciona escurecimento */
+/* Fallback quando aberto */
 .section.fallback.conteudo-aberto::before {
     display: block;
     background: rgba(0, 0, 0, 0.5);
+}
+
+/* Scroll customizado para o conteúdo interno */
+.section::-webkit-scrollbar {
+    width: 6px;
+}
+
+.section::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.section::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 3px;
+}
+
+.section::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.8);
 }
 
 /* Para telas menores */
@@ -192,7 +211,7 @@ body {
     }
     
     .section.conteudo-aberto {
-        height: auto;
+        height: calc(100vh - 80px);
         min-height: calc(100vh - 80px);
     }
 }
@@ -204,7 +223,7 @@ body {
     }
     
     .section.conteudo-aberto {
-        height: auto;
+        height: calc(100vh - 80px);
         min-height: calc(100vh - 80px);
     }
 }
