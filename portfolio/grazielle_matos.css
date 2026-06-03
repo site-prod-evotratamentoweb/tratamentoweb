@@ -118,7 +118,7 @@ body {
    ============================================ */
 .section {
     min-height: auto;
-    height: 600px;
+    height: 800px;
     padding: 60px 20px;
     display: flex;
     flex-direction: column;
@@ -134,7 +134,7 @@ body {
 /* Quando a seção está aberta, ajusta altura automaticamente */
 .section.conteudo-aberto {
     height: auto;
-    min-height: 600px;
+    min-height: 800px;
 }
 
 /* Overlay padrão (seção fechada) */
