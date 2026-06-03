@@ -118,7 +118,7 @@ body {
    ============================================ */
 .section {
     min-height: calc(100vh - 80px);
-    height: calc(100vh - 80px);  /* Altura FIXA da tela */
+    height: calc(100vh - 80px);
     padding: 60px 20px;
     display: flex;
     flex-direction: column;
@@ -129,7 +129,7 @@ body {
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    overflow-y: auto;  /* Adiciona scroll interno se o conteúdo for muito grande */
+    overflow-y: auto;
 }
 
 /* Overlay padrão (seção FECHADA) - SEM overlay escuro */
@@ -140,21 +140,21 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0);  /* TRANSPARENTE */
+    background: rgba(0, 0, 0, 0);
     z-index: 0;
     transition: background 0.3s ease;
 }
 
 /* Quando a seção está ABERTA - MANTÉM a mesma altura, só escurece */
 .section.conteudo-aberto::before {
-    background: rgba(0, 0, 0, 0.6);  /* ESCURECE O FUNDO */
+    background: rgba(0, 0, 0, 0.6);
 }
 
 /* Quando a seção está ABERTA - PRESERVA a altura original */
 .section.conteudo-aberto {
-    height: calc(100vh - 80px);  /* MANTÉM a mesma altura */
-    min-height: calc(100vh - 80px);  /* MANTÉM o mínimo */
-    overflow-y: auto;  /* Scroll interno se necessário */
+    height: calc(100vh - 80px);
+    min-height: calc(100vh - 80px);
+    overflow-y: auto;
 }
 
 .section > * {
@@ -201,8 +201,53 @@ body {
     background: rgba(255, 255, 255, 0.8);
 }
 
-/* Para telas menores */
+/* ============================================
+   RESPONSIVO - PRESERVANDO ALTURA CALCULADA
+   ============================================ */
+
+/* Tablet */
 @media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+    
+    .nav-menu {
+        position: fixed;
+        top: 80px;
+        left: -100%;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        padding: 20px;
+        gap: 15px;
+        transition: left 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .nav-menu.active {
+        left: 0;
+    }
+    
+    .nav-link {
+        font-size: 1rem;
+        padding: 10px;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .btn-acessar-nav {
+        justify-content: center;
+    }
+    
+    .logo-img {
+        height: 45px;
+    }
+    
+    .logo-fallback {
+        font-size: 2rem;
+    }
+    
+    /* MANTER a altura calculada em mobile também */
     .section {
         min-height: calc(100vh - 80px);
         height: calc(100vh - 80px);
@@ -210,12 +255,47 @@ body {
         scroll-margin-top: 80px;
     }
     
+    /* IMPORTANTE: NÃO alterar para height: auto */
     .section.conteudo-aberto {
         height: calc(100vh - 80px);
         min-height: calc(100vh - 80px);
     }
+    
+    .btn-toggle-section {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+    
+    .btn-toggle-section i:first-child {
+        font-size: 1.1rem;
+    }
+    
+    .carousel-3d {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .carousel-item-3d {
+        width: 180px;
+        height: 180px;
+        left: 10px;
+        top: 10px;
+    }
+    
+    .carousel-item-3d .fallback-icon i {
+        font-size: 2.5rem;
+    }
+    
+    .carousel-item-3d .fallback-icon span {
+        font-size: 0.7rem;
+    }
+    
+    .sobre-card, .contatos-card {
+        padding: 25px 20px;
+    }
 }
 
+/* Mobile pequeno */
 @media (max-width: 480px) {
     .section {
         min-height: calc(100vh - 80px);
@@ -225,6 +305,16 @@ body {
     .section.conteudo-aberto {
         height: calc(100vh - 80px);
         min-height: calc(100vh - 80px);
+    }
+    
+    .carousel-3d {
+        width: 170px;
+        height: 170px;
+    }
+    
+    .carousel-item-3d {
+        width: 150px;
+        height: 150px;
     }
 }
 
@@ -531,9 +621,7 @@ body {
     font-size: 0.85rem;
 }
 
-/* ============================================
-   AJUSTE DAS IMAGENS DE FUNDO - FORÇAR 400px
-   ============================================ */
+/* AJUSTE DAS IMAGENS DE FUNDO */
 .section[data-fundo] {
     background-size: cover;
     background-position: center center;
@@ -548,97 +636,4 @@ body {
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-}
-
-/* RESPONSIVO */
-@media (max-width: 768px) {
-    .menu-toggle {
-        display: block;
-    }
-    
-    .nav-menu {
-        position: fixed;
-        top: 80px;
-        left: -100%;
-        width: 100%;
-        background: white;
-        flex-direction: column;
-        padding: 20px;
-        gap: 15px;
-        transition: left 0.3s ease;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    
-    .nav-menu.active {
-        left: 0;
-    }
-    
-    .nav-link {
-        font-size: 1rem;
-        padding: 10px;
-        width: 100%;
-        text-align: center;
-    }
-    
-    .btn-acessar-nav {
-        justify-content: center;
-    }
-    
-    .logo-img {
-        height: 45px;
-    }
-    
-    .logo-fallback {
-        font-size: 2rem;
-    }
-    
-    .section.conteudo-aberto {
-        height: auto;
-        min-height: 400px;
-    }
-    
-    .btn-toggle-section {
-        padding: 10px 20px;
-        font-size: 1rem;
-    }
-    
-    .btn-toggle-section i:first-child {
-        font-size: 1.1rem;
-    }
-    
-    .carousel-3d {
-        width: 200px;
-        height: 200px;
-    }
-    
-    .carousel-item-3d {
-        width: 180px;
-        height: 180px;
-        left: 10px;
-        top: 10px;
-    }
-    
-    .carousel-item-3d .fallback-icon i {
-        font-size: 2.5rem;
-    }
-    
-    .carousel-item-3d .fallback-icon span {
-        font-size: 0.7rem;
-    }
-    
-    .sobre-card, .contatos-card {
-        padding: 25px 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .carousel-3d {
-        width: 170px;
-        height: 170px;
-    }
-    
-    .carousel-item-3d {
-        width: 150px;
-        height: 150px;
-    }
 }
