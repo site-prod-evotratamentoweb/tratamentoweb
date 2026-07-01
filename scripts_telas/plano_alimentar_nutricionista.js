@@ -269,17 +269,21 @@ export class PlanoAlimentarNutricionista {
             `;
         }
 
-        // Ordena por versão (mais recente primeiro)
-        const planosOrdenados = [...this.planosList].sort((a, b) => (b.versao || 0) - (a.versao || 0));
+        // Ordena por data (mais recente primeiro)
+        const planosOrdenados = [...this.planosList].sort((a, b) => {
+            const dataA = this.extrairData(a.id);
+            const dataB = this.extrairData(b.id);
+            return dataB - dataA;
+        });
 
         return planosOrdenados.map((plano, index) => {
             const isExpanded = this.planoExpandido === plano.id;
-            const isAtivo = plano.status === 'ativo';
+            const dataFormatada = this.formatarDataExibicao(plano.id);
             
             return `
                 <div class="plano-card" style="
                     background: white; 
-                    border: 2px solid ${isAtivo ? '#22c55e' : '#e2e8f0'}; 
+                    border: 2px solid ${index === 0 ? '#22c55e' : '#e2e8f0'}; 
                     border-radius: 12px; 
                     margin-bottom: 16px; 
                     overflow: hidden;
@@ -289,28 +293,18 @@ export class PlanoAlimentarNutricionista {
                          style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                             <span style="
-                                background: ${isAtivo ? '#22c55e' : '#64748b'}; 
+                                background: ${index === 0 ? '#22c55e' : '#64748b'}; 
                                 color: white; 
                                 padding: 6px 14px; 
                                 border-radius: 20px; 
                                 font-size: 14px; 
                                 font-weight: 600;
                             ">
-                                v${plano.versao || '?'}
+                                ${index === 0 ? 'ATUAL' : `v${planosOrdenados.length - index}`}
                             </span>
                             
-                            ${isAtivo ? `
-                                <span style="background: #dcfce7; color: #16a34a; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-                                    ✓ ATUAL
-                                </span>
-                            ` : `
-                                <span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 20px; font-size: 12px;">
-                                    Histórico
-                                </span>
-                            `}
-                            
-                            <span style="color: #64748b; font-size: 13px;">
-                                📅 ${this.formatarData(plano.data_criacao)}
+                            <span style="color: #1a237e; font-size: 16px; font-weight: 600;">
+                                📅 ${dataFormatada}
                             </span>
                         </div>
                         
@@ -332,15 +326,13 @@ export class PlanoAlimentarNutricionista {
                             <!-- Informações -->
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
                                 <div style="background: white; padding: 12px; border-radius: 8px;">
-                                    <strong style="color: #1a237e;">👤 Profissional:</strong>
-                                    <span style="color: #475569;">${plano.profissional || 'Não informado'}</span>
+                                    <strong style="color: #1a237e;">👨‍⚕️ Profissional:</strong>
+                                    <span style="color: #475569;">${plano.profissional_nome || 'Não informado'}</span>
                                 </div>
-                                ${plano.data_atualizacao ? `
-                                    <div style="background: white; padding: 12px; border-radius: 8px;">
-                                        <strong style="color: #1a237e;">🔄 Atualizado:</strong>
-                                        <span style="color: #475569;">${this.formatarData(plano.data_atualizacao)}</span>
-                                    </div>
-                                ` : ''}
+                                <div style="background: white; padding: 12px; border-radius: 8px;">
+                                    <strong style="color: #1a237e;">📅 Data:</strong>
+                                    <span style="color: #475569;">${dataFormatada}</span>
+                                </div>
                             </div>
                             
                             <!-- Refeições -->
@@ -360,12 +352,6 @@ export class PlanoAlimentarNutricionista {
                             
                             <!-- Botões de Ação -->
                             <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                                ${!isAtivo ? `
-                                    <button onclick="window.planoAlimentarInstance.ativarPlano('${plano.id}')" 
-                                            style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                        ✅ Tornar Atual
-                                    </button>
-                                ` : ''}
                                 <button onclick="window.planoAlimentarInstance.editarPlano('${plano.id}')" 
                                         style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                                     ✏️ Editar
@@ -515,12 +501,14 @@ export class PlanoAlimentarNutricionista {
         if (!this.selectedPaciente) return;
         
         try {
-            console.log('🔍 Buscando planos para:', this.selectedPaciente.login);
+            const nutricionistaLogin = this.userInfo.login;
+            const pacienteLogin = this.selectedPaciente.login;
             
-            // BUSCA NA COLEÇÃO planos_alimentares (única coleção)
-            const planosRef = collection(db, 'planos_alimentares');
-            const q = query(planosRef, where('paciente_login', '==', this.selectedPaciente.login));
-            const querySnapshot = await getDocs(q);
+            console.log('🔍 Buscando planos:', nutricionistaLogin, '→', pacienteLogin);
+            
+            // Caminho: planos_alimentares > nutricionista > paciente
+            const pacienteCollectionRef = collection(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin);
+            const querySnapshot = await getDocs(pacienteCollectionRef);
             
             this.planosList = [];
             querySnapshot.forEach((docSnap) => {
@@ -538,7 +526,6 @@ export class PlanoAlimentarNutricionista {
         const modal = document.getElementById('modalPlano');
         if (modal) {
             modal.style.display = 'flex';
-            // Focar no primeiro textarea
             setTimeout(() => {
                 const primeiroTextarea = modal.querySelector('textarea');
                 if (primeiroTextarea) primeiroTextarea.focus();
@@ -567,40 +554,9 @@ export class PlanoAlimentarNutricionista {
         const plano = this.planosList.find(p => p.id === planoId);
         if (plano) {
             this.planoEditando = { ...plano };
-            delete this.planoEditando.id; // Remove ID para criar nova versão
+            delete this.planoEditando.id;
             this.planoExpandido = null;
             this.abrirModal();
-        }
-    }
-
-    async ativarPlano(planoId) {
-        if (!confirm('Tornar este plano como o plano atual do paciente?')) return;
-        
-        try {
-            // Desativar plano atual (se existir)
-            const planoAtual = this.planosList.find(p => p.status === 'ativo');
-            if (planoAtual) {
-                const planoAtualDoc = doc(db, 'planos_alimentares', planoAtual.id);
-                await updateDoc(planoAtualDoc, { 
-                    status: 'inativo',
-                    data_desativacao: new Date().toISOString()
-                });
-            }
-            
-            // Ativar plano selecionado
-            const planoDoc = doc(db, 'planos_alimentares', planoId);
-            await updateDoc(planoDoc, { 
-                status: 'ativo',
-                data_ativacao: new Date().toISOString()
-            });
-            
-            alert('✅ Plano ativado com sucesso!');
-            await this.loadPlanos();
-            this.planoExpandido = null;
-            await this.render();
-        } catch (error) {
-            console.error("Erro ao ativar plano:", error);
-            alert('❌ Erro ao ativar plano: ' + error.message);
         }
     }
 
@@ -609,20 +565,12 @@ export class PlanoAlimentarNutricionista {
             alert('❌ Selecione um paciente primeiro!');
             return;
         }
-    
+
         try {
-            const versoesExistentes = this.planosList.length;
-            const novaVersao = versoesExistentes + 1;
+            const agora = new Date();
+            const documentoId = this.gerarIdDocumento(agora);
             
             const mealPlanData = {
-                paciente_login: this.selectedPaciente.login,
-                paciente_nome: this.selectedPaciente.nome,
-                profissional: this.userInfo.nome,
-                profissional_login: this.userInfo.login,
-                data_criacao: new Date().toISOString(),
-                data_atualizacao: new Date().toISOString(),
-                versao: novaVersao,
-                status: 'ativo',
                 breakfast: document.getElementById('breakfast')?.value || '',
                 morningSnack: document.getElementById('morningSnack')?.value || '',
                 lunch: document.getElementById('lunch')?.value || '',
@@ -631,26 +579,22 @@ export class PlanoAlimentarNutricionista {
                 supper: document.getElementById('supper')?.value || '',
                 guidelines: document.getElementById('guidelines')?.value || '',
                 restrictions: document.getElementById('restrictions')?.value || '',
-                goals: document.getElementById('goals')?.value || ''
+                goals: document.getElementById('goals')?.value || '',
+                profissional_nome: this.userInfo.nome
             };
-    
-            // Desativar plano atual se existir
-            const planoAtual = this.planosList.find(p => p.status === 'ativo');
-            if (planoAtual) {
-                const planoAtualDoc = doc(db, 'planos_alimentares', planoAtual.id);
-                await updateDoc(planoAtualDoc, { 
-                    status: 'inativo',
-                    data_desativacao: new Date().toISOString()
-                });
-            }
-    
-            // Salvar novo plano na ÚNICA coleção
-            const planosRef = collection(db, 'planos_alimentares');
-            await addDoc(planosRef, mealPlanData);
+
+            const nutricionistaLogin = this.userInfo.login;
+            const pacienteLogin = this.selectedPaciente.login;
             
-            alert(`✅ Plano versão ${novaVersao} criado com sucesso!`);
+            // Caminho: planos_alimentares > nutricionista > paciente > documento
+            const pacienteCollectionRef = collection(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin);
+            await addDoc(pacienteCollectionRef, mealPlanData);
             
-            // Fechar modal e recarregar
+            // Ou se quiser usar o ID personalizado com data/hora:
+            // await setDoc(doc(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin, documentoId), mealPlanData);
+            
+            alert(`✅ Plano criado com sucesso!\n📅 ${this.formatarDataExibicao(documentoId)}`);
+            
             this.fecharModal();
             await this.loadPlanos();
             await this.render();
@@ -666,9 +610,6 @@ export class PlanoAlimentarNutricionista {
         if (plano) {
             this.planoEditando = { ...plano };
             delete this.planoEditando.id;
-            delete this.planoEditando.versao;
-            delete this.planoEditando.status;
-            delete this.planoEditando.data_criacao;
             this.planoExpandido = null;
             this.abrirModal();
         }
@@ -678,12 +619,13 @@ export class PlanoAlimentarNutricionista {
         const plano = this.planosList.find(p => p.id === planoId);
         if (!plano) return;
 
-        let conteudo = `PLANO ALIMENTAR - VERSÃO ${plano.versao || '?'}\n`;
+        const dataFormatada = this.formatarDataExibicao(planoId);
+
+        let conteudo = `PLANO ALIMENTAR\n`;
         conteudo += `${'='.repeat(50)}\n\n`;
-        conteudo += `👤 Paciente: ${plano.paciente_nome || 'Não informado'}\n`;
-        conteudo += `👨‍⚕️ Profissional: ${plano.profissional || 'Não informado'}\n`;
-        conteudo += `📅 Criado em: ${this.formatarData(plano.data_criacao)}\n`;
-        conteudo += `📊 Status: ${plano.status === 'ativo' ? 'ATUAL' : 'Histórico'}\n`;
+        conteudo += `👤 Paciente: ${this.selectedPaciente.nome}\n`;
+        conteudo += `👨‍⚕️ Profissional: ${plano.profissional_nome || 'Não informado'}\n`;
+        conteudo += `📅 Data: ${dataFormatada}\n`;
         conteudo += `\n${'='.repeat(50)}\n\n`;
         
         conteudo += `🍽️ REFEIÇÕES\n${'-'.repeat(50)}\n\n`;
@@ -708,24 +650,48 @@ export class PlanoAlimentarNutricionista {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `plano_alimentar_v${plano.versao}_${(plano.paciente_nome || 'paciente').toLowerCase().replace(/\s+/g, '_')}.txt`;
+        link.download = `plano_alimentar_${dataFormatada.replace(/\//g, '-').replace(/ /g, '_')}.txt`;
         link.click();
         URL.revokeObjectURL(url);
     }
 
-    formatarData(dataString) {
-        if (!dataString) return 'Data não disponível';
+    gerarIdDocumento(data) {
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = data.getFullYear();
+        const hora = String(data.getHours()).padStart(2, '0');
+        const minuto = String(data.getMinutes()).padStart(2, '0');
+        
+        return `${dia}-${mes}-${ano}_${hora}:${minuto}h`;
+    }
+
+    extrairData(documentoId) {
         try {
-            const data = new Date(dataString);
-            return data.toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            const partes = documentoId.split('_');
+            const dataParte = partes[0];
+            const horaParte = partes[1].replace('h', '');
+            
+            const [dia, mes, ano] = dataParte.split('-');
+            const [hora, minuto] = horaParte.split(':');
+            
+            return new Date(ano, mes - 1, dia, hora, minuto);
         } catch {
-            return dataString;
+            return new Date(0);
+        }
+    }
+
+    formatarDataExibicao(documentoId) {
+        try {
+            const partes = documentoId.split('_');
+            const dataParte = partes[0];
+            const horaParte = partes[1].replace('h', '');
+            
+            const [dia, mes, ano] = dataParte.split('-');
+            const [hora, minuto] = horaParte.split(':');
+            
+            return `${dia}/${mes}/${ano} ${hora}:${minuto}h`;
+        } catch {
+            return documentoId;
         }
     }
 }
