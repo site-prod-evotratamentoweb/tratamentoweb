@@ -12,7 +12,8 @@ export class PlanoAlimentarCliente {
         this.funcoes = FuncoesCompartilhadas;
         this.navegador = criarNavegador(userInfo);
         this.isMenuOpen = false;
-        this.planoAlimentar = null;
+        this.planosList = [];
+        this.planoSelecionado = null;
         this.profissionalInfo = null;
         this.pacienteData = null;
     }
@@ -21,7 +22,7 @@ export class PlanoAlimentarCliente {
         const app = document.getElementById('app');
         
         await this.carregarDadosPaciente();
-        await this.carregarPlanoAlimentar();
+        await this.carregarPlanosAlimentares();
         
         app.innerHTML = this.renderHTML();
         this.attachEvents();
@@ -54,26 +55,31 @@ export class PlanoAlimentarCliente {
         }
     }
 
-    async carregarPlanoAlimentar() {
+    async carregarPlanosAlimentares() {
+        if (!this.profissionalInfo) {
+            this.planosList = [];
+            return;
+        }
+
         try {
-            const planosRef = collection(db, 'planos_alimentares');
-            const q = query(planosRef, where('paciente_login', '==', this.userInfo.login));
-            const querySnapshot = await getDocs(q);
+            const nutricionistaLogin = this.profissionalInfo.login;
+            const pacienteLogin = this.userInfo.login;
             
-            if (!querySnapshot.empty) {
-                const docs = querySnapshot.docs;
-                docs.sort((a, b) => {
-                    const dateA = a.data().data_atualizacao || a.data().data_criacao;
-                    const dateB = b.data().data_atualizacao || b.data().data_criacao;
-                    return new Date(dateB) - new Date(dateA);
-                });
-                this.planoAlimentar = { id: docs[0].id, ...docs[0].data() };
-            } else {
-                this.planoAlimentar = null;
-            }
+            console.log('🔍 Buscando planos:', nutricionistaLogin, '→', pacienteLogin);
+            
+            // Caminho hierárquico: planos_alimentares > nutricionista > paciente
+            const planosRef = collection(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin);
+            const querySnapshot = await getDocs(planosRef);
+            
+            this.planosList = [];
+            querySnapshot.forEach((docSnap) => {
+                this.planosList.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            
+            console.log(`✅ ${this.planosList.length} planos encontrados`);
         } catch (error) {
-            console.error("Erro ao carregar plano alimentar:", error);
-            this.planoAlimentar = null;
+            console.error("Erro ao carregar planos:", error);
+            this.planosList = [];
         }
     }
 
@@ -85,14 +91,34 @@ export class PlanoAlimentarCliente {
         return primeiroNome;
     }
 
+    formatarDataExibicao(documentoId) {
+        try {
+            const partes = documentoId.split('_');
+            const dataParte = partes[0];
+            const horaParte = partes[1].replace('h', '');
+            
+            const [dia, mes, ano] = dataParte.split('-');
+            const [hora, minuto] = horaParte.split(':');
+            
+            return `${dia}/${mes}/${ano} ${hora}:${minuto}h`;
+        } catch {
+            return documentoId;
+        }
+    }
+
+    selecionarPlano(planoId) {
+        if (this.planoSelecionado === planoId) {
+            this.planoSelecionado = null;
+        } else {
+            this.planoSelecionado = planoId;
+        }
+        this.render();
+    }
+
     renderHTML() {
         const nomeFormatado = this.formatarNome(this.userInfo.nome);
         const plano = this.pacienteData?.plano || 'Não informado';
-        const temPlano = this.planoAlimentar !== null;
         const profissionalNome = this.profissionalInfo?.nome || 'Profissional não vinculado';
-        const dataAtualizacao = this.planoAlimentar?.data_atualizacao 
-            ? new Date(this.planoAlimentar.data_atualizacao).toLocaleDateString('pt-BR')
-            : 'Não informada';
         
         return `
             <div class="home-container">
@@ -145,91 +171,20 @@ export class PlanoAlimentarCliente {
                             <p><strong>👤 Nome:</strong> ${this.userInfo.nome || 'Não informado'}</p>
                             <p><strong>📋 Plano:</strong> ${plano}</p>
                             <p><strong>👨‍⚕️ Nutricionista:</strong> ${profissionalNome}</p>
-                            ${temPlano ? `<p><strong>📅 Última atualização:</strong> ${dataAtualizacao}</p>` : ''}
+                            <p><strong>📊 Total de Planos:</strong> ${this.planosList.length}</p>
                         </div>
                     </div>
 
-                    ${temPlano ? `
-                        <div class="meal-plan-container">
-                            <div class="evaluation-card" style="margin-bottom: 16px;">
-                                <div class="evaluation-date" style="color: #f97316; border-bottom: 2px solid #f97316; padding-bottom: 8px; margin-bottom: 12px;">
-                                    🌅 Café da Manhã
-                                </div>
-                                <div style="white-space: pre-wrap; line-height: 1.5;">
-                                    ${this.planoAlimentar?.breakfast || '<span style="color: #999;">Nenhuma informação cadastrada</span>'}
-                                </div>
+                    ${this.planosList.length > 0 ? `
+                        <div class="planos-list-container">
+                            <h3 style="color: #1a237e; margin-bottom: 20px;">
+                                📅 Histórico de Planos Alimentares
+                                <span style="font-size: 14px; color: #64748b;">(${this.planosList.length} encontrados)</span>
+                            </h3>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                ${this.renderPlanosList()}
                             </div>
-
-                            <div class="evaluation-card" style="margin-bottom: 16px;">
-                                <div class="evaluation-date" style="color: #f97316; border-bottom: 2px solid #f97316; padding-bottom: 8px; margin-bottom: 12px;">
-                                    🍎 Lanche da Manhã
-                                </div>
-                                <div style="white-space: pre-wrap; line-height: 1.5;">
-                                    ${this.planoAlimentar?.morningSnack || '<span style="color: #999;">Nenhuma informação cadastrada</span>'}
-                                </div>
-                            </div>
-
-                            <div class="evaluation-card" style="margin-bottom: 16px;">
-                                <div class="evaluation-date" style="color: #f97316; border-bottom: 2px solid #f97316; padding-bottom: 8px; margin-bottom: 12px;">
-                                    🍽️ Almoço
-                                </div>
-                                <div style="white-space: pre-wrap; line-height: 1.5;">
-                                    ${this.planoAlimentar?.lunch || '<span style="color: #999;">Nenhuma informação cadastrada</span>'}
-                                </div>
-                            </div>
-
-                            <div class="evaluation-card" style="margin-bottom: 16px;">
-                                <div class="evaluation-date" style="color: #f97316; border-bottom: 2px solid #f97316; padding-bottom: 8px; margin-bottom: 12px;">
-                                    🍌 Lanche da Tarde
-                                </div>
-                                <div style="white-space: pre-wrap; line-height: 1.5;">
-                                    ${this.planoAlimentar?.afternoonSnack || '<span style="color: #999;">Nenhuma informação cadastrada</span>'}
-                                </div>
-                            </div>
-
-                            <div class="evaluation-card" style="margin-bottom: 16px;">
-                                <div class="evaluation-date" style="color: #f97316; border-bottom: 2px solid #f97316; padding-bottom: 8px; margin-bottom: 12px;">
-                                    🌙 Jantar
-                                </div>
-                                <div style="white-space: pre-wrap; line-height: 1.5;">
-                                    ${this.planoAlimentar?.dinner || '<span style="color: #999;">Nenhuma informação cadastrada</span>'}
-                                </div>
-                            </div>
-
-                            <div class="evaluation-card" style="margin-bottom: 16px;">
-                                <div class="evaluation-date" style="color: #f97316; border-bottom: 2px solid #f97316; padding-bottom: 8px; margin-bottom: 12px;">
-                                    ⭐ Ceia
-                                </div>
-                                <div style="white-space: pre-wrap; line-height: 1.5;">
-                                    ${this.planoAlimentar?.supper || '<span style="color: #999;">Nenhuma informação cadastrada</span>'}
-                                </div>
-                            </div>
-
-                            ${(this.planoAlimentar?.guidelines || this.planoAlimentar?.restrictions || this.planoAlimentar?.goals) ? `
-                                <div class="client-info" style="margin-top: 20px;">
-                                    <h3>📌 Informações Complementares</h3>
-                                    <div class="info-card">
-                                        ${this.planoAlimentar?.guidelines ? `
-                                            <div style="margin-bottom: 16px;">
-                                                <strong style="color: #f97316;">📝 Orientações Gerais</strong>
-                                                <div style="white-space: pre-wrap; margin-top: 8px;">${this.planoAlimentar.guidelines}</div>
-                                            </div>
-                                        ` : ''}
-                                        ${this.planoAlimentar?.restrictions ? `
-                                            <div style="margin-bottom: 16px;">
-                                                <strong style="color: #f97316;">⚠️ Restrições Alimentares</strong>
-                                                <div style="white-space: pre-wrap; margin-top: 8px;">${this.planoAlimentar.restrictions}</div>
-                                            </div>
-                                        ` : ''}
-                                        ${this.planoAlimentar?.goals ? `
-                                            <div>
-                                                <strong style="color: #f97316;">🎯 Objetivos</strong>
-                                                <div style="white-space: pre-wrap; margin-top: 8px;">${this.planoAlimentar.goals}</div>
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                </div>
-                            ` : ''}
                         </div>
                     ` : `
                         <div class="empty-state" style="text-align: center; padding: 60px; background: white; border-radius: 1rem; margin-top: 20px;">
@@ -242,6 +197,112 @@ export class PlanoAlimentarCliente {
                 </div>
             </div>
         `;
+    }
+
+    renderPlanosList() {
+        // Ordena por data (mais recente primeiro)
+        const planosOrdenados = [...this.planosList].sort((a, b) => {
+            const dataA = this.extrairData(a.id);
+            const dataB = this.extrairData(b.id);
+            return dataB - dataA;
+        });
+
+        return planosOrdenados.map((plano, index) => {
+            const isExpanded = this.planoSelecionado === plano.id;
+            const dataFormatada = this.formatarDataExibicao(plano.id);
+            const isMaisRecente = index === 0;
+            
+            return `
+                <div class="plano-card" style="
+                    background: white; 
+                    border: 2px solid ${isMaisRecente ? '#22c55e' : '#e2e8f0'}; 
+                    border-radius: 12px; 
+                    overflow: hidden;
+                ">
+                    <!-- Cabeçalho do Card -->
+                    <div onclick="window.planoClienteInstance.selecionarPlano('${plano.id}')" 
+                         style="padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            ${isMaisRecente ? `
+                                <span style="background: #22c55e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                    ATUAL
+                                </span>
+                            ` : `
+                                <span style="background: #64748b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                    Histórico
+                                </span>
+                            `}
+                            
+                            <span style="color: #1a237e; font-size: 16px; font-weight: 600;">
+                                📅 ${dataFormatada}
+                            </span>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            ${plano.profissional_nome ? `
+                                <span style="color: #64748b; font-size: 13px;">
+                                    👨‍⚕️ ${plano.profissional_nome}
+                                </span>
+                            ` : ''}
+                            <span style="color: #64748b; font-size: 18px; transition: transform 0.3s; ${isExpanded ? 'transform: rotate(180deg);' : ''}">
+                                ▼
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Detalhes Expandidos -->
+                    ${isExpanded ? `
+                        <div style="border-top: 1px solid #e2e8f0; padding: 20px; background: #f8fafc;">
+                            <!-- Refeições -->
+                            ${plano.breakfast ? this.renderRefeicaoCard('🌅 Café da Manhã', plano.breakfast) : ''}
+                            ${plano.morningSnack ? this.renderRefeicaoCard('🍎 Lanche da Manhã', plano.morningSnack) : ''}
+                            ${plano.lunch ? this.renderRefeicaoCard('🍽️ Almoço', plano.lunch) : ''}
+                            ${plano.afternoonSnack ? this.renderRefeicaoCard('🍌 Lanche da Tarde', plano.afternoonSnack) : ''}
+                            ${plano.dinner ? this.renderRefeicaoCard('🌙 Jantar', plano.dinner) : ''}
+                            ${plano.supper ? this.renderRefeicaoCard('⭐ Ceia', plano.supper) : ''}
+                            
+                            <!-- Informações Adicionais -->
+                            ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
+                            ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições Alimentares', plano.restrictions) : ''}
+                            ${plano.goals ? this.renderInfoCard('🎯 Objetivos', plano.goals) : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    renderRefeicaoCard(titulo, conteudo) {
+        return `
+            <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px;">
+                <strong style="color: #f97316; display: block; margin-bottom: 6px;">${titulo}</strong>
+                <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap;">${conteudo}</p>
+            </div>
+        `;
+    }
+
+    renderInfoCard(titulo, conteudo) {
+        return `
+            <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px;">
+                <strong style="color: #f97316; display: block; margin-bottom: 8px;">${titulo}</strong>
+                <p style="color: #475569; margin: 0; white-space: pre-wrap;">${conteudo}</p>
+            </div>
+        `;
+    }
+
+    extrairData(documentoId) {
+        try {
+            const partes = documentoId.split('_');
+            const dataParte = partes[0];
+            const horaParte = partes[1].replace('h', '');
+            
+            const [dia, mes, ano] = dataParte.split('-');
+            const [hora, minuto] = horaParte.split(':');
+            
+            return new Date(ano, mes - 1, dia, hora, minuto);
+        } catch {
+            return new Date(0);
+        }
     }
 
     attachEvents() {
@@ -281,5 +342,8 @@ export class PlanoAlimentarCliente {
                 this.navegador.navegarPara('logout');
             });
         }
+
+        // Expor instância globalmente para botões inline
+        window.planoClienteInstance = this;
     }
 }
