@@ -52,46 +52,29 @@ export class PlanoAlimentarNutricionista {
         return `
             <div class="dashboard-container" style="height: 100vh; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
-
+    
                 <div class="main-content" style="flex: 1; overflow-y: auto; padding: 20px 32px;">
                     <!-- Seleção de Paciente -->
-                    <div id="pacienteInfo" class="info-section" style="margin-bottom: 24px;">
-                        <div style="margin-bottom: 20px;">
-                            <select id="pacienteSelect" style="width: 100%; max-width: 350px; padding: 10px 14px; border-radius: 10px; border: 2px solid #e2e8f0; background: white;">
-                                <option value="">-- Selecione um paciente --</option>
-                                ${this.pacientesList.map(p => `
-                                    <option value="${p.login}" ${this.selectedPaciente?.login === p.login ? 'selected' : ''}>
-                                        ${p.nome} (${p.login})
-                                    </option>
-                                `).join('')}
-                            </select>
-                        </div>
-
-                        ${this.selectedPaciente ? `
-                            <div class="info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                                <div class="info-card" style="background: #f8fafc; padding: 12px; border-radius: 8px;">
-                                    <span style="color: #64748b; font-size: 12px;">Nome</span>
-                                    <div style="font-weight: 600;">${this.selectedPaciente.nome}</div>
-                                </div>
-                                <div class="info-card" style="background: #f8fafc; padding: 12px; border-radius: 8px;">
-                                    <span style="color: #64748b; font-size: 12px;">Idade</span>
-                                    <div style="font-weight: 600;">${this.funcoes.calcularIdade(this.selectedPaciente.dataNascimento)} anos</div>
-                                </div>
-                                <div class="info-card" style="background: #f8fafc; padding: 12px; border-radius: 8px;">
-                                    <span style="color: #64748b; font-size: 12px;">Total de Planos</span>
-                                    <div style="font-weight: 600;">${this.planosList.length}</div>
-                                </div>
-                            </div>
-                        ` : ''}
+                    <div id="pacienteInfo" style="margin-bottom: 24px;">
+                        <select id="pacienteSelect" style="width: 100%; max-width: 350px; padding: 10px 14px; border-radius: 10px; border: 2px solid #e2e8f0; background: white;">
+                            <option value="">-- Selecione um paciente --</option>
+                            ${this.pacientesList.map(p => `
+                                <option value="${p.login}" ${this.selectedPaciente?.login === p.login ? 'selected' : ''}>
+                                    ${p.nome} (${p.login})
+                                </option>
+                            `).join('')}
+                        </select>
                     </div>
-
+    
                     ${this.selectedPaciente ? `
                         <!-- Lista de Planos -->
                         <div style="margin-bottom: 20px;">
-                            <h3 style="color: #1a237e; margin-bottom: 20px;">
-                                📋 Planos Alimentares
-                                ${this.planosList.length > 0 ? `<span style="font-size: 14px; color: #64748b;">(${this.planosList.length} encontrados)</span>` : ''}
-                            </h3>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3 style="color: #1a237e; margin: 0;">
+                                    📋 Planos Alimentares
+                                    ${this.planosList.length > 0 ? `<span style="font-size: 14px; color: #64748b;">(${this.planosList.length} encontrados)</span>` : ''}
+                                </h3>
+                            </div>
                             
                             <div id="planosContainer">
                                 ${this.renderPlanosList()}
@@ -105,7 +88,7 @@ export class PlanoAlimentarNutricionista {
                         </div>
                     `}
                 </div>
-
+    
                 <!-- Botão + Flutuante -->
                 ${this.selectedPaciente ? `
                     <div class="fab-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
@@ -115,7 +98,7 @@ export class PlanoAlimentarNutricionista {
                         </button>
                     </div>
                 ` : ''}
-
+    
                 <!-- Modal para Criar/Editar Plano -->
                 <div id="modalPlano" class="modal-overlay" style="display: none;">
                     <div class="modal-content" style="background: white; border-radius: 16px; width: 90%; max-width: 1000px; max-height: 90vh; overflow-y: auto; margin: 20px auto;">
@@ -145,7 +128,7 @@ export class PlanoAlimentarNutricionista {
                         </div>
                     </div>
                 </div>
-
+    
                 <style>
                     .fab-container {
                         display: flex;
