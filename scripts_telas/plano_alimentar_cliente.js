@@ -3,7 +3,7 @@
 import { FuncoesCompartilhadas } from './0_home.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
 import { 
-    db, collection, getDocs, query, where, doc, getDoc
+    db, collection, getDocs, doc, getDoc
 } from '../0_firebase_api_config.js';
 
 export class PlanoAlimentarCliente {
@@ -63,11 +63,11 @@ export class PlanoAlimentarCliente {
 
         try {
             const nutricionistaLogin = this.profissionalInfo.login;
-            const pacienteLogin = this.userInfo.login;
+            const pacienteLogin = this.userInfo.login; // GARANTE que é o login do paciente logado
             
-            console.log('🔍 Buscando planos:', nutricionistaLogin, '→', pacienteLogin);
+            console.log('🔍 Buscando planos para:', pacienteLogin);
             
-            // Caminho hierárquico: planos_alimentares > nutricionista > paciente
+            // Estrutura: planos_alimentares > nutricionista > paciente (login do paciente)
             const planosRef = collection(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin);
             const querySnapshot = await getDocs(planosRef);
             
@@ -76,7 +76,7 @@ export class PlanoAlimentarCliente {
                 this.planosList.push({ id: docSnap.id, ...docSnap.data() });
             });
             
-            console.log(`✅ ${this.planosList.length} planos encontrados`);
+            console.log(`✅ ${this.planosList.length} planos encontrados para ${pacienteLogin}`);
         } catch (error) {
             console.error("Erro ao carregar planos:", error);
             this.planosList = [];
@@ -219,7 +219,6 @@ export class PlanoAlimentarCliente {
                     border-radius: 12px; 
                     overflow: hidden;
                 ">
-                    <!-- Cabeçalho do Card -->
                     <div onclick="window.planoClienteInstance.selecionarPlano('${plano.id}')" 
                          style="padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -250,10 +249,8 @@ export class PlanoAlimentarCliente {
                         </div>
                     </div>
                     
-                    <!-- Detalhes Expandidos -->
                     ${isExpanded ? `
                         <div style="border-top: 1px solid #e2e8f0; padding: 20px; background: #f8fafc;">
-                            <!-- Refeições -->
                             ${plano.breakfast ? this.renderRefeicaoCard('🌅 Café da Manhã', plano.breakfast) : ''}
                             ${plano.morningSnack ? this.renderRefeicaoCard('🍎 Lanche da Manhã', plano.morningSnack) : ''}
                             ${plano.lunch ? this.renderRefeicaoCard('🍽️ Almoço', plano.lunch) : ''}
@@ -261,7 +258,6 @@ export class PlanoAlimentarCliente {
                             ${plano.dinner ? this.renderRefeicaoCard('🌙 Jantar', plano.dinner) : ''}
                             ${plano.supper ? this.renderRefeicaoCard('⭐ Ceia', plano.supper) : ''}
                             
-                            <!-- Informações Adicionais -->
                             ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
                             ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições Alimentares', plano.restrictions) : ''}
                             ${plano.goals ? this.renderInfoCard('🎯 Objetivos', plano.goals) : ''}
@@ -343,7 +339,7 @@ export class PlanoAlimentarCliente {
             });
         }
 
-        // Expor instância globalmente para botões inline
+        // Expor instância globalmente
         window.planoClienteInstance = this;
     }
 }
