@@ -12,10 +12,7 @@ import {
     where, 
     doc, 
     updateDoc,
-    orderBy,
-    limit,
-    getDoc,
-    deleteDoc
+    getDoc
 } from '../0_firebase_api_config.js';
 
 export class PlanoAlimentarNutricionista {
@@ -94,7 +91,7 @@ export class PlanoAlimentarNutricionista {
                     ${this.selectedPaciente ? `
                         <!-- BOTÃO DO HISTÓRICO -->
                         <div style="margin-bottom: 20px;">
-                            <button id="toggleHistoricoBtn" class="btn-historico" style="
+                            <button id="toggleHistoricoBtn" style="
                                 width: 100%;
                                 padding: 12px;
                                 background: ${this.mostrarHistorico ? '#64748b' : '#0ea5e9'};
@@ -105,13 +102,8 @@ export class PlanoAlimentarNutricionista {
                                 font-weight: 600;
                                 cursor: pointer;
                                 transition: all 0.3s;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                gap: 8px;
                             ">
-                                <span>📋</span>
-                                <span>${this.mostrarHistorico ? 'Ocultar Histórico' : 'Ver Histórico de Planos'}</span>
+                                📋 ${this.mostrarHistorico ? 'Ocultar Histórico' : 'Ver Histórico de Planos'}
                             </button>
                         </div>
 
@@ -121,11 +113,11 @@ export class PlanoAlimentarNutricionista {
                         </div>
 
                         <!-- PLANO ATUAL -->
-                        <div class="meal-plan-container" id="mealPlanContainer" style="display: ${this.mostrarHistorico && this.planoSelecionadoHistorico ? 'none' : 'block'};">
+                        <div id="mealPlanContainer" style="display: ${this.mostrarHistorico && this.planoSelecionadoHistorico ? 'none' : 'block'};">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                                 <h4 style="margin: 0; color: #1a237e;">
                                     ${this.planoSelecionadoHistorico ? 
-                                        `📝 Visualizando Plano (v${this.planoSelecionadoHistorico.versao || 1})` : 
+                                        '📝 Visualizando Plano do Histórico' : 
                                         '📝 Plano Alimentar Atual'}
                                 </h4>
                                 ${this.planoSelecionadoHistorico ? `
@@ -220,7 +212,7 @@ export class PlanoAlimentarNutricionista {
     renderHistoricoHTML() {
         if (!this.historicoPlanos || this.historicoPlanos.length === 0) {
             return `
-                <div class="card" style="background: white; border-radius: 1rem; padding: 40px; text-align: center;">
+                <div style="background: white; border-radius: 1rem; padding: 40px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <span style="font-size: 48px;">📋</span>
                     <h4 style="margin-top: 16px; color: #64748b;">Nenhum histórico encontrado</h4>
                     <p style="color: #94a3b8;">Os planos anteriores deste paciente aparecerão aqui</p>
@@ -228,13 +220,16 @@ export class PlanoAlimentarNutricionista {
             `;
         }
 
+        // Ordena por versão (mais recente primeiro)
+        const planosOrdenados = [...this.historicoPlanos].sort((a, b) => (b.versao || 0) - (a.versao || 0));
+
         return `
-            <div class="card" style="background: white; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="background: white; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                 <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 20px;">
                     <h4 style="margin: 0;">
                         📋 Histórico de Planos Alimentares
                         <span style="font-size: 14px; opacity: 0.9; margin-left: 10px;">
-                            (${this.historicoPlanos.length} versões)
+                            (${planosOrdenados.length} versões)
                         </span>
                     </h4>
                 </div>
@@ -243,85 +238,75 @@ export class PlanoAlimentarNutricionista {
                     <!-- Estatísticas -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px;">
                         <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: bold; color: #0ea5e9;">${this.historicoPlanos.length}</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #0ea5e9;">${planosOrdenados.length}</div>
                             <div style="color: #64748b; font-size: 14px;">Total de Versões</div>
                         </div>
                         <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: bold; color: #22c55e;">v${this.historicoPlanos[0]?.versao || 1}</div>
-                            <div style="color: #64748b; font-size: 14px;">Versão Atual</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #22c55e;">v${planosOrdenados[0]?.versao || 1}</div>
+                            <div style="color: #64748b; font-size: 14px;">Versão Mais Recente</div>
                         </div>
                         <div style="background: #fefce8; padding: 15px; border-radius: 10px; text-align: center;">
                             <div style="font-size: 14px; font-weight: bold; color: #eab308;">
-                                ${this.formatarData(this.historicoPlanos[0]?.data_criacao)}
+                                ${this.formatarData(planosOrdenados[0]?.data_criacao)}
                             </div>
                             <div style="color: #64748b; font-size: 14px;">Última Atualização</div>
                         </div>
                     </div>
 
-                    <!-- Timeline -->
-                    <div style="position: relative; padding-left: 30px;">
-                        <div style="position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #e2e8f0;"></div>
-                        
-                        ${this.historicoPlanos.map((plano, index) => `
-                            <div style="position: relative; margin-bottom: 25px;">
-                                <div style="
-                                    position: absolute; 
-                                    left: -26px; 
-                                    top: 10px; 
-                                    width: 12px; 
-                                    height: 12px; 
-                                    border-radius: 50%; 
-                                    background: ${index === 0 ? '#22c55e' : '#0ea5e9'};
-                                    border: 3px solid white;
-                                    box-shadow: 0 0 0 2px ${index === 0 ? '#22c55e' : '#0ea5e9'};
-                                "></div>
-                                
-                                <div style="
-                                    background: ${index === 0 ? '#f0fdf4' : '#f8fafc'}; 
-                                    border: 1px solid ${index === 0 ? '#bbf7d0' : '#e2e8f0'}; 
-                                    border-radius: 10px; 
-                                    padding: 15px;
-                                    ${index === 0 ? 'border-left: 4px solid #22c55e;' : ''}
-                                ">
-                                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 10px;">
-                                        <div>
+                    <!-- Lista de Versões -->
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        ${planosOrdenados.map((plano, index) => `
+                            <div style="
+                                background: ${index === 0 ? '#f0fdf4' : '#f8fafc'}; 
+                                border: 1px solid ${index === 0 ? '#bbf7d0' : '#e2e8f0'}; 
+                                border-radius: 10px; 
+                                padding: 20px;
+                                ${index === 0 ? 'border-left: 4px solid #22c55e;' : ''}
+                            ">
+                                <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 15px;">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                             <h5 style="margin: 0; color: #1a237e;">
-                                                Versão ${plano.versao || index + 1}
-                                                ${index === 0 ? '<span style="background: #22c55e; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 8px;">ATUAL</span>' : ''}
+                                                Versão ${plano.versao || '?'}
                                             </h5>
-                                            <small style="color: #64748b;">
-                                                📅 ${this.formatarData(plano.data_criacao)}
-                                                ${plano.data_atualizacao ? ` | Atualizado: ${this.formatarData(plano.data_atualizacao)}` : ''}
-                                            </small>
+                                            ${index === 0 ? '<span style="background: #22c55e; color: white; padding: 2px 10px; border-radius: 20px; font-size: 12px;">ATUAL</span>' : ''}
                                         </div>
-                                        <div style="display: flex; gap: 8px;">
-                                            <button onclick="window.planoAlimentarInstance.visualizarPlanoHistorico('${plano.id}')" 
-                                                    style="padding: 6px 12px; background: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">
-                                                👁️ Ver
-                                            </button>
-                                            <button onclick="window.planoAlimentarInstance.carregarPlanoParaEdicao('${plano.id}')" 
-                                                    style="padding: 6px 12px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">
-                                                📝 Editar
-                                            </button>
-                                            <button onclick="window.planoAlimentarInstance.exportarPlano('${plano.id}')" 
-                                                    style="padding: 6px 12px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">
-                                                📥 Exportar
-                                            </button>
-                                        </div>
+                                        <small style="color: #64748b;">
+                                            📅 Criado em: ${this.formatarData(plano.data_criacao)}
+                                            ${plano.data_atualizacao ? ` | Atualizado: ${this.formatarData(plano.data_atualizacao)}` : ''}
+                                        </small>
+                                        ${plano.goals ? `
+                                            <p style="margin-top: 8px; color: #475569;">
+                                                <strong>🎯 Objetivos:</strong> ${plano.goals}
+                                            </p>
+                                        ` : ''}
                                     </div>
-                                    
-                                    ${plano.goals ? `
-                                        <div style="margin-top: 10px; padding: 8px; background: white; border-radius: 6px;">
-                                            <strong>🎯 Objetivos:</strong> ${plano.goals}
-                                        </div>
-                                    ` : ''}
-                                    
-                                    ${index < this.historicoPlanos.length - 1 ? `
-                                        <div style="margin-top: 10px; font-size: 13px; color: #64748b;">
-                                            🔄 ${this.compararPlanos(this.historicoPlanos[index + 1], plano)}
-                                        </div>
-                                    ` : ''}
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                        <button onclick="window.planoAlimentarInstance.visualizarPlanoHistorico('${plano.id}')" 
+                                                style="padding: 8px 16px; background: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap;">
+                                            👁️ Visualizar
+                                        </button>
+                                        <button onclick="window.planoAlimentarInstance.carregarPlanoParaEdicao('${plano.id}')" 
+                                                style="padding: 8px 16px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap;">
+                                            📝 Usar como Base
+                                        </button>
+                                        <button onclick="window.planoAlimentarInstance.exportarPlano('${plano.id}')" 
+                                                style="padding: 8px 16px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap;">
+                                            📥 Exportar
+                                        </button>
+                                    </div>
                                 </div>
+                                
+                                ${index < planosOrdenados.length - 1 ? `
+                                    <div style="margin-top: 12px; padding: 10px; background: white; border-radius: 6px; font-size: 13px; color: #64748b;">
+                                        🔄 <strong>Mudanças da versão anterior:</strong> 
+                                        ${this.compararPlanos(planosOrdenados[index + 1], plano)}
+                                    </div>
+                                ` : `
+                                    <div style="margin-top: 12px; padding: 10px; background: white; border-radius: 6px; font-size: 13px; color: #64748b;">
+                                        🆕 <strong>Versão inicial do plano</strong>
+                                    </div>
+                                `}
                             </div>
                         `).join('')}
                     </div>
@@ -375,21 +360,24 @@ export class PlanoAlimentarNutricionista {
             console.log('🔍 Buscando plano alimentar atual para:', this.selectedPaciente.login);
             
             const plansRef = collection(db, 'planos_alimentares');
-            const q = query(
-                plansRef, 
-                where('paciente_login', '==', this.selectedPaciente.login),
-                where('status', '==', 'ativo'),
-                limit(1)
-            );
+            const q = query(plansRef, where('paciente_login', '==', this.selectedPaciente.login));
             const querySnapshot = await getDocs(q);
             
             if (!querySnapshot.empty) {
-                const docSnap = querySnapshot.docs[0];
-                this.currentMealPlan = { id: docSnap.id, ...docSnap.data() };
-                console.log('✅ Plano atual encontrado');
+                // Pega o primeiro plano ativo (ou o único)
+                let planoAtivo = null;
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    if (data.status === 'ativo' && !planoAtivo) {
+                        planoAtivo = { id: docSnap.id, ...data };
+                    }
+                });
+                
+                this.currentMealPlan = planoAtivo || null;
+                console.log(this.currentMealPlan ? '✅ Plano atual encontrado' : '📝 Nenhum plano ativo');
             } else {
                 this.currentMealPlan = null;
-                console.log('📝 Nenhum plano ativo encontrado');
+                console.log('📝 Nenhum plano encontrado');
             }
         } catch (error) {
             console.error("Erro ao carregar plano:", error);
@@ -404,16 +392,12 @@ export class PlanoAlimentarNutricionista {
             console.log('🔍 Buscando histórico de planos para:', this.selectedPaciente.login);
             
             const historicoRef = collection(db, 'historico_planos_alimentares');
-            const q = query(
-                historicoRef,
-                where('paciente_login', '==', this.selectedPaciente.login),
-                orderBy('versao', 'desc')
-            );
+            const q = query(historicoRef, where('paciente_login', '==', this.selectedPaciente.login));
             const querySnapshot = await getDocs(q);
             
             this.historicoPlanos = [];
-            querySnapshot.forEach((doc) => {
-                this.historicoPlanos.push({ id: doc.id, ...doc.data() });
+            querySnapshot.forEach((docSnap) => {
+                this.historicoPlanos.push({ id: docSnap.id, ...docSnap.data() });
             });
             
             console.log(`✅ ${this.historicoPlanos.length} versões encontradas no histórico`);
@@ -430,14 +414,18 @@ export class PlanoAlimentarNutricionista {
         }
 
         try {
+            // Pega versão anterior ou define como 1
+            const versaoAnterior = this.currentMealPlan?.versao || 0;
+            const novaVersao = versaoAnterior + 1;
+            
             const mealPlanData = {
                 paciente_login: this.selectedPaciente.login,
                 paciente_nome: this.selectedPaciente.nome,
                 profissional: this.userInfo.nome,
                 profissional_login: this.userInfo.login,
                 data_atualizacao: new Date().toISOString(),
-                data_criacao: this.currentMealPlan?.data_criacao || new Date().toISOString(),
-                versao: (this.currentMealPlan?.versao || 0) + 1,
+                data_criacao: new Date().toISOString(),
+                versao: novaVersao,
                 status: 'ativo',
                 breakfast: document.getElementById('breakfast')?.value || '',
                 morningSnack: document.getElementById('morningSnack')?.value || '',
@@ -450,40 +438,33 @@ export class PlanoAlimentarNutricionista {
                 goals: document.getElementById('goals')?.value || ''
             };
 
-            // 1. Salvar no histórico (sempre cria nova versão)
+            // 1. Salvar no histórico (sempre como nova versão)
             const historicoRef = collection(db, 'historico_planos_alimentares');
-            const docRef = await addDoc(historicoRef, {
-                ...mealPlanData,
-                tipo: 'historico'
-            });
-            console.log('📚 Versão salva no histórico:', docRef.id);
+            await addDoc(historicoRef, mealPlanData);
+            console.log('📚 Plano salvo no histórico - Versão:', novaVersao);
 
-            // 2. Atualizar ou criar plano ativo
-            const plansRef = collection(db, 'planos_alimentares');
-            
+            // 2. Se já existe plano ativo, marca como inativo
             if (this.currentMealPlan?.id) {
-                // Marcar plano anterior como inativo
                 const oldPlanDoc = doc(db, 'planos_alimentares', this.currentMealPlan.id);
-                await updateDoc(oldPlanDoc, { status: 'inativo' });
-                
-                // Criar novo plano ativo
-                await addDoc(plansRef, {
-                    ...mealPlanData,
-                    tipo: 'ativo'
+                await updateDoc(oldPlanDoc, { 
+                    status: 'inativo',
+                    data_desativacao: new Date().toISOString()
                 });
-            } else {
-                // Primeiro plano
-                await addDoc(plansRef, {
-                    ...mealPlanData,
-                    tipo: 'ativo'
-                });
+                console.log('📝 Plano anterior marcado como inativo');
             }
 
-            alert(`✅ Plano alimentar versão ${mealPlanData.versao} salvo com sucesso!`);
+            // 3. Cria novo plano como ativo
+            const plansRef = collection(db, 'planos_alimentares');
+            await addDoc(plansRef, mealPlanData);
+            console.log('✅ Novo plano criado como ativo - Versão:', novaVersao);
+
+            alert(`✅ Plano alimentar versão ${novaVersao} salvo com sucesso!\n\n💡 Dica: Clique em "Ver Histórico" para consultar todas as versões.`);
             
             // Recarregar dados
             await this.loadMealPlan();
             await this.loadHistoricoPlanos();
+            
+            // Mostrar histórico após salvar
             this.mostrarHistorico = true;
             await this.render();
             
@@ -497,22 +478,29 @@ export class PlanoAlimentarNutricionista {
         const plano = this.historicoPlanos.find(p => p.id === planoId);
         if (plano) {
             this.planoSelecionadoHistorico = plano;
+            this.mostrarHistorico = false;
             await this.render();
             
             // Scroll para o plano
-            document.getElementById('mealPlanContainer')?.scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => {
+                document.getElementById('mealPlanContainer')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
         }
     }
 
     async carregarPlanoParaEdicao(planoId) {
         const plano = this.historicoPlanos.find(p => p.id === planoId);
-        if (plano && confirm(`Carregar versão ${plano.versao} para edição?\n\nAo salvar, uma nova versão será criada.`)) {
+        if (plano && confirm(`Carregar versão ${plano.versao} como base para edição?\n\nAo salvar, uma NOVA versão será criada automaticamente.\nA versão ${plano.versao} continuará no histórico.`)) {
             this.planoSelecionadoHistorico = null;
             this.mostrarHistorico = false;
+            // Carrega o plano mas remove ID para criar novo
             this.currentMealPlan = { ...plano };
+            delete this.currentMealPlan.id;
             await this.render();
             
-            document.getElementById('mealPlanContainer')?.scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => {
+                document.getElementById('mealPlanContainer')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
         }
     }
 
@@ -525,36 +513,47 @@ export class PlanoAlimentarNutricionista {
         const plano = this.historicoPlanos.find(p => p.id === planoId);
         if (!plano) return;
 
-        let conteudo = `PLANO ALIMENTAR - VERSÃO ${plano.versao}\n`;
-        conteudo += `${'='.repeat(50)}\n`;
-        conteudo += `Paciente: ${plano.paciente_nome}\n`;
-        conteudo += `Profissional: ${plano.profissional}\n`;
-        conteudo += `Data: ${this.formatarData(plano.data_criacao)}\n\n`;
+        let conteudo = `PLANO ALIMENTAR - VERSÃO ${plano.versao || '?'}\n`;
+        conteudo += `${'='.repeat(50)}\n\n`;
+        conteudo += `👤 Paciente: ${plano.paciente_nome || 'Não informado'}\n`;
+        conteudo += `👨‍⚕️ Profissional: ${plano.profissional || 'Não informado'}\n`;
+        conteudo += `📅 Data de Criação: ${this.formatarData(plano.data_criacao)}\n`;
+        if (plano.data_atualizacao) {
+            conteudo += `🔄 Última Atualização: ${this.formatarData(plano.data_atualizacao)}\n`;
+        }
+        conteudo += `\n${'='.repeat(50)}\n\n`;
         
-        conteudo += `REFEIÇÕES:\n${'-'.repeat(50)}\n`;
+        conteudo += `🍽️ REFEIÇÕES\n${'-'.repeat(50)}\n\n`;
         conteudo += `🌅 Café da Manhã:\n${plano.breakfast || 'Não definido'}\n\n`;
-        conteudo += `🍎 Lanche Manhã:\n${plano.morningSnack || 'Não definido'}\n\n`;
+        conteudo += `🍎 Lanche da Manhã:\n${plano.morningSnack || 'Não definido'}\n\n`;
         conteudo += `🍽️ Almoço:\n${plano.lunch || 'Não definido'}\n\n`;
-        conteudo += `🍌 Lanche Tarde:\n${plano.afternoonSnack || 'Não definido'}\n\n`;
+        conteudo += `🍌 Lanche da Tarde:\n${plano.afternoonSnack || 'Não definido'}\n\n`;
         conteudo += `🌙 Jantar:\n${plano.dinner || 'Não definido'}\n\n`;
         conteudo += `⭐ Ceia:\n${plano.supper || 'Não definido'}\n\n`;
         
-        conteudo += `ORIENTAÇÕES:\n${'-'.repeat(50)}\n`;
-        conteudo += `📌 Gerais: ${plano.guidelines || 'Não definido'}\n`;
-        conteudo += `⚠️ Restrições: ${plano.restrictions || 'Não definido'}\n`;
-        conteudo += `🎯 Objetivos: ${plano.goals || 'Não definido'}\n`;
+        conteudo += `📋 INFORMAÇÕES ADICIONAIS\n${'-'.repeat(50)}\n\n`;
+        conteudo += `📌 Orientações Gerais:\n${plano.guidelines || 'Não definido'}\n\n`;
+        conteudo += `⚠️ Restrições Alimentares:\n${plano.restrictions || 'Nenhuma'}\n\n`;
+        conteudo += `🎯 Objetivos:\n${plano.goals || 'Não definido'}\n\n`;
+        
+        conteudo += `${'='.repeat(50)}\n`;
+        conteudo += `Documento gerado em: ${new Date().toLocaleDateString('pt-BR')}\n`;
+        conteudo += `Sistema Evo Tratamento Web\n`;
 
         const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `plano_alimentar_v${plano.versao}_${plano.paciente_nome.toLowerCase().replace(/\s+/g, '_')}.txt`;
+        const nomeArquivo = `plano_alimentar_v${plano.versao}_${(plano.paciente_nome || 'paciente').toLowerCase().replace(/\s+/g, '_')}.txt`;
+        link.download = nomeArquivo;
         link.click();
         URL.revokeObjectURL(url);
+        
+        console.log('📥 Plano exportado:', nomeArquivo);
     }
 
     formatarData(dataString) {
-        if (!dataString) return '--';
+        if (!dataString) return 'Data não disponível';
         try {
             const data = new Date(dataString);
             return data.toLocaleDateString('pt-BR', {
@@ -570,11 +569,11 @@ export class PlanoAlimentarNutricionista {
     }
 
     compararPlanos(planoAntigo, planoNovo) {
-        const mudancas = [];
-        
         if (!planoAntigo || !planoNovo) return 'Versão inicial do plano';
         
-        const campos = [
+        const mudancas = [];
+        
+        const camposParaComparar = [
             { key: 'breakfast', nome: 'Café da Manhã' },
             { key: 'morningSnack', nome: 'Lanche da Manhã' },
             { key: 'lunch', nome: 'Almoço' },
@@ -586,14 +585,21 @@ export class PlanoAlimentarNutricionista {
             { key: 'goals', nome: 'Objetivos' }
         ];
         
-        campos.forEach(campo => {
-            if (planoAntigo[campo.key] !== planoNovo[campo.key]) {
+        camposParaComparar.forEach(campo => {
+            const valorAntigo = planoAntigo[campo.key] || '';
+            const valorNovo = planoNovo[campo.key] || '';
+            
+            if (valorAntigo !== valorNovo) {
                 mudancas.push(campo.nome);
             }
         });
         
-        return mudancas.length > 0 
-            ? `Alterações em: ${mudancas.join(', ')}` 
-            : 'Ajustes gerais no plano';
+        if (mudancas.length === 0) {
+            return 'Nenhuma mudança significativa detectada';
+        } else if (mudancas.length <= 3) {
+            return `Alterações em: ${mudancas.join(', ')}`;
+        } else {
+            return `Alterações em ${mudancas.length} itens: ${mudancas.slice(0, 3).join(', ')} e outros`;
+        }
     }
 }
