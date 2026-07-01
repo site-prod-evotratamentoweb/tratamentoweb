@@ -21,10 +21,9 @@ export class PlanoAlimentarNutricionista {
         this.funcoes = FuncoesCompartilhadas;
         this.pacientesList = pacientesList || [];
         this.selectedPaciente = null;
-        this.currentMealPlan = null;
-        this.historicoPlanos = [];
-        this.planoSelecionadoHistorico = null;
-        this.mostrarHistorico = false;
+        this.planosList = [];
+        this.planoExpandido = null;
+        this.planoEditando = null;
         this.menu = null;
         this.navegador = criarNavegador(userInfo, this.pacientesList);
     }
@@ -45,8 +44,7 @@ export class PlanoAlimentarNutricionista {
         
         this.attachEvents();
         if (this.selectedPaciente) {
-            this.loadMealPlan();
-            this.loadHistoricoPlanos();
+            this.loadPlanos();
         }
     }
 
@@ -56,6 +54,7 @@ export class PlanoAlimentarNutricionista {
                 <div id="menuContainer"></div>
 
                 <div class="main-content" style="flex: 1; overflow-y: auto; padding: 20px 32px;">
+                    <!-- Seleção de Paciente -->
                     <div id="pacienteInfo" class="info-section" style="margin-bottom: 24px;">
                         <div style="margin-bottom: 20px;">
                             <select id="pacienteSelect" style="width: 100%; max-width: 350px; padding: 10px 14px; border-radius: 10px; border: 2px solid #e2e8f0; background: white;">
@@ -68,248 +67,397 @@ export class PlanoAlimentarNutricionista {
                             </select>
                         </div>
 
-                        <div class="info-grid">
-                            <div class="info-card">
-                                <span class="info-label">Nome</span>
-                                <span class="info-value" id="infoNome">${this.selectedPaciente?.nome || '--'}</span>
+                        ${this.selectedPaciente ? `
+                            <div class="info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                                <div class="info-card" style="background: #f8fafc; padding: 12px; border-radius: 8px;">
+                                    <span style="color: #64748b; font-size: 12px;">Nome</span>
+                                    <div style="font-weight: 600;">${this.selectedPaciente.nome}</div>
+                                </div>
+                                <div class="info-card" style="background: #f8fafc; padding: 12px; border-radius: 8px;">
+                                    <span style="color: #64748b; font-size: 12px;">Idade</span>
+                                    <div style="font-weight: 600;">${this.funcoes.calcularIdade(this.selectedPaciente.dataNascimento)} anos</div>
+                                </div>
+                                <div class="info-card" style="background: #f8fafc; padding: 12px; border-radius: 8px;">
+                                    <span style="color: #64748b; font-size: 12px;">Total de Planos</span>
+                                    <div style="font-weight: 600;">${this.planosList.length}</div>
+                                </div>
                             </div>
-                            <div class="info-card">
-                                <span class="info-label">Login</span>
-                                <span class="info-value" id="infoLogin">${this.selectedPaciente?.login || '--'}</span>
-                            </div>
-                            <div class="info-card">
-                                <span class="info-label">Idade</span>
-                                <span class="info-value" id="infoIdade">${this.selectedPaciente ? this.funcoes.calcularIdade(this.selectedPaciente.dataNascimento) : '--'} anos</span>
-                            </div>
-                            <div class="info-card">
-                                <span class="info-label">Sexo</span>
-                                <span class="info-value" id="infoSexo">${this.selectedPaciente?.sexo || '--'}</span>
-                            </div>
-                        </div>
+                        ` : ''}
                     </div>
 
                     ${this.selectedPaciente ? `
-                        <!-- BOTÃO DO HISTÓRICO -->
+                        <!-- Lista de Planos -->
                         <div style="margin-bottom: 20px;">
-                            <button id="toggleHistoricoBtn" style="
-                                width: 100%;
-                                padding: 12px;
-                                background: ${this.mostrarHistorico ? '#64748b' : '#0ea5e9'};
-                                color: white;
-                                border: none;
-                                border-radius: 10px;
-                                font-size: 16px;
-                                font-weight: 600;
-                                cursor: pointer;
-                                transition: all 0.3s;
-                            ">
-                                📋 ${this.mostrarHistorico ? 'Ocultar Histórico' : 'Ver Histórico de Planos'}
-                            </button>
-                        </div>
-
-                        <!-- SEÇÃO DE HISTÓRICO -->
-                        <div id="historicoSection" style="display: ${this.mostrarHistorico ? 'block' : 'none'}; margin-bottom: 30px;">
-                            ${this.renderHistoricoHTML()}
-                        </div>
-
-                        <!-- PLANO ATUAL -->
-                        <div id="mealPlanContainer" style="display: ${this.mostrarHistorico && this.planoSelecionadoHistorico ? 'none' : 'block'};">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="margin: 0; color: #1a237e;">
-                                    ${this.planoSelecionadoHistorico ? 
-                                        '📝 Visualizando Plano do Histórico' : 
-                                        '📝 Plano Alimentar Atual'}
-                                </h4>
-                                ${this.planoSelecionadoHistorico ? `
-                                    <button onclick="window.planoAlimentarInstance.voltarParaEdicao()" 
-                                            style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                                        ✕ Fechar Visualização
-                                    </button>
-                                ` : ''}
-                            </div>
-
-                            <div class="meals-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 24px;">
-                                <div class="meal-card" style="background: #f8fafc; border-radius: 1rem; overflow: hidden; border: 1px solid #e2e8f0;">
-                                    <div class="meal-header" style="background: #1a237e; color: white; padding: 12px 16px; font-weight: 600;">🌅 Café da Manhã</div>
-                                    <textarea id="breakfast" class="meal-textarea" style="width: 100%; min-height: 120px; padding: 12px; border: none; resize: vertical;" 
-                                        placeholder="Alimentos e quantidades..."
-                                        ${this.planoSelecionadoHistorico ? 'readonly' : ''}>${this.planoSelecionadoHistorico?.breakfast || this.currentMealPlan?.breakfast || ''}</textarea>
-                                </div>
-                                <div class="meal-card">
-                                    <div class="meal-header" style="background: #1a237e; color: white; padding: 12px 16px; font-weight: 600;">🍎 Lanche Manhã</div>
-                                    <textarea id="morningSnack" class="meal-textarea" style="width: 100%; min-height: 120px; padding: 12px; border: none; resize: vertical;" 
-                                        placeholder="Alimentos e quantidades..."
-                                        ${this.planoSelecionadoHistorico ? 'readonly' : ''}>${this.planoSelecionadoHistorico?.morningSnack || this.currentMealPlan?.morningSnack || ''}</textarea>
-                                </div>
-                                <div class="meal-card">
-                                    <div class="meal-header" style="background: #1a237e; color: white; padding: 12px 16px; font-weight: 600;">🍽️ Almoço</div>
-                                    <textarea id="lunch" class="meal-textarea" style="width: 100%; min-height: 120px; padding: 12px; border: none; resize: vertical;" 
-                                        placeholder="Alimentos e quantidades..."
-                                        ${this.planoSelecionadoHistorico ? 'readonly' : ''}>${this.planoSelecionadoHistorico?.lunch || this.currentMealPlan?.lunch || ''}</textarea>
-                                </div>
-                                <div class="meal-card">
-                                    <div class="meal-header" style="background: #1a237e; color: white; padding: 12px 16px; font-weight: 600;">🍌 Lanche Tarde</div>
-                                    <textarea id="afternoonSnack" class="meal-textarea" style="width: 100%; min-height: 120px; padding: 12px; border: none; resize: vertical;" 
-                                        placeholder="Alimentos e quantidades..."
-                                        ${this.planoSelecionadoHistorico ? 'readonly' : ''}>${this.planoSelecionadoHistorico?.afternoonSnack || this.currentMealPlan?.afternoonSnack || ''}</textarea>
-                                </div>
-                                <div class="meal-card">
-                                    <div class="meal-header" style="background: #1a237e; color: white; padding: 12px 16px; font-weight: 600;">🌙 Jantar</div>
-                                    <textarea id="dinner" class="meal-textarea" style="width: 100%; min-height: 120px; padding: 12px; border: none; resize: vertical;" 
-                                        placeholder="Alimentos e quantidades..."
-                                        ${this.planoSelecionadoHistorico ? 'readonly' : ''}>${this.planoSelecionadoHistorico?.dinner || this.currentMealPlan?.dinner || ''}</textarea>
-                                </div>
-                                <div class="meal-card">
-                                    <div class="meal-header" style="background: #1a237e; color: white; padding: 12px 16px; font-weight: 600;">⭐ Ceia</div>
-                                    <textarea id="supper" class="meal-textarea" style="width: 100%; min-height: 120px; padding: 12px; border: none; resize: vertical;" 
-                                        placeholder="Alimentos e quantidades..."
-                                        ${this.planoSelecionadoHistorico ? 'readonly' : ''}>${this.planoSelecionadoHistorico?.supper || this.currentMealPlan?.supper || ''}</textarea>
-                                </div>
-                            </div>
-
-                            <div class="additional-info" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
-                                <div class="info-group" style="background: #f8fafc; border-radius: 1rem; overflow: hidden;">
-                                    <label style="display: block; background: #1a237e; color: white; padding: 12px 16px; font-weight: 600; margin: 0;">📌 Orientações Gerais</label>
-                                    <textarea id="guidelines" class="info-textarea" style="width: 100%; min-height: 120px; padding: 12px; border: none; resize: vertical;" 
-                                        placeholder="Hidratação, horários, etc..."
-                                        ${this.planoSelecionadoHistorico ? 'readonly' : ''}>${this.planoSelecionadoHistorico?.guidelines || this.currentMealPlan?.guidelines || ''}</textarea>
-                                </div>
-                                <div class="info-group" style="background: #f8fafc; border-radius: 1rem; overflow: hidden;">
-                                    <label style="display: block; background: #1a237e; color: white; padding: 12px 16px; font-weight: 600; margin: 0;">⚠️ Restrições Alimentares</label>
-                                    <textarea id="restrictions" class="info-textarea" style="width: 100%; min-height: 120px; padding: 12px; border: none; resize: vertical;" 
-                                        placeholder="Alergias, intolerâncias..."
-                                        ${this.planoSelecionadoHistorico ? 'readonly' : ''}>${this.planoSelecionadoHistorico?.restrictions || this.currentMealPlan?.restrictions || ''}</textarea>
-                                </div>
-                                <div class="info-group" style="background: #f8fafc; border-radius: 1rem; overflow: hidden;">
-                                    <label style="display: block; background: #1a237e; color: white; padding: 12px 16px; font-weight: 600; margin: 0;">🎯 Objetivos</label>
-                                    <textarea id="goals" class="info-textarea" style="width: 100%; min-height: 120px; padding: 12px; border: none; resize: vertical;" 
-                                        placeholder="Metas..."
-                                        ${this.planoSelecionadoHistorico ? 'readonly' : ''}>${this.planoSelecionadoHistorico?.goals || this.currentMealPlan?.goals || ''}</textarea>
-                                </div>
+                            <h3 style="color: #1a237e; margin-bottom: 20px;">
+                                📋 Planos Alimentares
+                                ${this.planosList.length > 0 ? `<span style="font-size: 14px; color: #64748b;">(${this.planosList.length} encontrados)</span>` : ''}
+                            </h3>
+                            
+                            <div id="planosContainer">
+                                ${this.renderPlanosList()}
                             </div>
                         </div>
                     ` : `
                         <div class="empty-state" style="text-align: center; padding: 60px; background: white; border-radius: 1rem;">
-                            <span class="empty-icon" style="font-size: 48px; opacity: 0.5;">👆</span>
+                            <span style="font-size: 48px; opacity: 0.5;">👆</span>
                             <h3 style="margin-top: 16px;">Selecione um paciente</h3>
-                            <p style="color: #64748b;">Escolha um paciente para criar ou editar o plano alimentar</p>
+                            <p style="color: #64748b;">Escolha um paciente para visualizar os planos alimentares</p>
                         </div>
                     `}
                 </div>
 
-                ${this.selectedPaciente && !this.planoSelecionadoHistorico ? `
-                    <div style="position: fixed; bottom: 30px; right: 30px; z-index: 100;">
-                        <button id="savePlanBtn" class="btn-primary btn-expand">
-                            <span>💾</span>
-                            <span class="btn-text">Salvar Plano Alimentar</span>
+                <!-- Botão + Flutuante -->
+                ${this.selectedPaciente ? `
+                    <div class="fab-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+                        <button id="btnNovoPlano" class="fab-button" title="Novo Plano Alimentar">
+                            <span class="fab-icon">+</span>
+                            <span class="fab-text">Novo Plano Alimentar</span>
                         </button>
                     </div>
                 ` : ''}
+
+                <!-- Modal para Criar/Editar Plano -->
+                <div id="modalPlano" class="modal-overlay" style="display: none;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: 90%; max-width: 1000px; max-height: 90vh; overflow-y: auto; margin: 20px auto;">
+                        <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 20px 24px; border-radius: 16px 16px 0 0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;">
+                            <h3 style="margin: 0;">
+                                ${this.planoEditando ? '✏️ Editar Plano Alimentar' : '📝 Novo Plano Alimentar'}
+                            </h3>
+                            <button onclick="document.getElementById('modalPlano').style.display='none'" 
+                                    style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 20px;">
+                                ✕
+                            </button>
+                        </div>
+                        
+                        <div style="padding: 24px;">
+                            ${this.renderFormularioPlano()}
+                        </div>
+                        
+                        <div style="padding: 20px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; position: sticky; bottom: 0; border-radius: 0 0 16px 16px;">
+                            <button onclick="document.getElementById('modalPlano').style.display='none'" 
+                                    style="padding: 10px 24px; background: #e2e8f0; color: #475569; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                Cancelar
+                            </button>
+                            <button id="btnSalvarPlano" 
+                                    style="padding: 10px 24px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                💾 Salvar Plano
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    .fab-container {
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-end;
+                    }
+                    
+                    .fab-button {
+                        background: #1a237e;
+                        color: white;
+                        border: none;
+                        border-radius: 50px;
+                        padding: 12px;
+                        cursor: pointer;
+                        box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        gap: 0;
+                        width: 56px;
+                        height: 56px;
+                        overflow: hidden;
+                        white-space: nowrap;
+                    }
+                    
+                    .fab-button:hover {
+                        width: 260px;
+                        padding: 12px 24px;
+                        gap: 12px;
+                        background: #283593;
+                        box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
+                    }
+                    
+                    .fab-icon {
+                        font-size: 28px;
+                        font-weight: 300;
+                        min-width: 32px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    
+                    .fab-text {
+                        opacity: 0;
+                        transform: translateX(-10px);
+                        transition: all 0.3s ease;
+                        font-size: 16px;
+                        font-weight: 600;
+                    }
+                    
+                    .fab-button:hover .fab-text {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                    
+                    .modal-overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0, 0, 0, 0.5);
+                        z-index: 2000;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 20px;
+                    }
+                    
+                    .plano-card {
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .plano-card:hover {
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    .plano-detalhes {
+                        animation: slideDown 0.3s ease;
+                    }
+                    
+                    @keyframes slideDown {
+                        from {
+                            opacity: 0;
+                            max-height: 0;
+                        }
+                        to {
+                            opacity: 1;
+                            max-height: 2000px;
+                        }
+                    }
+                    
+                    .meal-textarea {
+                        font-family: inherit;
+                        line-height: 1.5;
+                    }
+                    
+                    .meal-textarea:focus {
+                        outline: none;
+                        box-shadow: 0 0 0 2px #1a237e;
+                        border-radius: 4px;
+                    }
+                    
+                    textarea[readonly] {
+                        background: #f1f5f9;
+                        cursor: default;
+                    }
+                </style>
             </div>
         `;
     }
 
-    renderHistoricoHTML() {
-        if (!this.historicoPlanos || this.historicoPlanos.length === 0) {
+    renderPlanosList() {
+        if (!this.planosList || this.planosList.length === 0) {
             return `
-                <div style="background: white; border-radius: 1rem; padding: 40px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <span style="font-size: 48px;">📋</span>
-                    <h4 style="margin-top: 16px; color: #64748b;">Nenhum histórico encontrado</h4>
-                    <p style="color: #94a3b8;">Os planos anteriores deste paciente aparecerão aqui</p>
+                <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 2px dashed #e2e8f0;">
+                    <span style="font-size: 64px; display: block; margin-bottom: 16px;">📋</span>
+                    <h4 style="color: #64748b; margin-bottom: 8px;">Nenhum plano alimentar</h4>
+                    <p style="color: #94a3b8; margin-bottom: 24px;">Clique no botão + para criar o primeiro plano</p>
                 </div>
             `;
         }
 
         // Ordena por versão (mais recente primeiro)
-        const planosOrdenados = [...this.historicoPlanos].sort((a, b) => (b.versao || 0) - (a.versao || 0));
+        const planosOrdenados = [...this.planosList].sort((a, b) => (b.versao || 0) - (a.versao || 0));
 
-        return `
-            <div style="background: white; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 20px;">
-                    <h4 style="margin: 0;">
-                        📋 Histórico de Planos Alimentares
-                        <span style="font-size: 14px; opacity: 0.9; margin-left: 10px;">
-                            (${planosOrdenados.length} versões)
-                        </span>
-                    </h4>
-                </div>
-                
-                <div style="padding: 20px;">
-                    <!-- Estatísticas -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px;">
-                        <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: bold; color: #0ea5e9;">${planosOrdenados.length}</div>
-                            <div style="color: #64748b; font-size: 14px;">Total de Versões</div>
-                        </div>
-                        <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: bold; color: #22c55e;">v${planosOrdenados[0]?.versao || 1}</div>
-                            <div style="color: #64748b; font-size: 14px;">Versão Mais Recente</div>
-                        </div>
-                        <div style="background: #fefce8; padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="font-size: 14px; font-weight: bold; color: #eab308;">
-                                ${this.formatarData(planosOrdenados[0]?.data_criacao)}
-                            </div>
-                            <div style="color: #64748b; font-size: 14px;">Última Atualização</div>
-                        </div>
-                    </div>
-
-                    <!-- Lista de Versões -->
-                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                        ${planosOrdenados.map((plano, index) => `
-                            <div style="
-                                background: ${index === 0 ? '#f0fdf4' : '#f8fafc'}; 
-                                border: 1px solid ${index === 0 ? '#bbf7d0' : '#e2e8f0'}; 
-                                border-radius: 10px; 
-                                padding: 20px;
-                                ${index === 0 ? 'border-left: 4px solid #22c55e;' : ''}
+        return planosOrdenados.map((plano, index) => {
+            const isExpanded = this.planoExpandido === plano.id;
+            const isAtivo = plano.status === 'ativo';
+            
+            return `
+                <div class="plano-card" style="
+                    background: white; 
+                    border: 2px solid ${isAtivo ? '#22c55e' : '#e2e8f0'}; 
+                    border-radius: 12px; 
+                    margin-bottom: 16px; 
+                    overflow: hidden;
+                ">
+                    <!-- Cabeçalho do Card -->
+                    <div onclick="window.planoAlimentarInstance.toggleExpandirPlano('${plano.id}')" 
+                         style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <span style="
+                                background: ${isAtivo ? '#22c55e' : '#64748b'}; 
+                                color: white; 
+                                padding: 6px 14px; 
+                                border-radius: 20px; 
+                                font-size: 14px; 
+                                font-weight: 600;
                             ">
-                                <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 15px;">
-                                    <div style="flex: 1;">
-                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                            <h5 style="margin: 0; color: #1a237e;">
-                                                Versão ${plano.versao || '?'}
-                                            </h5>
-                                            ${index === 0 ? '<span style="background: #22c55e; color: white; padding: 2px 10px; border-radius: 20px; font-size: 12px;">ATUAL</span>' : ''}
-                                        </div>
-                                        <small style="color: #64748b;">
-                                            📅 Criado em: ${this.formatarData(plano.data_criacao)}
-                                            ${plano.data_atualizacao ? ` | Atualizado: ${this.formatarData(plano.data_atualizacao)}` : ''}
-                                        </small>
-                                        ${plano.goals ? `
-                                            <p style="margin-top: 8px; color: #475569;">
-                                                <strong>🎯 Objetivos:</strong> ${plano.goals}
-                                            </p>
-                                        ` : ''}
-                                    </div>
-                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                        <button onclick="window.planoAlimentarInstance.visualizarPlanoHistorico('${plano.id}')" 
-                                                style="padding: 8px 16px; background: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap;">
-                                            👁️ Visualizar
-                                        </button>
-                                        <button onclick="window.planoAlimentarInstance.carregarPlanoParaEdicao('${plano.id}')" 
-                                                style="padding: 8px 16px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap;">
-                                            📝 Usar como Base
-                                        </button>
-                                        <button onclick="window.planoAlimentarInstance.exportarPlano('${plano.id}')" 
-                                                style="padding: 8px 16px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap;">
-                                            📥 Exportar
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                ${index < planosOrdenados.length - 1 ? `
-                                    <div style="margin-top: 12px; padding: 10px; background: white; border-radius: 6px; font-size: 13px; color: #64748b;">
-                                        🔄 <strong>Mudanças da versão anterior:</strong> 
-                                        ${this.compararPlanos(planosOrdenados[index + 1], plano)}
-                                    </div>
-                                ` : `
-                                    <div style="margin-top: 12px; padding: 10px; background: white; border-radius: 6px; font-size: 13px; color: #64748b;">
-                                        🆕 <strong>Versão inicial do plano</strong>
-                                    </div>
-                                `}
-                            </div>
-                        `).join('')}
+                                v${plano.versao || '?'}
+                            </span>
+                            
+                            ${isAtivo ? `
+                                <span style="background: #dcfce7; color: #16a34a; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                    ✓ ATUAL
+                                </span>
+                            ` : `
+                                <span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 20px; font-size: 12px;">
+                                    Histórico
+                                </span>
+                            `}
+                            
+                            <span style="color: #64748b; font-size: 13px;">
+                                📅 ${this.formatarData(plano.data_criacao)}
+                            </span>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            ${plano.goals ? `
+                                <span style="color: #475569; font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    🎯 ${plano.goals}
+                                </span>
+                            ` : ''}
+                            <span style="color: #64748b; font-size: 20px; transition: transform 0.3s; ${isExpanded ? 'transform: rotate(180deg);' : ''}">
+                                ▼
+                            </span>
+                        </div>
                     </div>
+                    
+                    <!-- Detalhes Expandidos -->
+                    ${isExpanded ? `
+                        <div class="plano-detalhes" style="border-top: 1px solid #e2e8f0; padding: 20px; background: #f8fafc;">
+                            <!-- Informações -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                                <div style="background: white; padding: 12px; border-radius: 8px;">
+                                    <strong style="color: #1a237e;">👤 Profissional:</strong>
+                                    <span style="color: #475569;">${plano.profissional || 'Não informado'}</span>
+                                </div>
+                                ${plano.data_atualizacao ? `
+                                    <div style="background: white; padding: 12px; border-radius: 8px;">
+                                        <strong style="color: #1a237e;">🔄 Atualizado:</strong>
+                                        <span style="color: #475569;">${this.formatarData(plano.data_atualizacao)}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Refeições -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                                ${this.renderRefeicaoCard('🌅 Café da Manhã', plano.breakfast)}
+                                ${this.renderRefeicaoCard('🍎 Lanche Manhã', plano.morningSnack)}
+                                ${this.renderRefeicaoCard('🍽️ Almoço', plano.lunch)}
+                                ${this.renderRefeicaoCard('🍌 Lanche Tarde', plano.afternoonSnack)}
+                                ${this.renderRefeicaoCard('🌙 Jantar', plano.dinner)}
+                                ${this.renderRefeicaoCard('⭐ Ceia', plano.supper)}
+                            </div>
+                            
+                            <!-- Informações Adicionais -->
+                            ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
+                            ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições', plano.restrictions) : ''}
+                            ${plano.goals ? this.renderInfoCard('🎯 Objetivos', plano.goals) : ''}
+                            
+                            <!-- Botões de Ação -->
+                            <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                                ${!isAtivo ? `
+                                    <button onclick="window.planoAlimentarInstance.ativarPlano('${plano.id}')" 
+                                            style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                        ✅ Tornar Atual
+                                    </button>
+                                ` : ''}
+                                <button onclick="window.planoAlimentarInstance.editarPlano('${plano.id}')" 
+                                        style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    ✏️ Editar
+                                </button>
+                                <button onclick="window.planoAlimentarInstance.exportarPlano('${plano.id}')" 
+                                        style="padding: 10px 20px; background: #0ea5e9; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    📥 Exportar
+                                </button>
+                                <button onclick="window.planoAlimentarInstance.clonarPlano('${plano.id}')" 
+                                        style="padding: 10px 20px; background: #8b5cf6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    📋 Clonar
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    renderRefeicaoCard(titulo, conteudo) {
+        if (!conteudo || conteudo.trim() === '') return '';
+        
+        return `
+            <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <strong style="color: #1a237e; display: block; margin-bottom: 6px;">${titulo}</strong>
+                <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap;">${conteudo}</p>
+            </div>
+        `;
+    }
+
+    renderInfoCard(titulo, conteudo) {
+        return `
+            <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px;">
+                <strong style="color: #1a237e; display: block; margin-bottom: 8px;">${titulo}</strong>
+                <p style="color: #475569; margin: 0; white-space: pre-wrap;">${conteudo}</p>
+            </div>
+        `;
+    }
+
+    renderFormularioPlano() {
+        const plano = this.planoEditando || {};
+        
+        return `
+            <div class="meals-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🌅 Café da Manhã</div>
+                    <textarea id="breakfast" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
+                        placeholder="Alimentos e quantidades...">${plano.breakfast || ''}</textarea>
+                </div>
+                <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🍎 Lanche Manhã</div>
+                    <textarea id="morningSnack" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
+                        placeholder="Alimentos e quantidades...">${plano.morningSnack || ''}</textarea>
+                </div>
+                <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🍽️ Almoço</div>
+                    <textarea id="lunch" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
+                        placeholder="Alimentos e quantidades...">${plano.lunch || ''}</textarea>
+                </div>
+                <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🍌 Lanche Tarde</div>
+                    <textarea id="afternoonSnack" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
+                        placeholder="Alimentos e quantidades...">${plano.afternoonSnack || ''}</textarea>
+                </div>
+                <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🌙 Jantar</div>
+                    <textarea id="dinner" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
+                        placeholder="Alimentos e quantidades...">${plano.dinner || ''}</textarea>
+                </div>
+                <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">⭐ Ceia</div>
+                    <textarea id="supper" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
+                        placeholder="Alimentos e quantidades...">${plano.supper || ''}</textarea>
+                </div>
+            </div>
+
+            <div class="additional-info" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                <div class="info-group" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <label style="display: block; background: #1a237e; color: white; padding: 10px 14px; font-weight: 600; margin: 0;">📌 Orientações Gerais</label>
+                    <textarea id="guidelines" class="info-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
+                        placeholder="Hidratação, horários, etc...">${plano.guidelines || ''}</textarea>
+                </div>
+                <div class="info-group" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <label style="display: block; background: #1a237e; color: white; padding: 10px 14px; font-weight: 600; margin: 0;">⚠️ Restrições Alimentares</label>
+                    <textarea id="restrictions" class="info-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
+                        placeholder="Alergias, intolerâncias...">${plano.restrictions || ''}</textarea>
+                </div>
+                <div class="info-group" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <label style="display: block; background: #1a237e; color: white; padding: 10px 14px; font-weight: 600; margin: 0;">🎯 Objetivos</label>
+                    <textarea id="goals" class="info-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
+                        placeholder="Metas...">${plano.goals || ''}</textarea>
                 </div>
             </div>
         `;
@@ -322,88 +470,136 @@ export class PlanoAlimentarNutricionista {
                 const login = e.target.value;
                 if (login) {
                     this.selectedPaciente = this.pacientesList.find(p => p.login === login);
-                    this.planoSelecionadoHistorico = null;
-                    this.mostrarHistorico = false;
-                    await this.loadMealPlan();
-                    await this.loadHistoricoPlanos();
+                    this.planoExpandido = null;
+                    this.planoEditando = null;
+                    await this.loadPlanos();
                     await this.render();
                 } else {
                     this.selectedPaciente = null;
-                    this.historicoPlanos = [];
-                    this.planoSelecionadoHistorico = null;
-                    this.mostrarHistorico = false;
+                    this.planosList = [];
+                    this.planoExpandido = null;
+                    this.planoEditando = null;
                     await this.render();
                 }
             });
         }
 
-        const toggleHistoricoBtn = document.getElementById('toggleHistoricoBtn');
-        if (toggleHistoricoBtn) {
-            toggleHistoricoBtn.addEventListener('click', () => {
-                this.mostrarHistorico = !this.mostrarHistorico;
-                this.planoSelecionadoHistorico = null;
-                this.render();
+        const btnNovoPlano = document.getElementById('btnNovoPlano');
+        if (btnNovoPlano) {
+            btnNovoPlano.addEventListener('click', () => {
+                this.planoEditando = null;
+                this.abrirModal();
             });
         }
 
-        const savePlanBtn = document.getElementById('savePlanBtn');
-        if (savePlanBtn) savePlanBtn.addEventListener('click', () => this.saveMealPlan());
+        const btnSalvarPlano = document.getElementById('btnSalvarPlano');
+        if (btnSalvarPlano) {
+            btnSalvarPlano.addEventListener('click', () => this.saveMealPlan());
+        }
 
-        // Expor instância globalmente para botões inline
+        // Fechar modal ao clicar fora
+        const modalPlano = document.getElementById('modalPlano');
+        if (modalPlano) {
+            modalPlano.addEventListener('click', (e) => {
+                if (e.target === modalPlano) {
+                    modalPlano.style.display = 'none';
+                }
+            });
+        }
+
+        // Expor instância globalmente
         window.planoAlimentarInstance = this;
     }
 
-    async loadMealPlan() {
+    async loadPlanos() {
         if (!this.selectedPaciente) return;
         
         try {
-            console.log('🔍 Buscando plano alimentar atual para:', this.selectedPaciente.login);
-            
-            const plansRef = collection(db, 'planos_alimentares');
-            const q = query(plansRef, where('paciente_login', '==', this.selectedPaciente.login));
-            const querySnapshot = await getDocs(q);
-            
-            if (!querySnapshot.empty) {
-                // Pega o primeiro plano ativo (ou o único)
-                let planoAtivo = null;
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    if (data.status === 'ativo' && !planoAtivo) {
-                        planoAtivo = { id: docSnap.id, ...data };
-                    }
-                });
-                
-                this.currentMealPlan = planoAtivo || null;
-                console.log(this.currentMealPlan ? '✅ Plano atual encontrado' : '📝 Nenhum plano ativo');
-            } else {
-                this.currentMealPlan = null;
-                console.log('📝 Nenhum plano encontrado');
-            }
-        } catch (error) {
-            console.error("Erro ao carregar plano:", error);
-            this.currentMealPlan = null;
-        }
-    }
-
-    async loadHistoricoPlanos() {
-        if (!this.selectedPaciente) return;
-        
-        try {
-            console.log('🔍 Buscando histórico de planos para:', this.selectedPaciente.login);
+            console.log('🔍 Buscando planos para:', this.selectedPaciente.login);
             
             const historicoRef = collection(db, 'historico_planos_alimentares');
             const q = query(historicoRef, where('paciente_login', '==', this.selectedPaciente.login));
             const querySnapshot = await getDocs(q);
             
-            this.historicoPlanos = [];
+            this.planosList = [];
             querySnapshot.forEach((docSnap) => {
-                this.historicoPlanos.push({ id: docSnap.id, ...docSnap.data() });
+                this.planosList.push({ id: docSnap.id, ...docSnap.data() });
             });
             
-            console.log(`✅ ${this.historicoPlanos.length} versões encontradas no histórico`);
+            console.log(`✅ ${this.planosList.length} planos encontrados`);
         } catch (error) {
-            console.error("Erro ao carregar histórico:", error);
-            this.historicoPlanos = [];
+            console.error("Erro ao carregar planos:", error);
+            this.planosList = [];
+        }
+    }
+
+    abrirModal() {
+        const modal = document.getElementById('modalPlano');
+        if (modal) {
+            modal.style.display = 'flex';
+            // Focar no primeiro textarea
+            setTimeout(() => {
+                const primeiroTextarea = modal.querySelector('textarea');
+                if (primeiroTextarea) primeiroTextarea.focus();
+            }, 100);
+        }
+    }
+
+    fecharModal() {
+        const modal = document.getElementById('modalPlano');
+        if (modal) {
+            modal.style.display = 'none';
+            this.planoEditando = null;
+        }
+    }
+
+    toggleExpandirPlano(planoId) {
+        if (this.planoExpandido === planoId) {
+            this.planoExpandido = null;
+        } else {
+            this.planoExpandido = planoId;
+        }
+        this.render();
+    }
+
+    editarPlano(planoId) {
+        const plano = this.planosList.find(p => p.id === planoId);
+        if (plano) {
+            this.planoEditando = { ...plano };
+            delete this.planoEditando.id; // Remove ID para criar nova versão
+            this.planoExpandido = null;
+            this.abrirModal();
+        }
+    }
+
+    async ativarPlano(planoId) {
+        if (!confirm('Tornar este plano como o plano atual do paciente?')) return;
+        
+        try {
+            // Desativar plano atual
+            const planoAtual = this.planosList.find(p => p.status === 'ativo');
+            if (planoAtual) {
+                const planoAtualDoc = doc(db, 'historico_planos_alimentares', planoAtual.id);
+                await updateDoc(planoAtualDoc, { 
+                    status: 'inativo',
+                    data_desativacao: new Date().toISOString()
+                });
+            }
+            
+            // Ativar plano selecionado
+            const planoDoc = doc(db, 'historico_planos_alimentares', planoId);
+            await updateDoc(planoDoc, { 
+                status: 'ativo',
+                data_ativacao: new Date().toISOString()
+            });
+            
+            alert('✅ Plano ativado com sucesso!');
+            await this.loadPlanos();
+            this.planoExpandido = null;
+            await this.render();
+        } catch (error) {
+            console.error("Erro ao ativar plano:", error);
+            alert('❌ Erro ao ativar plano: ' + error.message);
         }
     }
 
@@ -414,17 +610,16 @@ export class PlanoAlimentarNutricionista {
         }
 
         try {
-            // Pega versão anterior ou define como 1
-            const versaoAnterior = this.currentMealPlan?.versao || 0;
-            const novaVersao = versaoAnterior + 1;
+            const versoesExistentes = this.planosList.length;
+            const novaVersao = versoesExistentes + 1;
             
             const mealPlanData = {
                 paciente_login: this.selectedPaciente.login,
                 paciente_nome: this.selectedPaciente.nome,
                 profissional: this.userInfo.nome,
                 profissional_login: this.userInfo.login,
-                data_atualizacao: new Date().toISOString(),
                 data_criacao: new Date().toISOString(),
+                data_atualizacao: new Date().toISOString(),
                 versao: novaVersao,
                 status: 'ativo',
                 breakfast: document.getElementById('breakfast')?.value || '',
@@ -438,34 +633,25 @@ export class PlanoAlimentarNutricionista {
                 goals: document.getElementById('goals')?.value || ''
             };
 
-            // 1. Salvar no histórico (sempre como nova versão)
-            const historicoRef = collection(db, 'historico_planos_alimentares');
-            await addDoc(historicoRef, mealPlanData);
-            console.log('📚 Plano salvo no histórico - Versão:', novaVersao);
-
-            // 2. Se já existe plano ativo, marca como inativo
-            if (this.currentMealPlan?.id) {
-                const oldPlanDoc = doc(db, 'planos_alimentares', this.currentMealPlan.id);
-                await updateDoc(oldPlanDoc, { 
+            // Desativar plano atual se existir
+            const planoAtual = this.planosList.find(p => p.status === 'ativo');
+            if (planoAtual) {
+                const planoAtualDoc = doc(db, 'historico_planos_alimentares', planoAtual.id);
+                await updateDoc(planoAtualDoc, { 
                     status: 'inativo',
                     data_desativacao: new Date().toISOString()
                 });
-                console.log('📝 Plano anterior marcado como inativo');
             }
 
-            // 3. Cria novo plano como ativo
-            const plansRef = collection(db, 'planos_alimentares');
-            await addDoc(plansRef, mealPlanData);
-            console.log('✅ Novo plano criado como ativo - Versão:', novaVersao);
-
-            alert(`✅ Plano alimentar versão ${novaVersao} salvo com sucesso!\n\n💡 Dica: Clique em "Ver Histórico" para consultar todas as versões.`);
+            // Salvar novo plano
+            const historicoRef = collection(db, 'historico_planos_alimentares');
+            await addDoc(historicoRef, mealPlanData);
             
-            // Recarregar dados
-            await this.loadMealPlan();
-            await this.loadHistoricoPlanos();
+            alert(`✅ Plano versão ${novaVersao} criado com sucesso!`);
             
-            // Mostrar histórico após salvar
-            this.mostrarHistorico = true;
+            // Fechar modal e recarregar
+            this.fecharModal();
+            await this.loadPlanos();
             await this.render();
             
         } catch (error) {
@@ -474,82 +660,56 @@ export class PlanoAlimentarNutricionista {
         }
     }
 
-    async visualizarPlanoHistorico(planoId) {
-        const plano = this.historicoPlanos.find(p => p.id === planoId);
+    clonarPlano(planoId) {
+        const plano = this.planosList.find(p => p.id === planoId);
         if (plano) {
-            this.planoSelecionadoHistorico = plano;
-            this.mostrarHistorico = false;
-            await this.render();
-            
-            // Scroll para o plano
-            setTimeout(() => {
-                document.getElementById('mealPlanContainer')?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
+            this.planoEditando = { ...plano };
+            delete this.planoEditando.id;
+            delete this.planoEditando.versao;
+            delete this.planoEditando.status;
+            delete this.planoEditando.data_criacao;
+            this.planoExpandido = null;
+            this.abrirModal();
         }
-    }
-
-    async carregarPlanoParaEdicao(planoId) {
-        const plano = this.historicoPlanos.find(p => p.id === planoId);
-        if (plano && confirm(`Carregar versão ${plano.versao} como base para edição?\n\nAo salvar, uma NOVA versão será criada automaticamente.\nA versão ${plano.versao} continuará no histórico.`)) {
-            this.planoSelecionadoHistorico = null;
-            this.mostrarHistorico = false;
-            // Carrega o plano mas remove ID para criar novo
-            this.currentMealPlan = { ...plano };
-            delete this.currentMealPlan.id;
-            await this.render();
-            
-            setTimeout(() => {
-                document.getElementById('mealPlanContainer')?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-        }
-    }
-
-    voltarParaEdicao() {
-        this.planoSelecionadoHistorico = null;
-        this.render();
     }
 
     exportarPlano(planoId) {
-        const plano = this.historicoPlanos.find(p => p.id === planoId);
+        const plano = this.planosList.find(p => p.id === planoId);
         if (!plano) return;
 
         let conteudo = `PLANO ALIMENTAR - VERSÃO ${plano.versao || '?'}\n`;
         conteudo += `${'='.repeat(50)}\n\n`;
         conteudo += `👤 Paciente: ${plano.paciente_nome || 'Não informado'}\n`;
         conteudo += `👨‍⚕️ Profissional: ${plano.profissional || 'Não informado'}\n`;
-        conteudo += `📅 Data de Criação: ${this.formatarData(plano.data_criacao)}\n`;
-        if (plano.data_atualizacao) {
-            conteudo += `🔄 Última Atualização: ${this.formatarData(plano.data_atualizacao)}\n`;
-        }
+        conteudo += `📅 Criado em: ${this.formatarData(plano.data_criacao)}\n`;
+        conteudo += `📊 Status: ${plano.status === 'ativo' ? 'ATUAL' : 'Histórico'}\n`;
         conteudo += `\n${'='.repeat(50)}\n\n`;
         
         conteudo += `🍽️ REFEIÇÕES\n${'-'.repeat(50)}\n\n`;
-        conteudo += `🌅 Café da Manhã:\n${plano.breakfast || 'Não definido'}\n\n`;
-        conteudo += `🍎 Lanche da Manhã:\n${plano.morningSnack || 'Não definido'}\n\n`;
-        conteudo += `🍽️ Almoço:\n${plano.lunch || 'Não definido'}\n\n`;
-        conteudo += `🍌 Lanche da Tarde:\n${plano.afternoonSnack || 'Não definido'}\n\n`;
-        conteudo += `🌙 Jantar:\n${plano.dinner || 'Não definido'}\n\n`;
-        conteudo += `⭐ Ceia:\n${plano.supper || 'Não definido'}\n\n`;
+        if (plano.breakfast) conteudo += `🌅 Café da Manhã:\n${plano.breakfast}\n\n`;
+        if (plano.morningSnack) conteudo += `🍎 Lanche da Manhã:\n${plano.morningSnack}\n\n`;
+        if (plano.lunch) conteudo += `🍽️ Almoço:\n${plano.lunch}\n\n`;
+        if (plano.afternoonSnack) conteudo += `🍌 Lanche da Tarde:\n${plano.afternoonSnack}\n\n`;
+        if (plano.dinner) conteudo += `🌙 Jantar:\n${plano.dinner}\n\n`;
+        if (plano.supper) conteudo += `⭐ Ceia:\n${plano.supper}\n\n`;
         
-        conteudo += `📋 INFORMAÇÕES ADICIONAIS\n${'-'.repeat(50)}\n\n`;
-        conteudo += `📌 Orientações Gerais:\n${plano.guidelines || 'Não definido'}\n\n`;
-        conteudo += `⚠️ Restrições Alimentares:\n${plano.restrictions || 'Nenhuma'}\n\n`;
-        conteudo += `🎯 Objetivos:\n${plano.goals || 'Não definido'}\n\n`;
+        if (plano.guidelines || plano.restrictions || plano.goals) {
+            conteudo += `📋 INFORMAÇÕES ADICIONAIS\n${'-'.repeat(50)}\n\n`;
+            if (plano.guidelines) conteudo += `📌 Orientações Gerais:\n${plano.guidelines}\n\n`;
+            if (plano.restrictions) conteudo += `⚠️ Restrições Alimentares:\n${plano.restrictions}\n\n`;
+            if (plano.goals) conteudo += `🎯 Objetivos:\n${plano.goals}\n\n`;
+        }
         
         conteudo += `${'='.repeat(50)}\n`;
-        conteudo += `Documento gerado em: ${new Date().toLocaleDateString('pt-BR')}\n`;
-        conteudo += `Sistema Evo Tratamento Web\n`;
+        conteudo += `Exportado em: ${new Date().toLocaleDateString('pt-BR')}\n`;
 
         const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        const nomeArquivo = `plano_alimentar_v${plano.versao}_${(plano.paciente_nome || 'paciente').toLowerCase().replace(/\s+/g, '_')}.txt`;
-        link.download = nomeArquivo;
+        link.download = `plano_alimentar_v${plano.versao}_${(plano.paciente_nome || 'paciente').toLowerCase().replace(/\s+/g, '_')}.txt`;
         link.click();
         URL.revokeObjectURL(url);
-        
-        console.log('📥 Plano exportado:', nomeArquivo);
     }
 
     formatarData(dataString) {
@@ -565,41 +725,6 @@ export class PlanoAlimentarNutricionista {
             });
         } catch {
             return dataString;
-        }
-    }
-
-    compararPlanos(planoAntigo, planoNovo) {
-        if (!planoAntigo || !planoNovo) return 'Versão inicial do plano';
-        
-        const mudancas = [];
-        
-        const camposParaComparar = [
-            { key: 'breakfast', nome: 'Café da Manhã' },
-            { key: 'morningSnack', nome: 'Lanche da Manhã' },
-            { key: 'lunch', nome: 'Almoço' },
-            { key: 'afternoonSnack', nome: 'Lanche da Tarde' },
-            { key: 'dinner', nome: 'Jantar' },
-            { key: 'supper', nome: 'Ceia' },
-            { key: 'guidelines', nome: 'Orientações' },
-            { key: 'restrictions', nome: 'Restrições' },
-            { key: 'goals', nome: 'Objetivos' }
-        ];
-        
-        camposParaComparar.forEach(campo => {
-            const valorAntigo = planoAntigo[campo.key] || '';
-            const valorNovo = planoNovo[campo.key] || '';
-            
-            if (valorAntigo !== valorNovo) {
-                mudancas.push(campo.nome);
-            }
-        });
-        
-        if (mudancas.length === 0) {
-            return 'Nenhuma mudança significativa detectada';
-        } else if (mudancas.length <= 3) {
-            return `Alterações em: ${mudancas.join(', ')}`;
-        } else {
-            return `Alterações em ${mudancas.length} itens: ${mudancas.slice(0, 3).join(', ')} e outros`;
         }
     }
 }
