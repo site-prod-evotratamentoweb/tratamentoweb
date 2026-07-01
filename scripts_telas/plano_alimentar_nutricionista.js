@@ -517,8 +517,9 @@ export class PlanoAlimentarNutricionista {
         try {
             console.log('🔍 Buscando planos para:', this.selectedPaciente.login);
             
-            const historicoRef = collection(db, 'historico_planos_alimentares');
-            const q = query(historicoRef, where('paciente_login', '==', this.selectedPaciente.login));
+            // BUSCA NA COLEÇÃO planos_alimentares (única coleção)
+            const planosRef = collection(db, 'planos_alimentares');
+            const q = query(planosRef, where('paciente_login', '==', this.selectedPaciente.login));
             const querySnapshot = await getDocs(q);
             
             this.planosList = [];
@@ -576,10 +577,10 @@ export class PlanoAlimentarNutricionista {
         if (!confirm('Tornar este plano como o plano atual do paciente?')) return;
         
         try {
-            // Desativar plano atual
+            // Desativar plano atual (se existir)
             const planoAtual = this.planosList.find(p => p.status === 'ativo');
             if (planoAtual) {
-                const planoAtualDoc = doc(db, 'historico_planos_alimentares', planoAtual.id);
+                const planoAtualDoc = doc(db, 'planos_alimentares', planoAtual.id);
                 await updateDoc(planoAtualDoc, { 
                     status: 'inativo',
                     data_desativacao: new Date().toISOString()
@@ -587,7 +588,7 @@ export class PlanoAlimentarNutricionista {
             }
             
             // Ativar plano selecionado
-            const planoDoc = doc(db, 'historico_planos_alimentares', planoId);
+            const planoDoc = doc(db, 'planos_alimentares', planoId);
             await updateDoc(planoDoc, { 
                 status: 'ativo',
                 data_ativacao: new Date().toISOString()
@@ -608,7 +609,7 @@ export class PlanoAlimentarNutricionista {
             alert('❌ Selecione um paciente primeiro!');
             return;
         }
-
+    
         try {
             const versoesExistentes = this.planosList.length;
             const novaVersao = versoesExistentes + 1;
@@ -632,20 +633,20 @@ export class PlanoAlimentarNutricionista {
                 restrictions: document.getElementById('restrictions')?.value || '',
                 goals: document.getElementById('goals')?.value || ''
             };
-
+    
             // Desativar plano atual se existir
             const planoAtual = this.planosList.find(p => p.status === 'ativo');
             if (planoAtual) {
-                const planoAtualDoc = doc(db, 'historico_planos_alimentares', planoAtual.id);
+                const planoAtualDoc = doc(db, 'planos_alimentares', planoAtual.id);
                 await updateDoc(planoAtualDoc, { 
                     status: 'inativo',
                     data_desativacao: new Date().toISOString()
                 });
             }
-
-            // Salvar novo plano
-            const historicoRef = collection(db, 'historico_planos_alimentares');
-            await addDoc(historicoRef, mealPlanData);
+    
+            // Salvar novo plano na ÚNICA coleção
+            const planosRef = collection(db, 'planos_alimentares');
+            await addDoc(planosRef, mealPlanData);
             
             alert(`✅ Plano versão ${novaVersao} criado com sucesso!`);
             
