@@ -18,17 +18,6 @@ import { HomeManager } from './0_home.js';
 const CARGOS_VALIDOS = ['paciente', 'nutricionista', 'psicologo'];
 const LOGIN_EMAIL_DOMAIN = 'tratamentoweb.com.br';
 
-const DEFAULT_ORGANIZATION_FIREBASE_CONFIGS = {
-    ORG_0001: {
-        apiKey: "AIzaSyB8tkMR4kx_c4Hj9TNf0EPTEwWMEQc-oDs",
-        authDomain: "tratamentoweb.firebaseapp.com",
-        projectId: "tratamentoweb",
-        storageBucket: "tratamentoweb.firebasestorage.app",
-        messagingSenderId: "894728971208",
-        appId: "1:894728971208:web:52278dc3754180626c16fd"
-    }
-};
-
 export class LoginManager {
     constructor() {
         this.tempData = null;
@@ -226,12 +215,6 @@ export class LoginManager {
             }
 
             return result.firebaseConfig;
-        }
-
-        const fallbackConfig = DEFAULT_ORGANIZATION_FIREBASE_CONFIGS[organizacao];
-        if (fallbackConfig) {
-            console.warn('Render API nao configurada. Usando configuracao local da organizacao:', organizacao);
-            return fallbackConfig;
         }
 
         throw new Error('Configure a URL do backend Render em window.TRATAMENTOWEB_API_BASE_URL ou localStorage.tratamentowebApiBaseUrl.');

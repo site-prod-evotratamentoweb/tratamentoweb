@@ -1,6 +1,5 @@
 // Firebase Configuration File
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 import {
     getFirestore,
     collection,
@@ -63,17 +62,7 @@ const centralLoginsAuth = getAuth(centralLoginsApp);
 
 let app = getOrCreateFirebaseApp('org-default', firebaseConfig);
 
-const SITE_KEY = "6LfxeLEsAAAAABNCDaVNHce2WYM45NlQSa8us17c";
 let appCheck = null;
-
-try {
-    appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(SITE_KEY),
-        isTokenAutoRefreshEnabled: true
-    });
-} catch (error) {
-    console.warn('App Check nao inicializado:', error);
-}
 
 let db = getFirestore(app);
 let auth = getAuth(app);
