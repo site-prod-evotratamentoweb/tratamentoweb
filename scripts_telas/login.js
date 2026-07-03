@@ -17,6 +17,7 @@ import { HomeManager } from './0_home.js';
 
 const CARGOS_VALIDOS = ['paciente', 'nutricionista', 'psicologo'];
 const LOGIN_EMAIL_DOMAIN = 'tratamentoweb.com.br';
+const DEFAULT_RENDER_API_BASE_URL = 'https://backend-tratamentoweb.onrender.com';
 
 export class LoginManager {
     constructor() {
@@ -197,7 +198,7 @@ export class LoginManager {
         return (
             window.TRATAMENTOWEB_API_BASE_URL ||
             localStorage.getItem('tratamentowebApiBaseUrl') ||
-            ''
+            DEFAULT_RENDER_API_BASE_URL
         ).replace(/\/$/, '');
     }
 
