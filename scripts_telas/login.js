@@ -277,7 +277,16 @@ export class LoginManager {
             await signInWithEmailAndPassword(auth, emailMontado, password);
 
             const userRef = doc(db, 'logins', login);
-            const userDoc = await getDoc(userRef);
+            let userDoc;
+
+            try {
+                userDoc = await getDoc(userRef);
+            } catch (error) {
+                if (String(error.message || '').includes('permissions')) {
+                    throw new Error(`Sem permissao para ler logins/${login} no Firestore da organizacao. Ajuste as regras do projeto Firebase da organizacao.`);
+                }
+                throw error;
+            }
 
             if (!userDoc.exists()) {
                 await this.signOutAll();
@@ -329,7 +338,11 @@ export class LoginManager {
                 return;
             }
 
-            await updateDoc(userRef, { ultimo_login: serverTimestamp() });
+            try {
+                await updateDoc(userRef, { ultimo_login: serverTimestamp() });
+            } catch (error) {
+                console.warn('Nao foi possivel atualizar ultimo_login. Login continuara normalmente.', error);
+            }
 
             const sessionUser = {
                 ...userData,
