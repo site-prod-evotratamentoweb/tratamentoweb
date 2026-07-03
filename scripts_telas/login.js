@@ -201,7 +201,7 @@ export class LoginManager {
     }
 
     montarEmailAuth(organizacao, login) {
-        return `${this.normalizeOrganizacao(organizacao)}-${this.normalizeLogin(login)}@${LOGIN_EMAIL_DOMAIN}`;
+        return `${this.normalizeOrganizacao(organizacao)}-${this.normalizeLogin(login)}@${LOGIN_EMAIL_DOMAIN}`.toLowerCase();
     }
 
     getRenderApiBaseUrl() {
@@ -253,7 +253,7 @@ export class LoginManager {
         const loginsOrg = orgData.logins_org || {};
         const loginData = loginsOrg[login] || login.split('.').reduce((current, part) => current?.[part], loginsOrg);
         if (!loginData) {
-            throw new Error('Login nao cadastrado nesta organizacao.');
+            throw new Error(`Login ${login} nao cadastrado em logins_geral/${organizacao}/logins_org.`);
         }
 
         if (loginData.status_ativo_login !== true) {
