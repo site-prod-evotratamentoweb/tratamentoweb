@@ -29,8 +29,15 @@ export class FuncoesCompartilhadas {
         return Math.floor(100000 + Math.random() * 900000).toString();
     }
     
-    static gerarEmailPorLogin(login) {
-        return `${login.toLowerCase()}@tratamentoweb.com`;
+    static gerarEmailPorLogin(login, organizacao = '') {
+        const loginNormalizado = String(login || '').trim().toLowerCase();
+        const organizacaoNormalizada = String(organizacao || '').trim().toUpperCase();
+
+        if (organizacaoNormalizada) {
+            return `${organizacaoNormalizada}-${loginNormalizado}@tratamentoweb.com.br`;
+        }
+
+        return `${loginNormalizado}@tratamentoweb.com`;
     }
     
     static formatDateToDisplay(dateString) {
@@ -225,8 +232,9 @@ export class FuncoesCompartilhadas {
             throw new Error('Paciente deve ter 18 anos ou mais!');
         }
         
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
         const codigo = this.gerarCodigoTemporario();
-        const emailGerado = this.gerarEmailPorLogin(login);
+        const emailGerado = this.gerarEmailPorLogin(login, currentUser.organizacao);
         const dataExpiracao = new Date();
         dataExpiracao.setDate(dataExpiracao.getDate() + 7);
         
