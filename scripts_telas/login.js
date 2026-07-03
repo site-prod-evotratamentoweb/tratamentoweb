@@ -250,7 +250,8 @@ export class LoginManager {
             throw new Error('Organizacao desativada. Contate o administrador.');
         }
 
-        const loginData = orgData.logins_org?.[login];
+        const loginsOrg = orgData.logins_org || {};
+        const loginData = loginsOrg[login] || login.split('.').reduce((current, part) => current?.[part], loginsOrg);
         if (!loginData) {
             throw new Error('Login nao cadastrado nesta organizacao.');
         }
