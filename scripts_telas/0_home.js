@@ -136,15 +136,12 @@ export class FuncoesCompartilhadas {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             
             if (currentUser.cargo === 'paciente') {
-                console.log('🔒 Paciente não tem permissão para ver lista de pacientes');
                 return [];
             }
             
             if (!profissionalLogin) {
                 profissionalLogin = currentUser.login;
             }
-            
-            console.log('🔍 Buscando pacientes vinculados ao profissional:', profissionalLogin);
             
             const profissionalRef = doc(db, "logins", profissionalLogin);
             const profissionalDoc = await getDoc(profissionalRef);
@@ -197,7 +194,6 @@ export class FuncoesCompartilhadas {
                 }
             }
             
-            console.log(`✅ Encontrados ${pacientesList.length} pacientes vinculados`);
             return pacientesList;
             
         } catch (error) {
@@ -278,8 +274,6 @@ export class FuncoesCompartilhadas {
     
     static async loadEvaluationsByPatient(patientLogin) {
         try {
-            console.log('🔍 Buscando avaliações do paciente:', patientLogin);
-            
             const avaliacoesRef = collection(db, "avaliacao_nutricional");
             const q = query(avaliacoesRef, where("paciente_login", "==", patientLogin));
             const querySnapshot = await getDocs(q);
@@ -297,7 +291,6 @@ export class FuncoesCompartilhadas {
                 return new Date(dateA) - new Date(dateB);
             });
             
-            console.log(`✅ Encontradas ${evaluations.length} avaliações`);
             return evaluations;
             
         } catch (error) {

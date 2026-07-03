@@ -31,7 +31,6 @@ export class NavegadorBase {
 
     async irParaHome() {
         // Será sobrescrito pelas classes filhas
-        console.warn('Método irParaHome deve ser implementado pela classe filha');
     }
 
     async irParaCadastroCliente() {
@@ -306,7 +305,6 @@ export function criarNavegador(userInfo, pacientesList = []) {
         case 'paciente':
             return new NavegadorPaciente(userInfo);
         default:
-            console.warn(`Cargo não reconhecido: ${userInfo.cargo}, usando NavegadorBase`);
             return new NavegadorBase(userInfo, pacientesList);
     }
 }

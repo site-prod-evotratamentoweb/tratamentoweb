@@ -709,8 +709,6 @@ export class ShoppingNutriNutricionista {
             
             // Ordena por pontos (maior para menor)
             this.rankingPontuacao.sort((a, b) => b.pontos - a.pontos);
-            console.log(`✅ Ranking carregado: ${this.rankingPontuacao.length} usuários`);
-            
         } catch (error) {
             console.error("Erro ao carregar ranking:", error);
             this.rankingPontuacao = [];

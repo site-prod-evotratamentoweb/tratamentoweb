@@ -487,8 +487,6 @@ export class PlanoAlimentarNutricionista {
             const nutricionistaLogin = this.userInfo.login;
             const pacienteLogin = this.selectedPaciente.login;
             
-            console.log('🔍 Buscando planos:', nutricionistaLogin, '→', pacienteLogin);
-            
             // Caminho: planos_alimentares > nutricionista > paciente
             const pacienteCollectionRef = collection(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin);
             const querySnapshot = await getDocs(pacienteCollectionRef);
@@ -498,7 +496,6 @@ export class PlanoAlimentarNutricionista {
                 this.planosList.push({ id: docSnap.id, ...docSnap.data() });
             });
             
-            console.log(`✅ ${this.planosList.length} planos encontrados`);
         } catch (error) {
             console.error("Erro ao carregar planos:", error);
             this.planosList = [];

@@ -340,9 +340,7 @@ export class LoginManager {
 
             try {
                 await updateDoc(userRef, { ultimo_login: serverTimestamp() });
-            } catch (error) {
-                console.warn('Nao foi possivel atualizar ultimo_login. Login continuara normalmente.', error);
-            }
+            } catch (_error) {}
 
             const sessionUser = {
                 ...userData,
@@ -578,6 +576,5 @@ export class LoginManager {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Aplicacao TratamentoWeb iniciada');
     new LoginManager();
 });

@@ -198,7 +198,6 @@ export class HomeNutricionista {
     attachEvents() {
         // 🔒 Se for paciente, não carrega eventos de profissional
         if (this.userInfo.cargo === 'paciente') {
-            console.log('🔒 Paciente não tem permissão para usar esta tela');
             
             // Apenas configura o logout e menu
             const logoutMenuItem = document.getElementById('logoutMenuItem');

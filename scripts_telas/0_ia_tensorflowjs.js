@@ -67,7 +67,6 @@ export async function carregarModeloIA(onProgress, onError) {
         modeloCarregado = true;
         
         if (onProgress) onProgress(100, 'IA carregada com sucesso!');
-        console.log('✅ Modelo de IA carregado com sucesso!');
         
         // Processar fila de espera
         filaEspera.forEach(item => item.resolve(modeloIA));
