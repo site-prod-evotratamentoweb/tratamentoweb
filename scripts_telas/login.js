@@ -11,7 +11,7 @@ import {
     createUserWithEmailAndPassword,
     signOut,
     serverTimestamp
-} from '../0_firebase_api_config.js?v=no-appcheck-20260703';
+} from '../0_firebase_api_config.js?v=org-appcheck-20260703';
 import { deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { HomeManager } from './0_home.js';
 

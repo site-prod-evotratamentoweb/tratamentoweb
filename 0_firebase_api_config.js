@@ -1,5 +1,6 @@
 // Firebase Configuration File
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 import {
     getFirestore,
     collection,
@@ -27,6 +28,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseApps = new Map();
+const firebaseAppChecks = new Map();
+const DEFAULT_APP_CHECK_SITE_KEY = "6LfxeLEsAAAAABNCDaVNHce2WYM45NlQSa8us17c";
 
 const firebaseCentralLoginsConfig = {
     apiKey: "AIzaSyAiUrqXBB2i0SOkjTMPH_JAbQUBMlHGoiM",
@@ -74,6 +77,18 @@ function configureOrganizationFirebase(organizationFirebaseConfig, organizationI
 
     const appName = `org-${organizationId}-${organizationFirebaseConfig.projectId}`.replace(/[^a-zA-Z0-9-_]/g, '-');
     app = getOrCreateFirebaseApp(appName, organizationFirebaseConfig);
+
+    const appCheckSiteKey = organizationFirebaseConfig.appCheckSiteKey || organizationFirebaseConfig.recaptchaSiteKey || DEFAULT_APP_CHECK_SITE_KEY;
+    if (appCheckSiteKey && !firebaseAppChecks.has(appName)) {
+        appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider(appCheckSiteKey),
+            isTokenAutoRefreshEnabled: true
+        });
+        firebaseAppChecks.set(appName, appCheck);
+    } else {
+        appCheck = firebaseAppChecks.get(appName) || null;
+    }
+
     db = getFirestore(app);
     auth = getAuth(app);
     imgbbApiKey = null;
