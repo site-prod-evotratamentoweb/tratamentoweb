@@ -29,7 +29,6 @@ import {
 
 const firebaseApps = new Map();
 const firebaseAppChecks = new Map();
-const DEFAULT_APP_CHECK_SITE_KEY = "6LfxeLEsAAAAABNCDaVNHce2WYM45NlQSa8us17c";
 
 const firebaseCentralLoginsConfig = {
     apiKey: "AIzaSyAiUrqXBB2i0SOkjTMPH_JAbQUBMlHGoiM",
@@ -78,7 +77,7 @@ function configureOrganizationFirebase(organizationFirebaseConfig, organizationI
     const appName = `org-${organizationId}-${organizationFirebaseConfig.projectId}`.replace(/[^a-zA-Z0-9-_]/g, '-');
     app = getOrCreateFirebaseApp(appName, organizationFirebaseConfig);
 
-    const appCheckSiteKey = organizationFirebaseConfig.appCheckSiteKey || organizationFirebaseConfig.recaptchaSiteKey || DEFAULT_APP_CHECK_SITE_KEY;
+    const appCheckSiteKey = organizationFirebaseConfig.appCheckSiteKey || organizationFirebaseConfig.recaptchaSiteKey;
     if (appCheckSiteKey && !firebaseAppChecks.has(appName)) {
         appCheck = initializeAppCheck(app, {
             provider: new ReCaptchaV3Provider(appCheckSiteKey),
