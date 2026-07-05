@@ -1,8 +1,6 @@
 import {
     db,
     auth,
-    centralLoginsDb,
-    centralLoginsAuth,
     configureOrganizationFirebase,
     getDoc,
     doc,
@@ -203,59 +201,6 @@ export class LoginManager {
         return `${this.normalizeOrganizacao(organizacao)}-${this.normalizeLogin(login)}@${LOGIN_EMAIL_DOMAIN}`.toLowerCase();
     }
 
-    getRenderApiBaseUrl() {
-        return (
-            window.TRATAMENTOWEB_API_BASE_URL ||
-            localStorage.getItem('tratamentowebApiBaseUrl') ||
-            DEFAULT_RENDER_API_BASE_URL
-        ).replace(/\/$/, '');
-    }
-
-    async buscarConfigFirebaseOrganizacao(organizacao, idToken) {
-        const apiBaseUrl = this.getRenderApiBaseUrl();
-
-        if (apiBaseUrl) {
-            const response = await fetch(`${apiBaseUrl}/api/auth/organization-config/${encodeURIComponent(organizacao)}`, {
-                headers: { Authorization: `Bearer ${idToken}` }
-            });
-
-            const result = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                throw new Error(result.error?.message || 'Nao foi possivel carregar a configuracao da organizacao no Render.');
-            }
-
-            return result.firebaseConfig;
-        }
-
-        throw new Error('Configure a URL do backend Render em window.TRATAMENTOWEB_API_BASE_URL ou localStorage.tratamentowebApiBaseUrl.');
-    }
-
-    async validarLoginGeral(organizacao, login) {
-        const orgRef = doc(centralLoginsDb, 'logins_geral', organizacao);
-        const orgDoc = await getDoc(orgRef);
-
-        if (!orgDoc.exists()) {
-            throw new Error('Organizacao nao encontrada ou sem permissao de acesso.');
-        }
-
-        const orgData = orgDoc.data();
-        if (orgData.status_ativo_org !== true) {
-            throw new Error('Organizacao desativada. Contate o administrador.');
-        }
-
-        const loginsOrg = orgData.logins_org || {};
-        const loginData = loginsOrg[login] || login.split('.').reduce((current, part) => current?.[part], loginsOrg);
-        if (!loginData) {
-            throw new Error(`Login ${login} nao cadastrado em logins_geral/${organizacao}/logins_org.`);
-        }
-
-        if (loginData.status_ativo_login !== true) {
-            throw new Error('Login desativado nesta organizacao. Contate o administrador.');
-        }
-
-        return loginData;
-    }
-
     async handleLogin() {
         const organizacao = this.normalizeOrganizacao(document.getElementById('organizacao')?.value);
         const login = this.normalizeLogin(document.getElementById('login')?.value);
@@ -274,13 +219,24 @@ export class LoginManager {
 
         try {
             const emailMontado = this.montarEmailAuth(organizacao, login);
+            const apiBaseUrl = (
+                window.TRATAMENTOWEB_API_BASE_URL ||
+                localStorage.getItem('tratamentowebApiBaseUrl') ||
+                DEFAULT_RENDER_API_BASE_URL
+            ).replace(/\/$/, '');
 
-            const generalCredential = await signInWithEmailAndPassword(centralLoginsAuth, emailMontado, password);
-            const generalIdToken = await generalCredential.user.getIdToken();
+            const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ organization: organizacao, login, password })
+            });
 
-            await this.validarLoginGeral(organizacao, login);
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(result.error?.message || 'Erro ao autenticar no backend.');
+            }
 
-            const organizationFirebaseConfig = await this.buscarConfigFirebaseOrganizacao(organizacao, generalIdToken);
+            const organizationFirebaseConfig = result.firebaseConfig;
             configureOrganizationFirebase(organizationFirebaseConfig, organizacao);
 
             await signInWithEmailAndPassword(auth, emailMontado, password);
@@ -340,6 +296,7 @@ export class LoginManager {
                     nome: userData.nome,
                     cargo: userData.cargo,
                     perfil: userData.perfil,
+                    authToken: result.token?.idToken || '',
                     userRef
                 };
 
@@ -356,7 +313,8 @@ export class LoginManager {
                 login,
                 email: emailMontado,
                 organizacao,
-                perfil: userData.perfil || (isPaciente ? 'operador' : 'supervisor')
+                perfil: userData.perfil || (isPaciente ? 'operador' : 'supervisor'),
+                authToken: result.token?.idToken || ''
             });
 
             this.saveRememberedCredentials(rememberCheckbox?.checked, organizacao, login);
@@ -367,7 +325,7 @@ export class LoginManager {
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
                 this.showError('Login ou senha incorretos.');
             } else if (error.code === 'auth/user-not-found') {
-                this.showError('Login nao encontrado no Auth geral desta organizacao.');
+                this.showError('Login nao encontrado ou credenciais invalidas.');
             } else if (String(error.message || '').includes('permissions')) {
                 this.showError('Erro de permissao no banco de dados. Contate o administrador.');
             } else {
@@ -381,8 +339,7 @@ export class LoginManager {
 
     async signOutAll() {
         await Promise.allSettled([
-            signOut(auth),
-            signOut(centralLoginsAuth)
+            signOut(auth)
         ]);
     }
 
@@ -499,6 +456,7 @@ export class LoginManager {
                     login: this.tempData.login,
                     email: this.tempData.email,
                     organizacao: this.tempData.organizacao,
+                    authToken: this.tempData.authToken || '',
                     perfil: userData.perfil || 'operador'
                 });
 

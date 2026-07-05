@@ -25,24 +25,6 @@ import {
 const firebaseApps = new Map();
 const firebaseAppChecks = new Map();
 
-const firebaseCentralLoginsConfig = {
-    apiKey: "AIzaSyAiUrqXBB2i0SOkjTMPH_JAbQUBMlHGoiM",
-    authDomain: "tratamentoweb-logins.firebaseapp.com",
-    projectId: "tratamentoweb-logins",
-    storageBucket: "tratamentoweb-logins.firebasestorage.app",
-    messagingSenderId: "41126296955",
-    appId: "1:41126296955:web:e92d527090632db54ad1de"
-};
-
-const firebaseConfig = {
-    apiKey: "AIzaSyB8tkMR4kx_c4Hj9TNf0EPTEwWMEQc-oDs",
-    authDomain: "tratamentoweb.firebaseapp.com",
-    projectId: "tratamentoweb",
-    storageBucket: "tratamentoweb.firebasestorage.app",
-    messagingSenderId: "894728971208",
-    appId: "1:894728971208:web:52278dc3754180626c16fd"
-};
-
 function getOrCreateFirebaseApp(name, config) {
     if (firebaseApps.has(name)) {
         return firebaseApps.get(name);
@@ -53,16 +35,10 @@ function getOrCreateFirebaseApp(name, config) {
     return firebaseApp;
 }
 
-const centralLoginsApp = getOrCreateFirebaseApp('central-logins', firebaseCentralLoginsConfig);
-const centralLoginsDb = getFirestore(centralLoginsApp);
-const centralLoginsAuth = getAuth(centralLoginsApp);
-
-let app = getOrCreateFirebaseApp('org-default', firebaseConfig);
-
+let app = null;
 let appCheck = null;
-
-let db = getFirestore(app);
-let auth = getAuth(app);
+let db = null;
+let auth = null;
 
 function configureOrganizationFirebase(organizationFirebaseConfig, organizationId = 'org') {
     if (!organizationFirebaseConfig?.apiKey || !organizationFirebaseConfig?.projectId) {
@@ -99,9 +75,18 @@ function getRenderApiBaseUrl() {
     ).replace(/\/$/, '');
 }
 
+function getSessionAuthToken() {
+    try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        return currentUser.authToken || currentUser.idToken || currentUser.token || '';
+    } catch (_error) {
+        return '';
+    }
+}
+
 async function uploadParaImgbb(imagemBase64) {
     try {
-        const token = await centralLoginsAuth.currentUser?.getIdToken();
+        const token = getSessionAuthToken();
         if (!token) {
             throw new Error('Sessao expirada. Faca login novamente.');
         }
@@ -131,10 +116,7 @@ export {
     db,
     auth,
     app,
-    centralLoginsDb,
-    centralLoginsAuth,
     appCheck,
-    firebaseCentralLoginsConfig,
     configureOrganizationFirebase,
 
     collection,
