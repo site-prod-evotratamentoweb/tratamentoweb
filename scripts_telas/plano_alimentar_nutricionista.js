@@ -113,20 +113,23 @@ export class PlanoAlimentarNutricionista {
                             ${this.renderFormularioPlano()}
                         </div>
                         
-                        <div style="padding: 10px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; align-items: center; gap: 10px; border-radius: 0 0 16px 16px;">
-                            <button id="btnListaAlimentos" class="modal-action-btn modal-action-btn-secondary"
-                                    style="padding: 12px 18px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                Lista de Alimentos
-                            </button>
-                            <button id="btnCancelarPlano" class="modal-action-btn modal-action-btn-cancel"
-                                    onclick="document.getElementById('modalPlano').style.display='none'"
-                                    style="padding: 12px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                Cancelar
-                            </button>
-                            <button id="btnSalvarPlano" class="modal-action-btn modal-action-btn-primary"
-                                    style="padding: 12px 28px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                💾 Salvar Plano
-                            </button>
+                        <div style="padding: 10px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; align-items: center; border-radius: 0 0 16px 16px;">
+                            <div class="modal-acoes-plano" style="position: relative; display: inline-flex; align-items: center;">
+                                <button type="button" style="padding: 10px 14px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    Ações
+                                </button>
+                                <div class="modal-acoes-plano-menu" style="position: absolute; right: 0; bottom: calc(100% + 8px); min-width: 180px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 8px; display: none; z-index: 20;">
+                                    <button id="btnListaAlimentos" class="modal-action-btn modal-action-btn-secondary" type="button" style="width: 100%; padding: 10px 12px; margin-bottom: 6px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
+                                        Lista de Alimentos
+                                    </button>
+                                    <button id="btnCancelarPlano" class="modal-action-btn modal-action-btn-cancel" type="button" onclick="document.getElementById('modalPlano').style.display='none'" style="width: 100%; padding: 10px 12px; margin-bottom: 6px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
+                                        Cancelar
+                                    </button>
+                                    <button id="btnSalvarPlano" class="modal-action-btn modal-action-btn-primary" type="button" style="width: 100%; padding: 10px 12px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
+                                        Salvar
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -191,6 +194,11 @@ export class PlanoAlimentarNutricionista {
 
                     .modal-action-btn:active {
                         transform: translateY(0) scale(1.02);
+                    }
+
+                    .modal-acoes-plano:hover .modal-acoes-plano-menu,
+                    .modal-acoes-plano:focus-within .modal-acoes-plano-menu {
+                        display: block;
                     }
                     
                     .fab-icon {
@@ -352,9 +360,9 @@ export class PlanoAlimentarNutricionista {
                             <!-- Refeições -->
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px;">
                                 ${this.renderRefeicaoCard('🌅 Café da Manhã', plano.breakfast)}
-                                ${this.renderRefeicaoCard('🍎 Lanche Manhã', plano.morningSnack)}
+                                ${this.renderRefeicaoCard('🍎 Lanche da Manhã', plano.morningSnack)}
                                 ${this.renderRefeicaoCard('🍽️ Almoço', plano.lunch)}
-                                ${this.renderRefeicaoCard('🍌 Lanche Tarde', plano.afternoonSnack)}
+                                ${this.renderRefeicaoCard('🍌 Lanche da Tarde', plano.afternoonSnack)}
                                 ${this.renderRefeicaoCard('🌙 Jantar', plano.dinner)}
                                 ${this.renderRefeicaoCard('⭐ Ceia', plano.supper)}
                             </div>
@@ -511,10 +519,10 @@ export class PlanoAlimentarNutricionista {
 
     getRefeicoesPlano() {
         return [
-            { id: 'breakfast', titulo: 'Cafe da Manha' },
-            { id: 'morningSnack', titulo: 'Lanche Manha' },
-            { id: 'lunch', titulo: 'Almoco' },
-            { id: 'afternoonSnack', titulo: 'Lanche Tarde' },
+            { id: 'breakfast', titulo: 'Café da Manhã' },
+            { id: 'morningSnack', titulo: 'Lanche da Manhã' },
+            { id: 'lunch', titulo: 'Almoço' },
+            { id: 'afternoonSnack', titulo: 'Lanche da Tarde' },
             { id: 'dinner', titulo: 'Jantar' },
             { id: 'supper', titulo: 'Ceia' }
         ];
@@ -573,13 +581,13 @@ export class PlanoAlimentarNutricionista {
         const selecionada = this.refeicaoSelecionada === refeicao.id;
 
         return `
-            <div class="meal-editor-card" data-meal-id="${refeicao.id}" style="background: white; border: 2px solid ${selecionada ? '#1a237e' : '#e2e8f0'}; border-radius: 10px; overflow: hidden; height: 100%; min-height: 0; cursor: pointer; display: flex; flex-direction: column;">
+            <div class="meal-editor-card" data-meal-id="${refeicao.id}" style="background: white; border: 2px solid ${selecionada ? '#1a237e' : '#e2e8f0'}; border-radius: 10px; overflow: visible; height: 100%; min-height: 0; cursor: pointer; display: flex; flex-direction: column;">
                 <div style="background: ${selecionada ? '#1a237e' : '#f1f5f9'}; color: ${selecionada ? 'white' : '#1a237e'}; padding: 10px 14px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px;">
                     <span>${refeicao.titulo}</span>
                     ${selecionada ? '<span style="font-size: 12px; font-weight: 500;">Selecionada</span>' : ''}
                 </div>
                 <div style="padding: 10px; display: grid; gap: 8px; flex: 1; overflow-y: auto; min-height: 0;">
-                    ${itens.length ? itens.map((item) => this.renderItemRefeicao(refeicao.id, item)).join('') : '<div style="color: #94a3b8; font-size: 13px; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px;">Nenhum alimento nesta refeicao.</div>'}
+                    ${itens.length ? itens.map((item) => this.renderItemRefeicao(refeicao.id, item)).join('') : '<div style="color: #94a3b8; font-size: 13px; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px;">Nenhum alimento nesta refeição.</div>'}
                 </div>
             </div>
         `;
@@ -588,17 +596,18 @@ export class PlanoAlimentarNutricionista {
     renderItemRefeicao(mealId, item) {
         const detalhes = item.detalhes;
         return `
-            <div class="meal-item-row" data-meal-id="${mealId}" data-item-id="${item.id}" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px; background: #f8fafc;">
+            <div class="meal-item-row" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: visible; border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px; background: #f8fafc;">
                 <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;">
                     <div style="color: #334155; font-size: 13px; line-height: 1.35;">${this.escapeHtml(item.texto)}</div>
                     <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" style="padding: 6px 9px; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer;">&#128065;</button>
                     <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" style="padding: 6px 9px; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer;">X</button>
                 </div>
                 ${item.detalhesAberto ? `
-                    <div style="margin-top: 8px; color: #64748b; font-size: 12px; line-height: 1.5;">
+                    <div style="position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; width: min(320px, 100%); background: white; border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 10px; color: #475569; font-size: 12px; line-height: 1.45;">
                         ${detalhes ? `
-                            ${this.escapeHtml(detalhes.nome)} | ${this.escapeHtml(detalhes.quantidadeTexto)} | ${this.formatarNumero(detalhes.gramas)} g<br>
-                            ${this.formatarNumero(detalhes.kcal, 0)} kcal | C ${this.formatarNumero(detalhes.carboidratos)}g | P ${this.formatarNumero(detalhes.proteinas)}g | G ${this.formatarNumero(detalhes.gorduras)}g
+                            <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">${this.escapeHtml(detalhes.nome)}</div>
+                            <div>${this.escapeHtml(detalhes.quantidadeTexto)} | ${this.formatarNumero(detalhes.gramas)} g</div>
+                            <div>${this.formatarNumero(detalhes.kcal, 0)} kcal | C ${this.formatarNumero(detalhes.carboidratos)}g | P ${this.formatarNumero(detalhes.proteinas)}g | G ${this.formatarNumero(detalhes.gorduras)}g</div>
                         ` : 'Item criado a partir de texto antigo do plano.'}
                     </div>
                 ` : ''}
@@ -611,15 +620,15 @@ export class PlanoAlimentarNutricionista {
         const alimentos = this.filtrarAlimentos(termo);
         const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
         return `
-            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden;">
-                <div style="display: grid; grid-template-columns: minmax(220px, 1.15fr) 110px minmax(0, 2.85fr); gap: 8px; align-items: start; min-width: 0;">
+            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 150px; box-sizing: border-box;">
+                <div style="display: grid; grid-template-columns: minmax(160px, 0.85fr) 84px minmax(0, 3.25fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
                     <label style="font-size: 11px; color: #475569; display: flex; flex-direction: column; gap: 4px; min-width: 0;">Pesquisar alimento
                         <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; height: 34px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
                     </label>
                     <label style="font-size: 11px; color: #475569; display: flex; flex-direction: column; gap: 4px; min-width: 0;">Quantidade
                         <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; height: 34px;">
                     </label>
-                    <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; align-items: stretch; min-height: 0;">
+                    <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; align-items: stretch; min-height: 0; height: 100%;">
                         ${this.renderResultadosAlimentos(alimentos)}
                     </div>
                 </div>
@@ -635,7 +644,7 @@ export class PlanoAlimentarNutricionista {
         return alimentos.map((alimento) => {
             const detalhesAbertos = Boolean(this.detalhesBuscaAlimentos[alimento.id]);
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 260px; width: 260px; flex: 0 0 260px; height: 88px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 220px; width: 220px; flex: 0 0 220px; height: 88px; overflow: visible; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; position: relative;">
                     <div style="min-width: 0;">
                         <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 1.2;">${this.escapeHtml(alimento.nome)}</strong>
                         <div style="font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(this.formatarQuantidadePreview(alimento))}</div>
@@ -643,8 +652,9 @@ export class PlanoAlimentarNutricionista {
                     <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 7px 8px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; height: 32px;">&#128065;</button>
                     <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="padding: 7px 10px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; height: 32px;">+</button>
                     ${detalhesAbertos ? `
-                        <div style="grid-column: 1 / -1; padding-top: 6px; color: #475569; font-size: 11px; line-height: 1.25; border-top: 1px solid #e2e8f0;">
-                            ${this.escapeHtml(alimento.categoria || 'Sem categoria')} | ${this.formatarNumero(alimento.kcal || 0, 0)} kcal | C ${this.formatarNumero(alimento.carboidratos || 0)}g | P ${this.formatarNumero(alimento.proteinas || 0)}g | G ${this.formatarNumero(alimento.gorduras || 0)}g por 100g
+                        <div style="position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; width: 260px; background: white; border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 10px; color: #475569; font-size: 11px; line-height: 1.35;">
+                            <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">${this.escapeHtml(alimento.categoria || 'Sem categoria')}</div>
+                            <div>${this.formatarNumero(alimento.kcal || 0, 0)} kcal | C ${this.formatarNumero(alimento.carboidratos || 0)}g | P ${this.formatarNumero(alimento.proteinas || 0)}g | G ${this.formatarNumero(alimento.gorduras || 0)}g por 100g</div>
                         </div>
                     ` : ''}
                 </div>
