@@ -30,6 +30,7 @@ export class PlanoAlimentarNutricionista {
         this.alimentoEditandoId = null;
         this.refeicaoSelecionada = 'breakfast';
         this.itensPlano = this.criarEstadoItensPlano();
+        this.detalhesBuscaAlimentos = {};
         this.menu = null;
         this.navegador = criarNavegador(userInfo, this.pacientesList);
     }
@@ -744,8 +745,8 @@ export class PlanoAlimentarNutricionista {
         const alimentos = this.filtrarAlimentos(termo);
         const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
         return `
-            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 14px; margin-bottom: 14px; flex: 0 0 auto;">
-                <div style="display: grid; grid-template-columns: minmax(260px, 1fr) 120px; gap: 8px; align-items: end;">
+            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 14px; margin-bottom: 14px; flex: 0 0 260px; display: flex; flex-direction: column; overflow: hidden;">
+                <div style="display: grid; grid-template-columns: minmax(260px, 1fr) 120px; gap: 8px; align-items: end; flex: 0 0 auto;">
                     <label style="font-size: 12px; color: #475569;">Pesquisar alimento
                         <input id="foodSearch" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
                     </label>
@@ -753,7 +754,7 @@ export class PlanoAlimentarNutricionista {
                         <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
                     </label>
                 </div>
-                <div id="foodResults" style="margin-top: 12px; display: grid; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
+                <div id="foodResults" style="margin-top: 12px; flex: 1; overflow-y: auto; padding-right: 4px;">
                     ${this.renderResultadosAlimentos(alimentos)}
                 </div>
             </div>
@@ -765,15 +766,28 @@ export class PlanoAlimentarNutricionista {
             return '<div style="color: #64748b; font-size: 13px;">Digite para pesquisar alimentos.</div>';
         }
 
-        return alimentos.map((alimento) => `
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;">
-                <div style="min-width: 0;">
-                    <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(alimento.nome)}</strong>
-                </div>
-                <div style="font-size: 13px; color: #475569; white-space: nowrap;">${this.escapeHtml(this.formatarQuantidadePreview(alimento))}</div>
-                <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" style="padding: 8px 12px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer;">Adicionar</button>
+        return `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px;">
+                ${alimentos.map((alimento) => {
+                    const detalhesAbertos = Boolean(this.detalhesBuscaAlimentos[alimento.id]);
+                    return `
+                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center;">
+                            <div style="min-width: 0;">
+                                <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(alimento.nome)}</strong>
+                                <div style="font-size: 12px; color: #64748b;">${this.escapeHtml(this.formatarQuantidadePreview(alimento))}</div>
+                            </div>
+                            <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 8px 10px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer;">&#128065;</button>
+                            <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="padding: 8px 12px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer;">+</button>
+                            ${detalhesAbertos ? `
+                                <div style="grid-column: 1 / -1; padding-top: 8px; color: #475569; font-size: 12px; line-height: 1.4; border-top: 1px solid #e2e8f0;">
+                                    ${this.escapeHtml(alimento.categoria || 'Sem categoria')} | ${this.formatarNumero(alimento.kcal || 0, 0)} kcal | C ${this.formatarNumero(alimento.carboidratos || 0)}g | P ${this.formatarNumero(alimento.proteinas || 0)}g | G ${this.formatarNumero(alimento.gorduras || 0)}g por 100g
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
             </div>
-        `).join('');
+        `;
     }
 
     renderFormularioPlano() {
@@ -1000,9 +1014,22 @@ export class PlanoAlimentarNutricionista {
     }
 
     attachFoodResultButtons() {
+        document.querySelectorAll('.btnDetalhesBuscaAlimento').forEach((button) => {
+            button.addEventListener('click', () => this.alternarDetalhesBuscaAlimento(button.dataset.foodId));
+        });
         document.querySelectorAll('.btnAdicionarAlimento').forEach((button) => {
             button.addEventListener('click', () => this.adicionarAlimentoNaRefeicao(button.dataset.foodId));
         });
+    }
+
+    alternarDetalhesBuscaAlimento(foodId) {
+        this.detalhesBuscaAlimentos[foodId] = !this.detalhesBuscaAlimentos[foodId];
+        const search = document.getElementById('foodSearch');
+        const results = document.getElementById('foodResults');
+        if (results) {
+            results.innerHTML = this.renderResultadosAlimentos(this.filtrarAlimentos(search?.value || ''));
+            this.attachFoodResultButtons();
+        }
     }
 
     selecionarRefeicao(mealId) {
