@@ -650,11 +650,9 @@ export class ShoppingNutriCliente {
         const status = (this.fotoTemp.analise.aprovado && this.fotoTemp.analise.confianca >= 0.7) ? 'aprovado_ia' : 'pendente_manual';
         
         try {
-            let imagemUrl = '';
-            try {
-                const uploadResult = await uploadParaImgbb(this.fotoTemp.dataUrl);
-                if (uploadResult.success) imagemUrl = uploadResult.url;
-            } catch (uploadError) {
+            const uploadResult = await uploadParaImgbb(this.fotoTemp.dataUrl);
+            if (!uploadResult.success || !uploadResult.url) {
+                throw new Error('Upload da foto falhou.');
             }
             
             await addDoc(collection(db, 'fotos_desafio'), {
@@ -663,8 +661,8 @@ export class ShoppingNutriCliente {
                 desafio_id: this.desafioSelecionado.id,
                 desafio_titulo: this.desafioSelecionado.titulo,
                 descricao: this.desafioSelecionado.descricao,
-                foto_base64: imagemUrl || this.fotoTemp.dataUrl,
-                foto_armazenada_em: imagemUrl ? 'imgbb' : 'firebase',
+                foto_base64: uploadResult.url,
+                foto_armazenada_em: 'imgbb',
                 status: status,
                 analise_ia: {
                     aprovado: this.fotoTemp.analise.aprovado,

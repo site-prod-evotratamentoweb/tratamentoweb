@@ -144,14 +144,15 @@ export class LoginManager {
         const values = {
             organizacao: localStorage.getItem('savedOrganizacao') || '',
             login: localStorage.getItem('savedLogin') || '',
-            password: localStorage.getItem('savedPassword') || ''
+            password: ''
         };
 
-        if (!values.login || !values.password) return;
+        localStorage.removeItem('savedPassword');
+
+        if (!values.login) return;
 
         document.getElementById('organizacao').value = values.organizacao;
         document.getElementById('login').value = values.login;
-        document.getElementById('password').value = values.password;
         document.getElementById('rememberLogin').checked = true;
         setTimeout(() => this.setupFloatingLabels(), 100);
     }
@@ -179,6 +180,15 @@ export class LoginManager {
 
     getMensagemCargoInvalido(cargo) {
         return `Cargo invalido: ${cargo}`;
+    }
+
+    sanitizeSessionUser(userData) {
+        const sanitized = { ...userData };
+        delete sanitized.codigo_temporario;
+        delete sanitized.codigo_expiracao;
+        delete sanitized.reset_token;
+        delete sanitized.reset_token_expiracao;
+        return sanitized;
     }
 
     normalizeOrganizacao(organizacao) {
@@ -211,7 +221,7 @@ export class LoginManager {
 
             const result = await response.json().catch(() => ({}));
             if (!response.ok) {
-                throw new Error(result.message || 'Nao foi possivel carregar a configuracao da organizacao no Render.');
+                throw new Error(result.error?.message || 'Nao foi possivel carregar a configuracao da organizacao no Render.');
             }
 
             return result.firebaseConfig;
@@ -341,15 +351,15 @@ export class LoginManager {
                 await updateDoc(userRef, { ultimo_login: serverTimestamp() });
             } catch (_error) {}
 
-            const sessionUser = {
+            const sessionUser = this.sanitizeSessionUser({
                 ...userData,
                 login,
                 email: emailMontado,
                 organizacao,
                 perfil: userData.perfil || (isPaciente ? 'operador' : 'supervisor')
-            };
+            });
 
-            this.saveRememberedCredentials(rememberCheckbox?.checked, organizacao, login, password);
+            this.saveRememberedCredentials(rememberCheckbox?.checked, organizacao, login);
             localStorage.setItem('currentUser', JSON.stringify(sessionUser));
             this.showHome(sessionUser);
         } catch (error) {
@@ -376,11 +386,11 @@ export class LoginManager {
         ]);
     }
 
-    saveRememberedCredentials(remember, organizacao, login, password) {
+    saveRememberedCredentials(remember, organizacao, login) {
         if (remember) {
             localStorage.setItem('savedOrganizacao', organizacao);
             localStorage.setItem('savedLogin', login);
-            localStorage.setItem('savedPassword', password);
+            localStorage.removeItem('savedPassword');
             localStorage.setItem('rememberLogin', 'true');
             return;
         }
@@ -484,13 +494,13 @@ export class LoginManager {
 
                 const updatedDoc = await getDoc(this.tempData.userRef);
                 const userData = updatedDoc.data();
-                const sessionUser = {
+                const sessionUser = this.sanitizeSessionUser({
                     ...userData,
                     login: this.tempData.login,
                     email: this.tempData.email,
                     organizacao: this.tempData.organizacao,
                     perfil: userData.perfil || 'operador'
-                };
+                });
 
                 localStorage.setItem('currentUser', JSON.stringify(sessionUser));
                 this.showHome(sessionUser);

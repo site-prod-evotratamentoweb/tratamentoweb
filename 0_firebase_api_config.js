@@ -95,54 +95,36 @@ function configureOrganizationFirebase(organizationFirebaseConfig, organizationI
     return { app, db, auth };
 }
 
-// ==================== IMGBB UPLOAD ====================
+const DEFAULT_RENDER_API_BASE_URL = 'https://backend-tratamentoweb.onrender.com';
 
-let imgbbApiKey = null;
-
-async function getImgbbApiKey() {
-    if (imgbbApiKey) return imgbbApiKey;
-
-    try {
-        const configRef = doc(db, 'config', 'api');
-        const configDoc = await getDoc(configRef);
-
-        if (configDoc.exists()) {
-            imgbbApiKey = configDoc.data().imgbb_key_desafio_fotos;
-            return imgbbApiKey;
-        }
-
-        return null;
-    } catch (error) {
-        return null;
-    }
+function getRenderApiBaseUrl() {
+    return (
+        window.TRATAMENTOWEB_API_BASE_URL ||
+        localStorage.getItem('tratamentowebApiBaseUrl') ||
+        DEFAULT_RENDER_API_BASE_URL
+    ).replace(/\/$/, '');
 }
 
 async function uploadParaImgbb(imagemBase64) {
     try {
-        const apiKey = await getImgbbApiKey();
-        if (!apiKey) {
-            throw new Error('API key do ImgBB nao configurada');
+        const token = await centralLoginsAuth.currentUser?.getIdToken();
+        if (!token) {
+            throw new Error('Sessao expirada. Faca login novamente.');
         }
 
-        const base64Data = imagemBase64.split(',')[1] || imagemBase64;
-        const formData = new FormData();
-        formData.append('key', apiKey);
-        formData.append('image', base64Data);
-
-        const response = await fetch('https://api.imgbb.com/1/upload', {
+        const response = await fetch(`${getRenderApiBaseUrl()}/api/uploads/imgbb`, {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ image: imagemBase64 })
         });
 
-        const result = await response.json();
+        const result = await response.json().catch(() => ({}));
 
-        if (result.success) {
-            return {
-                success: true,
-                url: result.data.url,
-                delete_url: result.data.delete_url,
-                thumb: result.data.thumb
-            };
+        if (response.ok && result.success) {
+            return result;
         }
 
         throw new Error(result.error?.message || 'Erro no upload');
@@ -182,6 +164,5 @@ export {
     confirmPasswordReset,
     verifyPasswordResetCode,
 
-    getImgbbApiKey,
     uploadParaImgbb
 };

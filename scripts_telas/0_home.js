@@ -26,7 +26,9 @@ export class FuncoesCompartilhadas {
     // ==================== UTILITÁRIOS GERAIS ====================
     
     static gerarCodigoTemporario() {
-        return Math.floor(100000 + Math.random() * 900000).toString();
+        const values = new Uint32Array(1);
+        crypto.getRandomValues(values);
+        return String(100000 + (values[0] % 900000));
     }
     
     static gerarEmailPorLogin(login, organizacao = '') {
