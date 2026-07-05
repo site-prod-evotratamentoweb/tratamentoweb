@@ -745,7 +745,7 @@ export class PlanoAlimentarNutricionista {
         const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
         return `
             <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 14px; margin-bottom: 14px; flex: 0 0 auto;">
-                <div style="display: grid; grid-template-columns: minmax(220px, 1fr) 120px; gap: 8px; align-items: end;">
+                <div style="display: grid; grid-template-columns: minmax(260px, 1fr) 120px; gap: 8px; align-items: end;">
                     <label style="font-size: 12px; color: #475569;">Pesquisar alimento
                         <input id="foodSearch" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
                     </label>
@@ -753,7 +753,7 @@ export class PlanoAlimentarNutricionista {
                         <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
                     </label>
                 </div>
-                <div id="foodResults" style="margin-top: 12px; display: grid; gap: 8px; max-height: 160px; overflow-y: auto; padding-right: 4px;">
+                <div id="foodResults" style="margin-top: 12px; display: grid; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
                     ${this.renderResultadosAlimentos(alimentos)}
                 </div>
             </div>
