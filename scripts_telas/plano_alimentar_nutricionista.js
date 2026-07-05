@@ -24,6 +24,9 @@ export class PlanoAlimentarNutricionista {
         this.planosList = [];
         this.planoExpandido = null;
         this.planoEditando = null;
+        this.alimentosBase = [];
+        this.alimentosCarregados = false;
+        this.alimentoEditandoId = null;
         this.menu = null;
         this.navegador = criarNavegador(userInfo, this.pacientesList);
     }
@@ -59,8 +62,8 @@ export class PlanoAlimentarNutricionista {
                         <select id="pacienteSelect" style="width: 100%; max-width: 350px; padding: 10px 14px; border-radius: 10px; border: 2px solid #e2e8f0; background: white;">
                             <option value="">-- Selecione um paciente --</option>
                             ${this.pacientesList.map(p => `
-                                <option value="${p.login}" ${this.selectedPaciente?.login === p.login ? 'selected' : ''}>
-                                    ${p.nome} (${p.login})
+                                <option value="${this.escapeHtml(p.login)}" ${this.selectedPaciente?.login === p.login ? 'selected' : ''}>
+                                    ${this.escapeHtml(p.nome)} (${this.escapeHtml(p.login)})
                                 </option>
                             `).join('')}
                         </select>
@@ -112,7 +115,7 @@ export class PlanoAlimentarNutricionista {
                             </button>
                         </div>
                         
-                        <div style="padding: 24px;">
+                        <div data-plano-form style="padding: 24px;">
                             ${this.renderFormularioPlano()}
                         </div>
                         
@@ -294,7 +297,7 @@ export class PlanoAlimentarNutricionista {
                         <div style="display: flex; align-items: center; gap: 12px;">
                             ${plano.goals ? `
                                 <span style="color: #475569; font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    🎯 ${plano.goals}
+                                    🎯 ${this.escapeHtml(plano.goals)}
                                 </span>
                             ` : ''}
                             <span style="color: #64748b; font-size: 20px; transition: transform 0.3s; ${isExpanded ? 'transform: rotate(180deg);' : ''}">
@@ -310,7 +313,7 @@ export class PlanoAlimentarNutricionista {
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
                                 <div style="background: white; padding: 12px; border-radius: 8px;">
                                     <strong style="color: #1a237e;">👨‍⚕️ Profissional:</strong>
-                                    <span style="color: #475569;">${plano.profissional_nome || 'Não informado'}</span>
+                                    <span style="color: #475569;">${this.escapeHtml(plano.profissional_nome || 'Não informado')}</span>
                                 </div>
                                 <div style="background: white; padding: 12px; border-radius: 8px;">
                                     <strong style="color: #1a237e;">📅 Data:</strong>
@@ -361,7 +364,7 @@ export class PlanoAlimentarNutricionista {
         return `
             <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <strong style="color: #1a237e; display: block; margin-bottom: 6px;">${titulo}</strong>
-                <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap;">${conteudo}</p>
+                <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap;">${this.escapeHtml(conteudo)}</p>
             </div>
         `;
     }
@@ -370,45 +373,217 @@ export class PlanoAlimentarNutricionista {
         return `
             <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px;">
                 <strong style="color: #1a237e; display: block; margin-bottom: 8px;">${titulo}</strong>
-                <p style="color: #475569; margin: 0; white-space: pre-wrap;">${conteudo}</p>
+                <p style="color: #475569; margin: 0; white-space: pre-wrap;">${this.escapeHtml(conteudo)}</p>
             </div>
         `;
     }
 
+    getAlimentosIniciais() {
+        return [
+            { nome: 'Arroz branco cozido', categoria: 'Cereais', unidadePadrao: 'colher de sopa', gramasPorUnidade: 25, kcal: 128, carboidratos: 28.1, proteinas: 2.5, gorduras: 0.2, fibras: 1.6, sodio: 1 },
+            { nome: 'Feijao carioca cozido', categoria: 'Leguminosas', unidadePadrao: 'concha media', gramasPorUnidade: 86, kcal: 76, carboidratos: 13.6, proteinas: 4.8, gorduras: 0.5, fibras: 8.5, sodio: 2 },
+            { nome: 'Peito de frango grelhado', categoria: 'Proteinas', unidadePadrao: 'file medio', gramasPorUnidade: 100, kcal: 159, carboidratos: 0, proteinas: 32, gorduras: 2.5, fibras: 0, sodio: 50 },
+            { nome: 'Ovo de galinha inteiro', categoria: 'Proteinas', unidadePadrao: 'unidade', gramasPorUnidade: 50, kcal: 143, carboidratos: 1.6, proteinas: 13, gorduras: 8.9, fibras: 0, sodio: 168 },
+            { nome: 'Banana prata', categoria: 'Frutas', unidadePadrao: 'unidade', gramasPorUnidade: 86, kcal: 98, carboidratos: 26, proteinas: 1.3, gorduras: 0.1, fibras: 2, sodio: 0 },
+            { nome: 'Maca com casca', categoria: 'Frutas', unidadePadrao: 'unidade', gramasPorUnidade: 130, kcal: 56, carboidratos: 15.2, proteinas: 0.3, gorduras: 0.2, fibras: 1.3, sodio: 0 },
+            { nome: 'Aveia em flocos', categoria: 'Cereais', unidadePadrao: 'colher de sopa', gramasPorUnidade: 10, kcal: 394, carboidratos: 66.6, proteinas: 13.9, gorduras: 8.5, fibras: 9.1, sodio: 5 },
+            { nome: 'Leite integral', categoria: 'Laticinios', unidadePadrao: 'copo', gramasPorUnidade: 200, kcal: 61, carboidratos: 4.7, proteinas: 3.2, gorduras: 3.3, fibras: 0, sodio: 43 },
+            { nome: 'Iogurte natural integral', categoria: 'Laticinios', unidadePadrao: 'pote', gramasPorUnidade: 170, kcal: 76, carboidratos: 5.3, proteinas: 4.1, gorduras: 4.3, fibras: 0, sodio: 52 },
+            { nome: 'Batata doce cozida', categoria: 'Tuberculos', unidadePadrao: 'fatia media', gramasPorUnidade: 50, kcal: 77, carboidratos: 18.4, proteinas: 0.6, gorduras: 0.1, fibras: 2.2, sodio: 3 },
+            { nome: 'Azeite de oliva', categoria: 'Oleos e gorduras', unidadePadrao: 'colher de sopa', gramasPorUnidade: 8, kcal: 884, carboidratos: 0, proteinas: 0, gorduras: 100, fibras: 0, sodio: 0 },
+            { nome: 'Pao frances', categoria: 'Paes', unidadePadrao: 'unidade', gramasPorUnidade: 50, kcal: 300, carboidratos: 58.6, proteinas: 8, gorduras: 3.1, fibras: 2.3, sodio: 648 }
+        ];
+    }
+
+    normalizarBusca(valor) {
+        return String(valor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    escapeHtml(valor) {
+        return String(valor ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    async carregarBaseAlimentos() {
+        if (this.alimentosCarregados) return;
+
+        const ref = collection(db, 'base_alimentos_nutricionais');
+        const snapshot = await getDocs(ref);
+        this.alimentosBase = [];
+        snapshot.forEach((docSnap) => this.alimentosBase.push({ id: docSnap.id, ...docSnap.data() }));
+
+        if (this.alimentosBase.length === 0) {
+            for (const alimento of this.getAlimentosIniciais()) {
+                await addDoc(ref, {
+                    ...alimento,
+                    fonte: 'base_inicial_editavel',
+                    criado_por: this.userInfo.login,
+                    data_criacao: new Date().toISOString()
+                });
+            }
+
+            const novoSnapshot = await getDocs(ref);
+            this.alimentosBase = [];
+            novoSnapshot.forEach((docSnap) => this.alimentosBase.push({ id: docSnap.id, ...docSnap.data() }));
+        }
+
+        this.alimentosCarregados = true;
+    }
+
+    filtrarAlimentos(termo = '') {
+        const busca = this.normalizarBusca(termo);
+        return this.alimentosBase
+            .filter((alimento) => !busca || this.normalizarBusca(`${alimento.nome} ${alimento.categoria}`).includes(busca))
+            .sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'))
+            .slice(0, 20);
+    }
+
+    calcularNutrientes(alimento, quantidade, tipoQuantidade, gramasManual) {
+        const qtd = Number(quantidade || 0);
+        const gramas = tipoQuantidade === 'unidade'
+            ? qtd * Number(alimento.gramasPorUnidade || 100)
+            : Number(gramasManual || qtd || 0);
+        const fator = gramas / 100;
+
+        return {
+            gramas,
+            kcal: Number(alimento.kcal || 0) * fator,
+            carboidratos: Number(alimento.carboidratos || 0) * fator,
+            proteinas: Number(alimento.proteinas || 0) * fator,
+            gorduras: Number(alimento.gorduras || 0) * fator,
+            fibras: Number(alimento.fibras || 0) * fator,
+            sodio: Number(alimento.sodio || 0) * fator
+        };
+    }
+
+    formatarNumero(valor, casas = 1) {
+        return Number(valor || 0).toLocaleString('pt-BR', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: casas
+        });
+    }
+
+    renderBaseNutricional() {
+        const alimentos = this.filtrarAlimentos();
+        return `
+            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+                    <div>
+                        <h4 style="margin: 0; color: #1a237e;">Base nutricional</h4>
+                        <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">Base propria, gratuita e editavel. Valores por 100 g/ml.</p>
+                    </div>
+                    <button id="btnLimparAlimentoForm" type="button" style="padding: 8px 12px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Novo alimento</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1.2fr 150px 120px 120px 110px 110px 110px 110px 110px; gap: 8px; align-items: end;">
+                    <label style="font-size: 12px; color: #475569;">Nome<input id="foodNome" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                    <label style="font-size: 12px; color: #475569;">Categoria<input id="foodCategoria" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                    <label style="font-size: 12px; color: #475569;">Unidade<input id="foodUnidade" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="unidade"></label>
+                    <label style="font-size: 12px; color: #475569;">g/unid<input id="foodGramasUnidade" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                    <label style="font-size: 12px; color: #475569;">kcal<input id="foodKcal" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                    <label style="font-size: 12px; color: #475569;">Carb<input id="foodCarboidratos" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                    <label style="font-size: 12px; color: #475569;">Prot<input id="foodProteinas" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                    <label style="font-size: 12px; color: #475569;">Gord<input id="foodGorduras" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                    <button id="btnSalvarAlimento" type="button" style="padding: 9px 10px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer;">Salvar</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 160px 120px 120px 160px; gap: 8px; align-items: end; margin-top: 14px;">
+                    <label style="font-size: 12px; color: #475569;">Buscar alimento<input id="foodSearch" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ex: arroz, frango, banana"></label>
+                    <label style="font-size: 12px; color: #475569;">Refeicao
+                        <select id="foodMealTarget" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                            <option value="breakfast">Cafe da manha</option>
+                            <option value="morningSnack">Lanche manha</option>
+                            <option value="lunch">Almoco</option>
+                            <option value="afternoonSnack">Lanche tarde</option>
+                            <option value="dinner">Jantar</option>
+                            <option value="supper">Ceia</option>
+                        </select>
+                    </label>
+                    <label style="font-size: 12px; color: #475569;">Quantidade<input id="foodQuantidade" type="number" step="0.1" value="1" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                    <label style="font-size: 12px; color: #475569;">Tipo
+                        <select id="foodTipoQuantidade" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                            <option value="unidade">unidade/porcao</option>
+                            <option value="gramas">gramas</option>
+                        </select>
+                    </label>
+                    <label style="font-size: 12px; color: #475569;">Gramas se manual<input id="foodGramasManual" type="number" step="0.1" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ex: 100"></label>
+                </div>
+
+                <div id="foodResults" style="margin-top: 12px; display: grid; gap: 8px;">
+                    ${this.renderResultadosAlimentos(alimentos)}
+                </div>
+            </div>
+        `;
+    }
+
+    renderResultadosAlimentos(alimentos) {
+        if (!alimentos.length) {
+            return '<div style="color: #64748b; font-size: 13px;">Nenhum alimento cadastrado.</div>';
+        }
+
+        return alimentos.map((alimento) => `
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;">
+                <div>
+                    <strong style="color: #1a237e;">${this.escapeHtml(alimento.nome)}</strong>
+                    <div style="font-size: 12px; color: #64748b;">${this.escapeHtml(alimento.categoria || 'Sem categoria')} | ${this.escapeHtml(alimento.kcal || 0)} kcal | C ${this.escapeHtml(alimento.carboidratos || 0)}g P ${this.escapeHtml(alimento.proteinas || 0)}g G ${this.escapeHtml(alimento.gorduras || 0)}g por 100g</div>
+                </div>
+                <button type="button" class="btnEditarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" style="padding: 7px 10px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Editar</button>
+                <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" style="padding: 7px 10px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer;">Adicionar</button>
+            </div>
+        `).join('');
+    }
+
     renderFormularioPlano() {
         const plano = this.planoEditando || {};
+        const safePlano = {
+            breakfast: this.escapeHtml(plano.breakfast || ''),
+            morningSnack: this.escapeHtml(plano.morningSnack || ''),
+            lunch: this.escapeHtml(plano.lunch || ''),
+            afternoonSnack: this.escapeHtml(plano.afternoonSnack || ''),
+            dinner: this.escapeHtml(plano.dinner || ''),
+            supper: this.escapeHtml(plano.supper || ''),
+            guidelines: this.escapeHtml(plano.guidelines || ''),
+            restrictions: this.escapeHtml(plano.restrictions || ''),
+            goals: this.escapeHtml(plano.goals || '')
+        };
         
         return `
+            ${this.renderBaseNutricional()}
+
             <div class="meals-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 20px;">
                 <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🌅 Café da Manhã</div>
                     <textarea id="breakfast" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
-                        placeholder="Alimentos e quantidades...">${plano.breakfast || ''}</textarea>
+                        placeholder="Alimentos e quantidades...">${safePlano.breakfast}</textarea>
                 </div>
                 <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🍎 Lanche Manhã</div>
                     <textarea id="morningSnack" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
-                        placeholder="Alimentos e quantidades...">${plano.morningSnack || ''}</textarea>
+                        placeholder="Alimentos e quantidades...">${safePlano.morningSnack}</textarea>
                 </div>
                 <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🍽️ Almoço</div>
                     <textarea id="lunch" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
-                        placeholder="Alimentos e quantidades...">${plano.lunch || ''}</textarea>
+                        placeholder="Alimentos e quantidades...">${safePlano.lunch}</textarea>
                 </div>
                 <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🍌 Lanche Tarde</div>
                     <textarea id="afternoonSnack" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
-                        placeholder="Alimentos e quantidades...">${plano.afternoonSnack || ''}</textarea>
+                        placeholder="Alimentos e quantidades...">${safePlano.afternoonSnack}</textarea>
                 </div>
                 <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">🌙 Jantar</div>
                     <textarea id="dinner" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
-                        placeholder="Alimentos e quantidades...">${plano.dinner || ''}</textarea>
+                        placeholder="Alimentos e quantidades...">${safePlano.dinner}</textarea>
                 </div>
                 <div class="meal-card" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <div class="meal-header" style="background: #1a237e; color: white; padding: 10px 14px; font-weight: 600;">⭐ Ceia</div>
                     <textarea id="supper" class="meal-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
-                        placeholder="Alimentos e quantidades...">${plano.supper || ''}</textarea>
+                        placeholder="Alimentos e quantidades...">${safePlano.supper}</textarea>
                 </div>
             </div>
 
@@ -416,17 +591,17 @@ export class PlanoAlimentarNutricionista {
                 <div class="info-group" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <label style="display: block; background: #1a237e; color: white; padding: 10px 14px; font-weight: 600; margin: 0;">📌 Orientações Gerais</label>
                     <textarea id="guidelines" class="info-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
-                        placeholder="Hidratação, horários, etc...">${plano.guidelines || ''}</textarea>
+                        placeholder="Hidratação, horários, etc...">${safePlano.guidelines}</textarea>
                 </div>
                 <div class="info-group" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <label style="display: block; background: #1a237e; color: white; padding: 10px 14px; font-weight: 600; margin: 0;">⚠️ Restrições Alimentares</label>
                     <textarea id="restrictions" class="info-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
-                        placeholder="Alergias, intolerâncias...">${plano.restrictions || ''}</textarea>
+                        placeholder="Alergias, intolerâncias...">${safePlano.restrictions}</textarea>
                 </div>
                 <div class="info-group" style="background: #f8fafc; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <label style="display: block; background: #1a237e; color: white; padding: 10px 14px; font-weight: 600; margin: 0;">🎯 Objetivos</label>
                     <textarea id="goals" class="info-textarea" style="width: 100%; min-height: 100px; padding: 12px; border: none; resize: vertical; background: white;" 
-                        placeholder="Metas...">${plano.goals || ''}</textarea>
+                        placeholder="Metas...">${safePlano.goals}</textarea>
                 </div>
             </div>
         `;
@@ -455,9 +630,9 @@ export class PlanoAlimentarNutricionista {
 
         const btnNovoPlano = document.getElementById('btnNovoPlano');
         if (btnNovoPlano) {
-            btnNovoPlano.addEventListener('click', () => {
+            btnNovoPlano.addEventListener('click', async () => {
                 this.planoEditando = null;
-                this.abrirModal();
+                await this.abrirModal();
             });
         }
 
@@ -478,6 +653,113 @@ export class PlanoAlimentarNutricionista {
 
         // Expor instância globalmente
         window.planoAlimentarInstance = this;
+    }
+
+    attachNutritionEvents() {
+        const search = document.getElementById('foodSearch');
+        const results = document.getElementById('foodResults');
+        const refreshResults = () => {
+            if (!results) return;
+            results.innerHTML = this.renderResultadosAlimentos(this.filtrarAlimentos(search?.value || ''));
+            this.attachFoodResultButtons();
+        };
+
+        search?.addEventListener('input', refreshResults);
+        document.getElementById('btnSalvarAlimento')?.addEventListener('click', () => this.salvarAlimentoBase(refreshResults));
+        document.getElementById('btnLimparAlimentoForm')?.addEventListener('click', () => this.limparFormularioAlimento());
+        this.attachFoodResultButtons();
+    }
+
+    attachFoodResultButtons() {
+        document.querySelectorAll('.btnEditarAlimento').forEach((button) => {
+            button.addEventListener('click', () => this.preencherFormularioAlimento(button.dataset.foodId));
+        });
+        document.querySelectorAll('.btnAdicionarAlimento').forEach((button) => {
+            button.addEventListener('click', () => this.adicionarAlimentoNaRefeicao(button.dataset.foodId));
+        });
+    }
+
+    limparFormularioAlimento() {
+        this.alimentoEditandoId = null;
+        ['foodNome', 'foodCategoria', 'foodUnidade', 'foodGramasUnidade', 'foodKcal', 'foodCarboidratos', 'foodProteinas', 'foodGorduras'].forEach((id) => {
+            const input = document.getElementById(id);
+            if (input) input.value = '';
+        });
+    }
+
+    preencherFormularioAlimento(foodId) {
+        const alimento = this.alimentosBase.find((item) => item.id === foodId);
+        if (!alimento) return;
+
+        this.alimentoEditandoId = foodId;
+        document.getElementById('foodNome').value = alimento.nome || '';
+        document.getElementById('foodCategoria').value = alimento.categoria || '';
+        document.getElementById('foodUnidade').value = alimento.unidadePadrao || '';
+        document.getElementById('foodGramasUnidade').value = alimento.gramasPorUnidade || '';
+        document.getElementById('foodKcal').value = alimento.kcal || '';
+        document.getElementById('foodCarboidratos').value = alimento.carboidratos || '';
+        document.getElementById('foodProteinas').value = alimento.proteinas || '';
+        document.getElementById('foodGorduras').value = alimento.gorduras || '';
+    }
+
+    async salvarAlimentoBase(onSaved) {
+        const nome = document.getElementById('foodNome')?.value?.trim();
+        if (!nome) {
+            alert('Informe o nome do alimento.');
+            return;
+        }
+
+        const payload = {
+            nome,
+            categoria: document.getElementById('foodCategoria')?.value?.trim() || 'Geral',
+            unidadePadrao: document.getElementById('foodUnidade')?.value?.trim() || 'porcao',
+            gramasPorUnidade: Number(document.getElementById('foodGramasUnidade')?.value || 100),
+            kcal: Number(document.getElementById('foodKcal')?.value || 0),
+            carboidratos: Number(document.getElementById('foodCarboidratos')?.value || 0),
+            proteinas: Number(document.getElementById('foodProteinas')?.value || 0),
+            gorduras: Number(document.getElementById('foodGorduras')?.value || 0),
+            fibras: 0,
+            sodio: 0,
+            atualizado_por: this.userInfo.login,
+            data_atualizacao: new Date().toISOString()
+        };
+
+        if (this.alimentoEditandoId) {
+            await updateDoc(doc(db, 'base_alimentos_nutricionais', this.alimentoEditandoId), payload);
+        } else {
+            await addDoc(collection(db, 'base_alimentos_nutricionais'), {
+                ...payload,
+                fonte: 'custom',
+                criado_por: this.userInfo.login,
+                data_criacao: new Date().toISOString()
+            });
+        }
+
+        this.alimentosCarregados = false;
+        await this.carregarBaseAlimentos();
+        this.limparFormularioAlimento();
+        onSaved?.();
+    }
+
+    adicionarAlimentoNaRefeicao(foodId) {
+        const alimento = this.alimentosBase.find((item) => item.id === foodId);
+        if (!alimento) return;
+
+        const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
+        const tipoQuantidade = document.getElementById('foodTipoQuantidade')?.value || 'unidade';
+        const gramasManual = document.getElementById('foodGramasManual')?.value;
+        const mealId = document.getElementById('foodMealTarget')?.value || 'breakfast';
+        const nutrientes = this.calcularNutrientes(alimento, quantidade, tipoQuantidade, gramasManual);
+        const quantidadeTexto = tipoQuantidade === 'unidade'
+            ? `${this.formatarNumero(quantidade)} ${alimento.unidadePadrao || 'porcao'}`
+            : `${this.formatarNumero(nutrientes.gramas)} g`;
+        const linha = `${alimento.nome} - ${quantidadeTexto} (${this.formatarNumero(nutrientes.gramas)} g) | ${this.formatarNumero(nutrientes.kcal, 0)} kcal | C ${this.formatarNumero(nutrientes.carboidratos)}g P ${this.formatarNumero(nutrientes.proteinas)}g G ${this.formatarNumero(nutrientes.gorduras)}g`;
+        const textarea = document.getElementById(mealId);
+
+        if (textarea) {
+            textarea.value = textarea.value ? `${textarea.value}\n${linha}` : linha;
+            textarea.focus();
+        }
     }
 
     async loadPlanos() {
@@ -501,13 +783,27 @@ export class PlanoAlimentarNutricionista {
         }
     }
 
-    abrirModal() {
+    async abrirModal() {
+        try {
+            await this.carregarBaseAlimentos();
+        } catch (error) {
+            this.alimentosBase = [];
+            this.alimentosCarregados = false;
+            alert('Nao foi possivel carregar a base nutricional. Verifique as permissoes do Firestore.');
+        }
+
         const modal = document.getElementById('modalPlano');
         if (modal) {
+            const formWrapper = modal.querySelector('[data-plano-form]');
+            if (formWrapper) {
+                formWrapper.innerHTML = this.renderFormularioPlano();
+                this.attachNutritionEvents();
+            }
+
             modal.style.display = 'flex';
             setTimeout(() => {
-                const primeiroTextarea = modal.querySelector('textarea');
-                if (primeiroTextarea) primeiroTextarea.focus();
+                const buscaAlimento = modal.querySelector('#foodSearch');
+                if (buscaAlimento) buscaAlimento.focus();
             }, 100);
         }
     }
@@ -559,7 +855,8 @@ export class PlanoAlimentarNutricionista {
                 guidelines: document.getElementById('guidelines')?.value || '',
                 restrictions: document.getElementById('restrictions')?.value || '',
                 goals: document.getElementById('goals')?.value || '',
-                profissional_nome: this.userInfo.nome
+                profissional_nome: this.userInfo.nome,
+                modelo_plano: 'base_nutricional_editavel_v1'
             };
 
             const nutricionistaLogin = this.userInfo.login;
