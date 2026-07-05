@@ -60,7 +60,7 @@ export class PlanoAlimentarNutricionista {
             <div class="dashboard-container" style="height: 100vh; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
     
-                <div class="main-content" style="flex: 1; overflow-y: auto; padding: 20px 32px;">
+                <div class="main-content" style="flex: 1; overflow: hidden; padding: 14px 20px; min-height: 0;">
                     <!-- Seleção de Paciente -->
                     <div id="pacienteInfo" style="margin-bottom: 24px;">
                         <select id="pacienteSelect" style="width: 100%; max-width: 350px; padding: 10px 14px; border-radius: 10px; border: 2px solid #e2e8f0; background: white;">
@@ -612,7 +612,6 @@ export class PlanoAlimentarNutricionista {
     }
 
     renderItemRefeicao(mealId, item) {
-        const detalhes = item.detalhes;
         return `
             <div class="meal-item-row" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: visible; border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px; background: #f8fafc;">
                 <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;">
@@ -620,15 +619,6 @@ export class PlanoAlimentarNutricionista {
                     <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" style="padding: 6px 9px; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer;">&#128065;</button>
                     <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" style="padding: 6px 9px; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer;">X</button>
                 </div>
-                ${item.detalhesAberto ? `
-                    <div style="position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; width: min(320px, 100%); background: white; border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 10px; color: #475569; font-size: 12px; line-height: 1.45;">
-                        ${detalhes ? `
-                            <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">${this.escapeHtml(detalhes.nome)}</div>
-                            <div>${this.escapeHtml(detalhes.quantidadeTexto)} | ${this.formatarNumero(detalhes.gramas)} g</div>
-                            <div>${this.formatarNumero(detalhes.kcal, 0)} kcal | C ${this.formatarNumero(detalhes.carboidratos)}g | P ${this.formatarNumero(detalhes.proteinas)}g | G ${this.formatarNumero(detalhes.gorduras)}g</div>
-                        ` : 'Item criado a partir de texto antigo do plano.'}
-                    </div>
-                ` : ''}
             </div>
         `;
     }
@@ -637,12 +627,12 @@ export class PlanoAlimentarNutricionista {
         const termo = document.getElementById('foodSearch')?.value || '';
         const alimentos = this.filtrarAlimentos(termo);
         return `
-            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 72px; box-sizing: border-box;">
+            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 86px; box-sizing: border-box;">
                 <div style="display: grid; grid-template-columns: minmax(122px, 0.72fr) minmax(0, 4.28fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
                     <label style="font-size: 12px; color: #334155; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-weight: 600;">Pesquisar alimento
                         <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 4px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 26px; font-size: 13px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
                     </label>
-                    <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; align-items: stretch; min-height: 0; height: 100%;">
+                    <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 0 0 14px 0; align-items: stretch; min-height: 0; height: 100%; scrollbar-gutter: stable;">
                         ${this.renderResultadosAlimentos(alimentos)}
                     </div>
                 </div>
@@ -652,7 +642,7 @@ export class PlanoAlimentarNutricionista {
 
     obterQuantidadeAlimento(foodId) {
         const input = document.getElementById(`foodQuantidade_${foodId}`);
-        return Number(input?.value || 1);
+        return Math.max(1, Math.min(9999, Number(input?.value || 1)));
     }
 
     atualizarPreviewQuantidadeAlimento(foodId) {
@@ -675,12 +665,12 @@ export class PlanoAlimentarNutricionista {
             const quantidadeId = `foodQuantidade_${alimento.id}`;
             const quantidadeValor = Number(document.getElementById(quantidadeId)?.value || 1);
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 420px; width: 420px; flex: 0 0 420px; height: 72px; overflow: visible; display: grid; grid-template-columns: minmax(0, 2.2fr) 84px auto auto; gap: 8px; align-items: center; position: relative;">
-                    <div style="min-width: 0;">
-                        <div style="color: #1a237e; display: block; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-size: 15px; line-height: 1.15; padding-bottom: 2px;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
-                        <div data-quantidade-preview="${this.escapeHtml(alimento.id)}" style="font-size: 11px; color: #64748b; margin-top: 2px;">${this.formatarQuantidadePreview(alimento, quantidadeValor, true)}</div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 520px; width: 520px; flex: 0 0 520px; height: 76px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 64px auto auto; gap: 4px; align-items: center; position: relative;">
+                    <div style="min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
+                        <div style="color: #1a237e; display: block; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-size: 15px; line-height: 1.15; padding-bottom: 2px; flex: 1; min-width: 0;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
+                        <input id="${quantidadeId}" class="food-quantidade-input" data-food-id="${this.escapeHtml(alimento.id)}" type="number" min="1" max="9999" step="1" value="${Math.max(1, Math.min(9999, Math.round(quantidadeValor || 1)))}" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 64px; min-width: 64px; padding: 6px 6px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;">
+                        <span data-quantidade-preview="${this.escapeHtml(alimento.id)}" style="font-size: 11px; color: #64748b; white-space: nowrap;">${this.formatarQuantidadePreview(alimento, quantidadeValor, true)}</span>
                     </div>
-                    <input id="${quantidadeId}" class="food-quantidade-input" data-food-id="${this.escapeHtml(alimento.id)}" type="number" min="0.1" step="0.1" value="${quantidadeValor}" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;">
                     <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 6px 8px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; height: 30px;">&#128065;</button>
                     <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="padding: 6px 10px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; height: 30px;">+</button>
                 </div>
@@ -1078,8 +1068,33 @@ export class PlanoAlimentarNutricionista {
         const item = (this.itensPlano[mealId] || []).find((registro) => registro.id === itemId);
         if (!item) return;
 
-        item.detalhesAberto = !item.detalhesAberto;
-        this.renderizarRefeicoesPlano();
+        this.abrirModalDetalheItemPlano(item);
+    }
+
+    abrirModalDetalheItemPlano(item) {
+        const detalhes = item.detalhes;
+        const modal = document.getElementById('modalDetalheAlimento');
+        const formWrapper = modal?.querySelector('[data-detalhe-alimento-form]');
+        if (formWrapper) {
+            formWrapper.innerHTML = `
+                <div style="display: grid; gap: 12px;">
+                    <div style="font-size: 18px; font-weight: 700; color: #1a237e;">${this.escapeHtml(detalhes?.nome || item.texto)}</div>
+                    <div style="font-size: 14px; color: #475569;">${this.escapeHtml(detalhes?.quantidadeTexto || 'Sem quantidade informada')}</div>
+                    <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px; padding: 10px 12px; font-size: 15px; color: #1e293b; font-weight: 600;">
+                        ${this.escapeHtml(item.texto)}
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; line-height: 1.6;">
+                        <div><strong>Gramas:</strong> ${this.formatarNumero(detalhes?.gramas || 0, 0)} g</div>
+                        <div><strong>Energia:</strong> ${this.formatarNumero(detalhes?.kcal || 0, 0)} kcal</div>
+                        <div><strong>Carboidratos:</strong> ${this.formatarNumero(detalhes?.carboidratos || 0)} g</div>
+                        <div><strong>Proteínas:</strong> ${this.formatarNumero(detalhes?.proteinas || 0)} g</div>
+                        <div><strong>Gorduras:</strong> ${this.formatarNumero(detalhes?.gorduras || 0)} g</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (modal) modal.style.display = 'flex';
     }
 
     removerUltimoAlimentoDaRefeicao() {

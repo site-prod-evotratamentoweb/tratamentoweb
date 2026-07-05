@@ -43,7 +43,7 @@ export class AnamneseNutricionista {
             <div class="dashboard-container" style="height: 100vh; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
 
-                <div class="main-content" style="flex: 1; overflow-y: auto; padding: 20px 32px;">
+                <div class="main-content" style="flex: 1; overflow: hidden; padding: 14px 20px; min-height: 0;">
                     <!-- INFORMAÇÕES DO PACIENTE (com seletor dentro) -->
                     <div id="pacienteInfo" class="info-section" style="margin-bottom: 24px;">
                         <!-- SELETOR DE PACIENTE DENTRO DO CARD -->

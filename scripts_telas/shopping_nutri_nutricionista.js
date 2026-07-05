@@ -51,7 +51,7 @@ export class ShoppingNutriNutricionista {
             <div class="dashboard-container" style="height: 100vh; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
 
-                <div class="main-content" style="flex: 1; overflow-y: auto; padding: 20px 32px;">
+                <div class="main-content" style="flex: 1; overflow: hidden; padding: 14px 20px; min-height: 0;">
                     <!-- TABS -->
                     <div class="tabs-container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
                         <button class="tab-btn ${this.activeTab === 'dashboard' ? 'active' : ''}" data-tab="dashboard" style="padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer; ${this.activeTab === 'dashboard' ? 'background: #1a237e; color: white;' : 'background: #f1f5f9;'}">
