@@ -57,7 +57,7 @@ export class PlanoAlimentarNutricionista {
 
     renderHTML() {
         return `
-            <div class="dashboard-container" style="height: 100vh; display: flex; flex-direction: column;">
+            <div class="dashboard-container" style="height: calc(100vh - 24px); max-height: calc(100vh - 24px); margin: 12px auto; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
     
                 <div class="main-content" style="flex: 1; overflow: hidden; padding: 14px 20px; min-height: 0;">
@@ -627,7 +627,7 @@ export class PlanoAlimentarNutricionista {
         const termo = document.getElementById('foodSearch')?.value || '';
         const alimentos = this.filtrarAlimentos(termo);
         return `
-            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 86px; box-sizing: border-box;">
+                <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 88px; box-sizing: border-box;">
                 <div style="display: grid; grid-template-columns: minmax(122px, 0.72fr) minmax(0, 4.28fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
                     <label style="font-size: 12px; color: #334155; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-weight: 600;">Pesquisar alimento
                         <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 4px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 26px; font-size: 13px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
@@ -665,10 +665,10 @@ export class PlanoAlimentarNutricionista {
             const quantidadeId = `foodQuantidade_${alimento.id}`;
             const quantidadeValor = Number(document.getElementById(quantidadeId)?.value || 1);
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 520px; width: 520px; flex: 0 0 520px; height: 76px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 64px auto auto; gap: 4px; align-items: center; position: relative;">
-                    <div style="min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
-                        <div style="color: #1a237e; display: block; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-size: 15px; line-height: 1.15; padding-bottom: 2px; flex: 1; min-width: 0;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
-                        <input id="${quantidadeId}" class="food-quantidade-input" data-food-id="${this.escapeHtml(alimento.id)}" type="number" min="1" max="9999" step="1" value="${Math.max(1, Math.min(9999, Math.round(quantidadeValor || 1)))}" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 64px; min-width: 64px; padding: 6px 6px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 560px; width: 560px; flex: 0 0 560px; height: 80px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 56px auto auto; gap: 2px; align-items: center; position: relative;">
+                    <div style="min-width: 0; display: flex; align-items: center; gap: 2px; overflow: hidden;">
+                        <div style="color: #1a237e; display: block; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-size: 15px; line-height: 1.15; padding: 0 0 8px 0; flex: 1; min-width: 0;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
+                        <input id="${quantidadeId}" class="food-quantidade-input" data-food-id="${this.escapeHtml(alimento.id)}" type="number" min="1" max="9999" step="1" value="${Math.max(1, Math.min(9999, Math.round(quantidadeValor || 1)))}" oninput="this.value=this.value.slice(0,4)" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 56px; min-width: 56px; padding: 6px 5px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;">
                         <span data-quantidade-preview="${this.escapeHtml(alimento.id)}" style="font-size: 11px; color: #64748b; white-space: nowrap;">${this.formatarQuantidadePreview(alimento, quantidadeValor, true)}</span>
                     </div>
                     <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 6px 8px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; height: 30px;">&#128065;</button>

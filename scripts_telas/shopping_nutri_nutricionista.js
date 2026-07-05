@@ -48,7 +48,7 @@ export class ShoppingNutriNutricionista {
 
     renderHTML() {
         return `
-            <div class="dashboard-container" style="height: 100vh; display: flex; flex-direction: column;">
+            <div class="dashboard-container" style="height: calc(100vh - 24px); max-height: calc(100vh - 24px); margin: 12px auto; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
 
                 <div class="main-content" style="flex: 1; overflow: hidden; padding: 14px 20px; min-height: 0;">
