@@ -113,16 +113,16 @@ export class PlanoAlimentarNutricionista {
                             ${this.renderFormularioPlano()}
                         </div>
 
-                        <div class="modal-acoes-plano" style="position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: flex-end; z-index: 9999;">
+                        <div class="modal-acoes-plano" style="position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: flex-start; gap: 6px; z-index: 9999;">
+                            <button id="btnFecharPlano" type="button" aria-label="Fechar modal" onclick="document.getElementById('modalPlano').style.display='none'" style="width: 40px; height: 40px; padding: 0; background: rgba(15, 23, 42, 0.16); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 20px; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s ease, background 0.2s ease;">
+                                X
+                            </button>
                             <button id="btnPlanoAcoes" type="button" aria-label="Menu de ações" style="width: 40px; height: 40px; padding: 0; background: rgba(26, 35, 126, 0.5); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 20px; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s ease, background 0.2s ease;">
                                 ⋮
                             </button>
                             <div class="modal-acoes-plano-menu" style="position: absolute; right: 0; top: calc(100% + 8px); min-width: 180px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 8px; display: none; opacity: 0; visibility: hidden; transform: translateY(-6px); pointer-events: none; transition: all 0.2s ease; z-index: 10000;">
                                 <button id="btnListaAlimentos" class="modal-action-btn modal-action-btn-secondary" type="button" style="width: 100%; padding: 10px 12px; margin-bottom: 6px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
                                     Lista de Alimentos
-                                </button>
-                                <button id="btnCancelarPlano" class="modal-action-btn modal-action-btn-cancel" type="button" onclick="document.getElementById('modalPlano').style.display='none'" style="width: 100%; padding: 10px 12px; margin-bottom: 6px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
-                                    Cancelar
                                 </button>
                                 <button id="btnSalvarPlano" class="modal-action-btn modal-action-btn-primary" type="button" style="width: 100%; padding: 10px 12px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
                                     Salvar
@@ -213,9 +213,9 @@ export class PlanoAlimentarNutricionista {
                         pointer-events: auto;
                     }
 
-                    .modal-acoes-plano:hover > button,
-                    .modal-acoes-plano:focus-within > button,
-                    .modal-acoes-plano.open > button {
+                    .modal-acoes-plano:hover > #btnPlanoAcoes,
+                    .modal-acoes-plano:focus-within > #btnPlanoAcoes,
+                    .modal-acoes-plano.open > #btnPlanoAcoes {
                         background: rgba(26, 35, 126, 0.9);
                     }
                     
@@ -616,7 +616,7 @@ export class PlanoAlimentarNutricionista {
             <div class="meal-item-row" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: visible; border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px; background: #f8fafc;">
                 <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;">
                     <div style="color: #334155; font-size: 13px; line-height: 1.35;">${this.escapeHtml(item.texto)}</div>
-                    <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" style="padding: 6px 9px; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer;">&#128065;</button>
+                    <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                     <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" style="padding: 6px 9px; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer;">X</button>
                 </div>
             </div>
@@ -649,10 +649,9 @@ export class PlanoAlimentarNutricionista {
         const alimento = this.alimentosBase.find((item) => item.id === foodId);
         if (!alimento) return;
 
-        const input = document.getElementById(`foodQuantidade_${foodId}`);
         const preview = document.querySelector(`[data-quantidade-preview="${foodId}"]`);
         if (preview) {
-            preview.textContent = this.formatarQuantidadePreview(alimento, input?.value || 1, true);
+            preview.textContent = alimento.unidadePadrao || 'porcao';
         }
     }
 
@@ -664,16 +663,18 @@ export class PlanoAlimentarNutricionista {
         return alimentos.map((alimento) => {
             const quantidadeId = `foodQuantidade_${alimento.id}`;
             const quantidadeValor = Number(document.getElementById(quantidadeId)?.value || 1);
+            const unidadeMedida = alimento.unidadePadrao || 'porcao';
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 560px; width: 560px; flex: 0 0 560px; height: 80px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 56px auto auto; gap: 2px; align-items: center; position: relative;">
-                    <div style="min-width: 0; display: flex; align-items: center; gap: 2px; overflow: hidden;">
-                        <div style="color: #1a237e; display: block; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-size: 15px; line-height: 1.15; padding: 0 0 8px 0; flex: 1; min-width: 0;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
-                        <input id="${quantidadeId}" class="food-quantidade-input" data-food-id="${this.escapeHtml(alimento.id)}" type="number" min="1" max="9999" step="1" value="${Math.max(1, Math.min(9999, Math.round(quantidadeValor || 1)))}" oninput="this.value=this.value.slice(0,4)" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 56px; min-width: 56px; padding: 6px 5px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;">
-                        <span data-quantidade-preview="${this.escapeHtml(alimento.id)}" style="font-size: 11px; color: #64748b; white-space: nowrap;">${this.formatarQuantidadePreview(alimento, quantidadeValor, true)}</span>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 7px 8px; min-width: 300px; flex: 0 0 clamp(300px, calc((100% - 16px) / 3), 420px); height: 76px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 58px minmax(46px, auto) 30px 30px; gap: 5px; align-items: end; position: relative;">
+                    <div style="color: #1a237e; display: block; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-size: 14px; line-height: 1.2; padding: 0 0 8px 0; min-width: 0; align-self: center;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
+                    <label style="display: flex; flex-direction: column; gap: 2px; color: #64748b; font-size: 9px; font-weight: 700; line-height: 1; letter-spacing: 0; text-transform: uppercase;">
+                        QTD.
+                        <input id="${quantidadeId}" class="food-quantidade-input" data-food-id="${this.escapeHtml(alimento.id)}" type="number" min="1" max="9999" step="1" value="${Math.max(1, Math.min(9999, Math.round(quantidadeValor || 1)))}" oninput="this.value=this.value.slice(0,4)" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 58px; min-width: 58px; padding: 5px 4px; border: 1px solid #cbd5e1; border-radius: 7px; height: 28px; font-size: 13px;">
+                    </label>
+                    <div data-quantidade-preview="${this.escapeHtml(alimento.id)}" title="${this.escapeHtml(unidadeMedida)}" style="font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-self: center; min-width: 0;">${this.escapeHtml(unidadeMedida)}</div>
+                    <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                    <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">+</button>
                     </div>
-                    <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 6px 8px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; height: 30px;">&#128065;</button>
-                    <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="padding: 6px 10px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; height: 30px;">+</button>
-                </div>
             `;
         }).join('');
     }
