@@ -1,4 +1,4 @@
-// plano_alimentar_nutricionista.js 
+﻿// plano_alimentar_nutricionista.js 
 
 import { FuncoesCompartilhadas } from './0_home.js';
 import { MenuProfissional } from './0_complementos_menu_profissional.js';
@@ -108,22 +108,19 @@ export class PlanoAlimentarNutricionista {
     
                 <!-- Modal para Criar/Editar Plano -->
                 <div id="modalPlano" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: 90%; max-width: 1100px; height: 90vh; overflow: hidden; margin: 20px auto; display: flex; flex-direction: column;">
-                        <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 20px 24px; border-radius: 16px 16px 0 0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;">
-                            <h3 style="margin: 0;">
-                                ${this.planoEditando ? '✏️ Editar Plano Alimentar' : '📝 Novo Plano Alimentar'}
-                            </h3>
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: 98vw; max-width: 1600px; height: 98vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 12px 16px; border-radius: 16px 16px 0 0; display: flex; justify-content: flex-end; align-items: center; position: sticky; top: 0; z-index: 10;">
                             <button onclick="document.getElementById('modalPlano').style.display='none'" 
                                     style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 20px;">
                                 ✕
                             </button>
                         </div>
                         
-                        <div data-plano-form style="padding: 16px 24px; flex: 1; overflow: hidden;">
+                        <div data-plano-form style="padding: 8px 12px; flex: 1; overflow: hidden;">
                             ${this.renderFormularioPlano()}
                         </div>
                         
-                        <div style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-radius: 0 0 16px 16px;">
+                        <div style="padding: 10px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-radius: 0 0 16px 16px;">
                             <button id="btnListaAlimentos"
                                     style="padding: 12px 18px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                                 Lista de Alimentos
@@ -137,16 +134,15 @@ export class PlanoAlimentarNutricionista {
                 </div>
 
                 <div id="modalListaAlimentos" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: 90%; max-width: 1100px; height: 90vh; overflow: hidden; margin: 20px auto; display: flex; flex-direction: column;">
-                        <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 20px 24px; border-radius: 16px 16px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="margin: 0;">Lista de Alimentos</h3>
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: 98vw; max-width: 1600px; height: 98vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 12px 16px; border-radius: 16px 16px 0 0; display: flex; justify-content: flex-end; align-items: center;">
                             <button onclick="document.getElementById('modalListaAlimentos').style.display='none'" 
                                     style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 20px;">
                                 X
                             </button>
                         </div>
                         
-                        <div data-lista-alimentos-form style="padding: 16px 24px; flex: 1; overflow: hidden;">
+                        <div data-lista-alimentos-form style="padding: 8px 12px; flex: 1; overflow: hidden;">
                             ${this.renderModalListaAlimentos()}
                         </div>
                     </div>
