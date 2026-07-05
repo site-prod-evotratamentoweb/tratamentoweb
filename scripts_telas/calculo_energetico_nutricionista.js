@@ -593,7 +593,6 @@ export class CalculoEnergeticoNutricionista {
                 this.currentCalculo = null;
             }
         } catch (error) {
-            console.error("Erro ao carregar cálculo:", error);
             this.currentCalculo = null;
         }
     }
@@ -669,7 +668,6 @@ export class CalculoEnergeticoNutricionista {
             
             await this.loadCalculo();
         } catch (error) {
-            console.error("Erro ao salvar cálculo:", error);
             alert('❌ Erro ao salvar: ' + error.message);
         }
     }

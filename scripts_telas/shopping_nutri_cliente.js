@@ -455,7 +455,6 @@ export class ShoppingNutriCliente {
                 this.participacoesDesafios.set(data.desafio_id, data.quantidade || 1);
             });
         } catch (error) {
-            console.error("Erro ao carregar participações:", error);
         }
     }
     
@@ -481,7 +480,6 @@ export class ShoppingNutriCliente {
             }
             this.participacoesDesafios.set(desafioId, novaQuantidade);
         } catch (error) {
-            console.error("Erro ao registrar participação:", error);
         }
     }
 
@@ -495,7 +493,6 @@ export class ShoppingNutriCliente {
                 this.desafiosFoto.push({ id: doc.id, ...doc.data() });
             });
         } catch (error) {
-            console.error("Erro ao carregar desafios foto:", error);
         }
     }
 
@@ -569,7 +566,6 @@ export class ShoppingNutriCliente {
             document.getElementById('cancelarCameraBtn').onclick = () => this.fecharCamera();
             
         } catch (error) {
-            console.error('Erro ao acessar câmera:', error);
             alert('❌ Não foi possível acessar a câmera. Verifique as permissões.');
         }
     }
@@ -605,7 +601,6 @@ export class ShoppingNutriCliente {
             const resultado = await analisarImagemComIA(imagemDataUrl, this.desafioSelecionado?.categoria);
             analise = resultado;
         } catch (error) {
-            console.error('Erro na análise de IA:', error);
             analise.mensagem = 'Erro na análise. Foto será enviada para avaliação manual.';
         }
         
@@ -660,7 +655,6 @@ export class ShoppingNutriCliente {
                 const uploadResult = await uploadParaImgbb(this.fotoTemp.dataUrl);
                 if (uploadResult.success) imagemUrl = uploadResult.url;
             } catch (uploadError) {
-                console.error('Erro no upload para ImgBB:', uploadError);
             }
             
             await addDoc(collection(db, 'fotos_desafio'), {
@@ -697,7 +691,6 @@ export class ShoppingNutriCliente {
             await this.render();
             
         } catch (error) {
-            console.error('Erro ao enviar foto:', error);
             alert('❌ Erro ao enviar foto. Tente novamente.');
         }
     }
@@ -866,7 +859,6 @@ export class ShoppingNutriCliente {
             await this.carregarHistorico();
             
         } catch (error) {
-            console.error("Erro ao finalizar giro:", error);
             alert('❌ Erro ao processar o giro.');
             this.roletaGirando = false;
         }
@@ -986,7 +978,6 @@ export class ShoppingNutriCliente {
                 await this.criarDocumentoUsuario();
             }
         } catch (error) {
-            console.error("Erro ao carregar dados:", error);
         }
     }
 
@@ -1004,7 +995,6 @@ export class ShoppingNutriCliente {
                 data_criacao: new Date().toISOString()
             });
         } catch (error) {
-            console.error("Erro ao criar documento:", error);
         }
     }
 
@@ -1021,7 +1011,6 @@ export class ShoppingNutriCliente {
             });
             this.itensDisponiveis.sort((a, b) => a.pontos - b.pontos);
         } catch (error) {
-            console.error("Erro ao carregar itens:", error);
         }
     }
 
@@ -1036,7 +1025,6 @@ export class ShoppingNutriCliente {
             });
             this.historicoTransacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
         } catch (error) {
-            console.error("Erro ao carregar histórico:", error);
         }
     }
 
@@ -1052,7 +1040,6 @@ export class ShoppingNutriCliente {
                 };
             }
         } catch (error) {
-            console.error("Erro ao carregar config:", error);
         }
     }
 
@@ -1073,7 +1060,6 @@ export class ShoppingNutriCliente {
                 this.roletaDisponivel = true;
             }
         } catch (error) {
-            console.error("Erro ao verificar roleta:", error);
             this.roletaDisponivel = true;
         }
     }
@@ -1094,7 +1080,6 @@ export class ShoppingNutriCliente {
             
             await this.verificarDesafiosCompletados();
         } catch (error) {
-            console.error("Erro ao carregar desafios:", error);
         }
     }
 
@@ -1113,7 +1098,6 @@ export class ShoppingNutriCliente {
                 desafio.completado = desafiosCompletados.has(desafio.id);
             });
         } catch (error) {
-            console.error("Erro ao verificar desafios completados:", error);
         }
     }
 
@@ -1163,7 +1147,6 @@ export class ShoppingNutriCliente {
             
             return true;
         } catch (error) {
-            console.error("Erro ao adicionar pontos:", error);
             return false;
         }
     }
@@ -1214,7 +1197,6 @@ export class ShoppingNutriCliente {
             
             return true;
         } catch (error) {
-            console.error("Erro ao gastar pontos:", error);
             alert('❌ Erro ao realizar resgate.');
             return false;
         }
@@ -1254,7 +1236,6 @@ export class ShoppingNutriCliente {
             this.inicializarRoleta();
             
         } catch (error) {
-            console.error("Erro ao completar desafio:", error);
             alert('❌ Erro ao completar desafio.');
         }
     }
@@ -1277,7 +1258,6 @@ export class ShoppingNutriCliente {
             await this.adicionarPontos(5, '📅 Acesso diário', 'ganho');
             
         } catch (error) {
-            console.error("Erro ao registrar acesso:", error);
         }
     }
 

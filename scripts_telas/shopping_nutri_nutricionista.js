@@ -639,7 +639,6 @@ export class ShoppingNutriNutricionista {
             });
             this.itensRecompensa.sort((a, b) => a.pontos - b.pontos);
         } catch (error) {
-            console.error("Erro ao carregar itens:", error);
         }
     }
 
@@ -652,7 +651,6 @@ export class ShoppingNutriNutricionista {
                 this.desafiosDiarios.push({ id: doc.id, ...doc.data() });
             });
         } catch (error) {
-            console.error("Erro ao carregar desafios:", error);
         }
     }
 
@@ -666,7 +664,6 @@ export class ShoppingNutriNutricionista {
             });
             this.fotosDesafio.sort((a, b) => new Date(b.data_envio) - new Date(a.data_envio));
         } catch (error) {
-            console.error("Erro ao carregar fotos desafio:", error);
         }
     }
 
@@ -681,7 +678,6 @@ export class ShoppingNutriNutricionista {
             });
             this.resgatesPendentes.sort((a, b) => new Date(b.data_resgate) - new Date(a.data_resgate));
         } catch (error) {
-            console.error("Erro ao carregar resgates:", error);
         }
     }
 
@@ -710,7 +706,6 @@ export class ShoppingNutriNutricionista {
             // Ordena por pontos (maior para menor)
             this.rankingPontuacao.sort((a, b) => b.pontos - a.pontos);
         } catch (error) {
-            console.error("Erro ao carregar ranking:", error);
             this.rankingPontuacao = [];
         }
     }
@@ -729,7 +724,6 @@ export class ShoppingNutriNutricionista {
                 };
             }
         } catch (error) {
-            console.error("Erro ao carregar config:", error);
         }
     }
 
@@ -747,7 +741,6 @@ export class ShoppingNutriNutricionista {
             this.configGamificacao = { roleta_premios: roletaPremios, pontos_por_desafio: pontosDesafio, pontos_por_foto: pontosFoto };
             alert('✅ Configurações salvas com sucesso!');
         } catch (error) {
-            console.error("Erro ao salvar config:", error);
             alert('❌ Erro ao salvar configurações.');
         }
     }
@@ -767,7 +760,6 @@ export class ShoppingNutriNutricionista {
             this.activeTab = 'itens';
             await this.render();
         } catch (error) {
-            console.error("Erro ao salvar item:", error);
             alert('❌ Erro ao salvar item.');
         }
     }
@@ -782,7 +774,6 @@ export class ShoppingNutriNutricionista {
             this.activeTab = 'itens';
             await this.render();
         } catch (error) {
-            console.error("Erro ao excluir item:", error);
             alert('❌ Erro ao excluir item.');
         }
     }
@@ -802,7 +793,6 @@ export class ShoppingNutriNutricionista {
             this.activeTab = 'desafios';
             await this.render();
         } catch (error) {
-            console.error("Erro ao salvar desafio:", error);
             alert('❌ Erro ao salvar desafio.');
         }
     }
@@ -817,7 +807,6 @@ export class ShoppingNutriNutricionista {
             this.activeTab = 'desafios';
             await this.render();
         } catch (error) {
-            console.error("Erro ao excluir desafio:", error);
             alert('❌ Erro ao excluir desafio.');
         }
     }
@@ -846,7 +835,6 @@ export class ShoppingNutriNutricionista {
             await this.render();
             
         } catch (error) {
-            console.error("Erro ao aprovar foto:", error);
             alert('❌ Erro ao aprovar foto.');
         }
     }
@@ -870,7 +858,6 @@ export class ShoppingNutriNutricionista {
             await this.render();
             
         } catch (error) {
-            console.error("Erro ao recusar foto:", error);
             alert('❌ Erro ao recusar foto.');
         }
     }
@@ -926,7 +913,6 @@ export class ShoppingNutriNutricionista {
             });
             
         } catch (error) {
-            console.error("Erro ao adicionar pontos:", error);
             throw error;
         }
     }
@@ -950,7 +936,6 @@ export class ShoppingNutriNutricionista {
             await this.render();
             
         } catch (error) {
-            console.error("Erro ao aprovar resgate:", error);
             alert('❌ Erro ao aprovar resgate.');
         }
     }
@@ -984,7 +969,6 @@ export class ShoppingNutriNutricionista {
             await this.render();
             
         } catch (error) {
-            console.error("Erro ao recusar resgate:", error);
             alert('❌ Erro ao recusar resgate.');
         }
     }

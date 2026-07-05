@@ -497,7 +497,6 @@ export class PlanoAlimentarNutricionista {
             });
             
         } catch (error) {
-            console.error("Erro ao carregar planos:", error);
             this.planosList = [];
         }
     }
@@ -580,7 +579,6 @@ export class PlanoAlimentarNutricionista {
             await this.render();
             
         } catch (error) {
-            console.error("Erro ao salvar plano:", error);
             alert('❌ Erro ao salvar: ' + error.message);
         }
     }

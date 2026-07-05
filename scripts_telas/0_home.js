@@ -147,7 +147,6 @@ export class FuncoesCompartilhadas {
             const profissionalDoc = await getDoc(profissionalRef);
             
             if (!profissionalDoc.exists()) {
-                console.error('Profissional não encontrado:', profissionalLogin);
                 return [];
             }
             
@@ -190,14 +189,12 @@ export class FuncoesCompartilhadas {
                         });
                     }
                 } catch (err) {
-                    console.error(`Erro ao buscar paciente ${pacienteLogin}:`, err);
                 }
             }
             
             return pacientesList;
             
         } catch (error) {
-            console.error("Erro ao carregar pacientes:", error);
             return [];
         }
     }
@@ -208,7 +205,6 @@ export class FuncoesCompartilhadas {
             const userDoc = await getDoc(userRef);
             return userDoc.exists();
         } catch (error) {
-            console.error("Erro ao verificar login:", error);
             return false;
         }
     }
@@ -265,7 +261,6 @@ export class FuncoesCompartilhadas {
             };
             
         } catch (error) {
-            console.error("Erro ao cadastrar paciente:", error);
             throw new Error('❌ Erro ao cadastrar paciente: ' + error.message);
         }
     }
@@ -294,7 +289,6 @@ export class FuncoesCompartilhadas {
             return evaluations;
             
         } catch (error) {
-            console.error("Erro ao carregar avaliações:", error);
             return [];
         }
     }
@@ -307,7 +301,6 @@ export class FuncoesCompartilhadas {
             });
             return { success: true, message: '✅ Avaliação salva com sucesso!', id: docRef.id };
         } catch (error) {
-            console.error("Erro ao salvar avaliação:", error);
             throw new Error('Erro ao salvar avaliação: ' + error.message);
         }
     }
@@ -443,7 +436,6 @@ export class FuncoesCompartilhadas {
         try {
             await signOut(auth);
         } catch (error) {
-            console.error("Erro ao fazer logout do Auth:", error);
         }
         localStorage.removeItem('currentUser');
         window.location.reload();
@@ -455,7 +447,6 @@ export class FuncoesCompartilhadas {
             await updateDoc(userRef, data);
             return { success: true };
         } catch (error) {
-            console.error("Erro ao atualizar paciente:", error);
             throw new Error('Erro ao atualizar dados do paciente');
         }
     }
@@ -493,7 +484,6 @@ export class FuncoesCompartilhadas {
             };
             
         } catch (error) {
-            console.error("Erro ao visualizar código:", error);
             throw error;
         }
     }
@@ -531,7 +521,6 @@ export class FuncoesCompartilhadas {
             };
             
         } catch (error) {
-            console.error("Erro ao regenerar código:", error);
             throw error;
         }
     }
@@ -569,7 +558,6 @@ export class FuncoesCompartilhadas {
             };
             
         } catch (error) {
-            console.error("Erro ao resetar senha:", error);
             throw error;
         }
     }
@@ -603,7 +591,6 @@ export class FuncoesCompartilhadas {
             };
             
         } catch (error) {
-            console.error("Erro ao visualizar token:", error);
             throw error;
         }
     }
@@ -617,7 +604,6 @@ export class FuncoesCompartilhadas {
             });
             return { success: true };
         } catch (error) {
-            console.error("Erro ao limpar token:", error);
             throw error;
         }
     }

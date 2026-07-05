@@ -111,10 +111,8 @@ async function getImgbbApiKey() {
             return imgbbApiKey;
         }
 
-        console.error('Configuracao da API nao encontrada');
         return null;
     } catch (error) {
-        console.error('Erro ao carregar chave do ImgBB:', error);
         return null;
     }
 }
@@ -149,7 +147,6 @@ async function uploadParaImgbb(imagemBase64) {
 
         throw new Error(result.error?.message || 'Erro no upload');
     } catch (error) {
-        console.error('Erro no upload para ImgBB:', error);
         throw error;
     }
 }

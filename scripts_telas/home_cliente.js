@@ -57,7 +57,6 @@ export class HomeCliente {
                 });
             }
         } catch (error) {
-            console.error("Erro ao carregar dados adicionais:", error);
             this.plano = 'Erro ao carregar';
             this.profissionaisVinculados = [];
         }
@@ -449,7 +448,6 @@ export class HomeCliente {
             }
             
         } catch (error) {
-            console.error("Erro ao carregar avaliações:", error);
             evaluationsList.innerHTML = `
                 <div style="text-align: center; padding: 40px; background: white; border-radius: 16px;">
                     <p style="color: #dc2626;">❌ Erro ao carregar avaliações.</p>

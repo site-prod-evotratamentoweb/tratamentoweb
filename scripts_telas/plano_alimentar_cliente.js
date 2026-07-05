@@ -51,7 +51,6 @@ export class PlanoAlimentarCliente {
                 }
             }
         } catch (error) {
-            console.error("Erro ao carregar dados do paciente:", error);
         }
     }
 
@@ -75,7 +74,6 @@ export class PlanoAlimentarCliente {
             });
             
         } catch (error) {
-            console.error("Erro ao carregar planos:", error);
             this.planosList = [];
         }
     }

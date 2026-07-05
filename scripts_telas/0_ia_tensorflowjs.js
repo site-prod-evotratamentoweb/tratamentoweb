@@ -75,7 +75,6 @@ export async function carregarModeloIA(onProgress, onError) {
         return modeloIA;
         
     } catch (error) {
-        console.error('Erro ao carregar modelo de IA:', error);
         if (onError) onError(error);
         
         filaEspera.forEach(item => item.reject(error));
@@ -122,7 +121,6 @@ export async function analisarImagemComIA(imagemDataUrl, categoria, onProgress) 
         return resultado;
         
     } catch (error) {
-        console.error('Erro na análise de IA:', error);
         return {
             aprovado: false,
             confianca: 0,

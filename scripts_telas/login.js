@@ -169,7 +169,6 @@ export class LoginManager {
 
             this.showHome(user);
         } catch (error) {
-            console.error('Erro ao restaurar sessao:', error);
             localStorage.removeItem('currentUser');
         }
     }
@@ -354,7 +353,6 @@ export class LoginManager {
             localStorage.setItem('currentUser', JSON.stringify(sessionUser));
             this.showHome(sessionUser);
         } catch (error) {
-            console.error('Erro no login:', error);
 
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
                 this.showError('Login ou senha incorretos.');
@@ -497,7 +495,6 @@ export class LoginManager {
                 localStorage.setItem('currentUser', JSON.stringify(sessionUser));
                 this.showHome(sessionUser);
             } catch (error) {
-                console.error('Erro ao criar usuario:', error);
 
                 if (error.code === 'auth/email-already-in-use') {
                     this.showError('Este login ja possui cadastro. Contate o administrador.', 'createPasswordForm');

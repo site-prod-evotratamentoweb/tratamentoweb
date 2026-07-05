@@ -48,7 +48,6 @@ export class AnamneseCliente {
                 }
             }
         } catch (error) {
-            console.error("Erro ao carregar dados do paciente:", error);
         }
     }
 
@@ -70,7 +69,6 @@ export class AnamneseCliente {
                 this.anamnese = null;
             }
         } catch (error) {
-            console.error("Erro ao carregar anamnese:", error);
             this.anamnese = null;
         }
     }

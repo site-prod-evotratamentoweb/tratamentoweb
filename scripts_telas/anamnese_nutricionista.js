@@ -420,7 +420,6 @@ export class AnamneseNutricionista {
                 this.currentAnamnese = null;
             }
         } catch (error) {
-            console.error("Erro ao carregar anamnese:", error);
             this.currentAnamnese = null;
         }
     }
@@ -508,7 +507,6 @@ export class AnamneseNutricionista {
             
             await this.loadAnamnese();
         } catch (error) {
-            console.error("Erro ao salvar anamnese:", error);
             alert('❌ Erro ao salvar: ' + error.message);
         }
     }
