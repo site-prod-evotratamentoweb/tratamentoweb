@@ -636,15 +636,11 @@ export class PlanoAlimentarNutricionista {
     renderBaseNutricional() {
         const termo = document.getElementById('foodSearch')?.value || '';
         const alimentos = this.filtrarAlimentos(termo);
-        const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
         return `
-            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 78px; box-sizing: border-box;">
-                <div style="display: grid; grid-template-columns: minmax(108px, 0.62fr) 62px minmax(0, 3.78fr); gap: 6px; align-items: start; min-width: 0; height: 100%;">
+            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 72px; box-sizing: border-box;">
+                <div style="display: grid; grid-template-columns: minmax(122px, 0.72fr) minmax(0, 4.28fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
                     <label style="font-size: 12px; color: #334155; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-weight: 600;">Pesquisar alimento
                         <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 4px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 26px; font-size: 13px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
-                    </label>
-                    <label style="font-size: 12px; color: #334155; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-weight: 600;">Quantidade
-                        <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; min-width: 0; padding: 4px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 26px; font-size: 13px;">
                     </label>
                     <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; align-items: stretch; min-height: 0; height: 100%;">
                         ${this.renderResultadosAlimentos(alimentos)}
@@ -660,11 +656,15 @@ export class PlanoAlimentarNutricionista {
         }
 
         return alimentos.map((alimento) => {
+            const quantidadeId = `foodQuantidade_${alimento.id}`;
+            const quantidadeValor = Number(document.getElementById(quantidadeId)?.value || 1);
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 210px; width: 210px; flex: 0 0 210px; height: 62px; overflow: visible; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; position: relative;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 320px; width: 320px; flex: 0 0 320px; height: 68px; overflow: visible; display: grid; grid-template-columns: minmax(0, 1.7fr) 72px auto auto; gap: 8px; align-items: center; position: relative;">
                     <div style="min-width: 0;">
                         <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; line-height: 1.15;">${this.escapeHtml(alimento.nome)}</strong>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">${this.formatarNumero(quantidadeValor)} ${this.escapeHtml(alimento.unidadePadrao || 'porcao')}</div>
                     </div>
+                    <input id="${quantidadeId}" type="number" min="0.1" step="0.1" value="${quantidadeValor}" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;">
                     <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 6px 8px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; height: 30px;">&#128065;</button>
                     <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="padding: 6px 10px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; height: 30px;">+</button>
                 </div>
@@ -1151,7 +1151,7 @@ export class PlanoAlimentarNutricionista {
         const alimento = this.alimentosBase.find((item) => item.id === foodId);
         if (!alimento) return;
 
-        const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
+        const quantidade = Number(document.getElementById(`foodQuantidade_${foodId}`)?.value || 1);
         const mealId = this.obterRefeicaoSelecionada();
         this.refeicaoSelecionada = mealId;
         const nutrientes = this.calcularNutrientes(alimento, quantidade, 'unidade');

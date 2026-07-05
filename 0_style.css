@@ -738,8 +738,8 @@ body.profile-profissional .menu-overlay.open {
 /* Conteúdo Principal */
 body.profile-profissional .main-content {
     padding: 32px;
-    max-height: calc(85vh - 80px);
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
     min-width: 0;
 }
 
@@ -1084,7 +1084,8 @@ body.profile-profissional .info-group label {
 
 @media (max-width: 992px) {
     body.profile-profissional .main-content {
-        padding: 24px;
+        padding: 20px;
+        overflow-y: visible;
     }
     
     body.profile-profissional .charts-section {
@@ -1142,7 +1143,8 @@ body.profile-profissional .info-group label {
     }
     
     body.profile-profissional .main-content {
-        padding: 20px;
+        padding: 16px;
+        overflow-y: visible;
     }
     
     body.profile-profissional .meals-grid {
