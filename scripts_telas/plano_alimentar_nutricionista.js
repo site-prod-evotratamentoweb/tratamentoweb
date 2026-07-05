@@ -554,7 +554,7 @@ export class PlanoAlimentarNutricionista {
 
     renderRefeicoesPlano() {
         return `
-            <div id="mealItemsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div id="mealItemsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; height: 100%; min-height: 0; overflow: hidden;">
                 ${this.getRefeicoesPlano().map((refeicao) => this.renderRefeicaoEditor(refeicao)).join('')}
             </div>
         `;
@@ -565,12 +565,12 @@ export class PlanoAlimentarNutricionista {
         const selecionada = this.refeicaoSelecionada === refeicao.id;
 
         return `
-            <div class="meal-editor-card" data-meal-id="${refeicao.id}" style="background: white; border: 2px solid ${selecionada ? '#1a237e' : '#e2e8f0'}; border-radius: 10px; overflow: hidden; min-height: 190px; cursor: pointer;">
+            <div class="meal-editor-card" data-meal-id="${refeicao.id}" style="background: white; border: 2px solid ${selecionada ? '#1a237e' : '#e2e8f0'}; border-radius: 10px; overflow: hidden; height: 240px; min-height: 0; cursor: pointer; display: flex; flex-direction: column;">
                 <div style="background: ${selecionada ? '#1a237e' : '#f1f5f9'}; color: ${selecionada ? 'white' : '#1a237e'}; padding: 10px 14px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px;">
                     <span>${refeicao.titulo}</span>
                     ${selecionada ? '<span style="font-size: 12px; font-weight: 500;">Selecionada</span>' : ''}
                 </div>
-                <div style="padding: 10px; display: grid; gap: 8px;">
+                <div style="padding: 10px; display: grid; gap: 8px; flex: 1; overflow-y: auto; min-height: 0;">
                     ${itens.length ? itens.map((item) => this.renderItemRefeicao(refeicao.id, item)).join('') : '<div style="color: #94a3b8; font-size: 13px; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px;">Nenhum alimento nesta refeicao.</div>'}
                 </div>
             </div>
@@ -792,9 +792,9 @@ export class PlanoAlimentarNutricionista {
 
     renderFormularioPlano() {
         return `
-            <div style="display: flex; flex-direction: column; gap: 14px; height: 100%; overflow: hidden;">
+            <div style="display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0; overflow: hidden;">
                 ${this.renderBaseNutricional()}
-                <div style="flex: 1; overflow-y: auto; padding-right: 4px;">
+                <div style="flex: 1; min-height: 0; overflow: hidden; padding-right: 4px;">
                     ${this.renderRefeicoesPlano()}
                 </div>
             </div>
