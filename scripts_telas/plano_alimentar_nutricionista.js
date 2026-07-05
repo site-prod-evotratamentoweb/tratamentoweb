@@ -627,13 +627,13 @@ export class PlanoAlimentarNutricionista {
         const termo = document.getElementById('foodSearch')?.value || '';
         const alimentos = this.filtrarAlimentos(termo);
         return `
-                <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 82px; box-sizing: border-box;">
-                <div style="display: grid; grid-template-columns: minmax(122px, 0.72fr) minmax(0, 4.28fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
-                    <label style="display: grid; grid-template-rows: 16px 30px; gap: 4px; min-width: 0; align-items: end;">
+                <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 72px; box-sizing: border-box;">
+                <div style="display: grid; grid-template-columns: minmax(132px, 0.68fr) minmax(0, 4.32fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
+                    <label style="display: grid; grid-template-rows: 16px 30px; gap: 4px; min-width: 0; align-items: start;">
                         <span style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Pesquisar Alimento</span>
                         <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;" placeholder="Digite: ar, pao..." value="${this.escapeHtml(termo)}">
                     </label>
-                    <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 0 0 10px 0; align-items: stretch; min-height: 0; height: 100%; scrollbar-gutter: stable;">
+                    <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 0 0 8px 0; align-items: flex-start; min-height: 0; height: 100%; scrollbar-gutter: stable;">
                         ${this.renderResultadosAlimentos(alimentos)}
                     </div>
                 </div>
@@ -666,17 +666,17 @@ export class PlanoAlimentarNutricionista {
             const quantidadeValor = Number(document.getElementById(quantidadeId)?.value || 1);
             const unidadeMedida = alimento.unidadePadrao || 'porcao';
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 8px; min-width: 300px; flex: 0 0 clamp(300px, calc((100% - 16px) / 3), 420px); height: 62px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 58px minmax(50px, 0.42fr) 30px 30px; grid-template-rows: 16px 30px; gap: 4px 5px; align-items: end; position: relative;">
+                <div style="min-width: 0; flex: 0 0 calc((100% - 16px) / 3); height: 50px; overflow: hidden; display: grid; grid-template-columns: minmax(96px, 1fr) 52px minmax(46px, 0.44fr) 30px 30px; grid-template-rows: 16px 30px; gap: 4px 5px; align-items: start;">
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Nome do Alimento</div>
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">QTD.</div>
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">UNID.</div>
                     <div aria-hidden="true"></div>
                     <div aria-hidden="true"></div>
-                    <div style="height: 30px; color: #1a237e; display: flex; align-items: center; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-size: 13px; line-height: 1.2; min-width: 0; border: 1px solid #e2e8f0; border-radius: 7px; padding: 0 7px; background: #f8fafc;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
+                    <div style="height: 30px; color: #1a237e; display: flex; align-items: center; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-size: 13px; line-height: 1.2; min-width: 0; border: 1px solid #e2e8f0; border-radius: 7px; padding: 0 7px; background: white;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
                     <label style="display: block; min-width: 0;">
-                        <input id="${quantidadeId}" class="food-quantidade-input" data-food-id="${this.escapeHtml(alimento.id)}" type="number" min="1" max="9999" step="1" value="${Math.max(1, Math.min(9999, Math.round(quantidadeValor || 1)))}" oninput="this.value=this.value.slice(0,4)" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 58px; min-width: 58px; padding: 5px 4px; border: 1px solid #cbd5e1; border-radius: 7px; height: 28px; font-size: 13px;">
+                        <input id="${quantidadeId}" class="food-quantidade-input" data-food-id="${this.escapeHtml(alimento.id)}" type="number" min="1" max="9999" step="1" value="${Math.max(1, Math.min(9999, Math.round(quantidadeValor || 1)))}" oninput="this.value=this.value.slice(0,4)" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 52px; min-width: 52px; padding: 5px 4px; border: 1px solid #cbd5e1; border-radius: 7px; height: 30px; font-size: 13px;">
                     </label>
-                    <div data-quantidade-preview="${this.escapeHtml(alimento.id)}" title="${this.escapeHtml(unidadeMedida)}" style="height: 30px; display: flex; align-items: center; font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; border: 1px solid #e2e8f0; border-radius: 7px; padding: 0 7px; background: #f8fafc;">${this.escapeHtml(unidadeMedida)}</div>
+                    <div data-quantidade-preview="${this.escapeHtml(alimento.id)}" title="${this.escapeHtml(unidadeMedida)}" style="height: 30px; display: flex; align-items: center; font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; border: 1px solid #e2e8f0; border-radius: 7px; padding: 0 7px; background: white;">${this.escapeHtml(unidadeMedida)}</div>
                     <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                     <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">+</button>
                     </div>
