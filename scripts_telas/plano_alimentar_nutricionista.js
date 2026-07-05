@@ -108,7 +108,7 @@ export class PlanoAlimentarNutricionista {
     
                 <!-- Modal para Criar/Editar Plano -->
                 <div id="modalPlano" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: 92vw; max-width: 1280px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: 96vw; max-width: 1520px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
                         <div data-plano-form style="padding: 8px 12px; flex: 1; overflow: hidden;">
                             ${this.renderFormularioPlano()}
                         </div>
@@ -132,7 +132,7 @@ export class PlanoAlimentarNutricionista {
                 </div>
 
                 <div id="modalListaAlimentos" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: 92vw; max-width: 1280px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: 96vw; max-width: 1520px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 12px 16px; border-radius: 16px 16px 0 0; display: flex; justify-content: flex-end; align-items: center;">
                             <button onclick="document.getElementById('modalListaAlimentos').style.display='none'" 
                                     style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 20px;">
@@ -562,7 +562,7 @@ export class PlanoAlimentarNutricionista {
 
     renderRefeicoesPlano() {
         return `
-            <div id="mealItemsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; height: 100%; min-height: 0; overflow: hidden;">
+            <div id="mealItemsGrid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 12px; height: 100%; min-height: 0; overflow: hidden;">
                 ${this.getRefeicoesPlano().map((refeicao) => this.renderRefeicaoEditor(refeicao)).join('')}
             </div>
         `;
@@ -573,7 +573,7 @@ export class PlanoAlimentarNutricionista {
         const selecionada = this.refeicaoSelecionada === refeicao.id;
 
         return `
-            <div class="meal-editor-card" data-meal-id="${refeicao.id}" style="background: white; border: 2px solid ${selecionada ? '#1a237e' : '#e2e8f0'}; border-radius: 10px; overflow: hidden; height: 240px; min-height: 0; cursor: pointer; display: flex; flex-direction: column;">
+            <div class="meal-editor-card" data-meal-id="${refeicao.id}" style="background: white; border: 2px solid ${selecionada ? '#1a237e' : '#e2e8f0'}; border-radius: 10px; overflow: hidden; height: 100%; min-height: 0; cursor: pointer; display: flex; flex-direction: column;">
                 <div style="background: ${selecionada ? '#1a237e' : '#f1f5f9'}; color: ${selecionada ? 'white' : '#1a237e'}; padding: 10px 14px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px;">
                     <span>${refeicao.titulo}</span>
                     ${selecionada ? '<span style="font-size: 12px; font-weight: 500;">Selecionada</span>' : ''}
