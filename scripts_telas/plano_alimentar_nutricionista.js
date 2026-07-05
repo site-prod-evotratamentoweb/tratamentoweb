@@ -108,24 +108,22 @@ export class PlanoAlimentarNutricionista {
     
                 <!-- Modal para Criar/Editar Plano -->
                 <div id="modalPlano" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: 98vw; max-width: 1600px; height: 98vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
-                        <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 12px 16px; border-radius: 16px 16px 0 0; display: flex; justify-content: flex-end; align-items: center; position: sticky; top: 0; z-index: 10;">
-                            <button onclick="document.getElementById('modalPlano').style.display='none'" 
-                                    style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 20px;">
-                                ✕
-                            </button>
-                        </div>
-                        
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: 92vw; max-width: 1280px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
                         <div data-plano-form style="padding: 8px 12px; flex: 1; overflow: hidden;">
                             ${this.renderFormularioPlano()}
                         </div>
                         
-                        <div style="padding: 10px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-radius: 0 0 16px 16px;">
-                            <button id="btnListaAlimentos"
+                        <div style="padding: 10px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; align-items: center; gap: 10px; border-radius: 0 0 16px 16px;">
+                            <button id="btnListaAlimentos" class="modal-action-btn modal-action-btn-secondary"
                                     style="padding: 12px 18px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                                 Lista de Alimentos
                             </button>
-                            <button id="btnSalvarPlano" 
+                            <button id="btnCancelarPlano" class="modal-action-btn modal-action-btn-cancel"
+                                    onclick="document.getElementById('modalPlano').style.display='none'"
+                                    style="padding: 12px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                Cancelar
+                            </button>
+                            <button id="btnSalvarPlano" class="modal-action-btn modal-action-btn-primary"
                                     style="padding: 12px 28px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                                 💾 Salvar Plano
                             </button>
@@ -134,7 +132,7 @@ export class PlanoAlimentarNutricionista {
                 </div>
 
                 <div id="modalListaAlimentos" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: 98vw; max-width: 1600px; height: 98vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: 92vw; max-width: 1280px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 12px 16px; border-radius: 16px 16px 0 0; display: flex; justify-content: flex-end; align-items: center;">
                             <button onclick="document.getElementById('modalListaAlimentos').style.display='none'" 
                                     style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 20px;">
@@ -179,6 +177,20 @@ export class PlanoAlimentarNutricionista {
                         gap: 12px;
                         background: #283593;
                         box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
+                    }
+
+                    .modal-action-btn {
+                        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, background 0.2s ease;
+                    }
+
+                    .modal-action-btn:hover {
+                        transform: translateY(-1px) scale(1.06);
+                        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+                        filter: brightness(1.03);
+                    }
+
+                    .modal-action-btn:active {
+                        transform: translateY(0) scale(1.02);
                     }
                     
                     .fab-icon {
