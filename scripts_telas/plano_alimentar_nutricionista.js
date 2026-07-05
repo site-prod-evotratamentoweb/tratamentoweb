@@ -113,11 +113,11 @@ export class PlanoAlimentarNutricionista {
                             ${this.renderFormularioPlano()}
                         </div>
 
-                        <div class="modal-acoes-plano" style="position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: flex-end; z-index: 25;">
+                        <div class="modal-acoes-plano" style="position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: flex-end; z-index: 9999;">
                             <button id="btnPlanoAcoes" type="button" aria-label="Menu de ações" style="width: 40px; height: 40px; padding: 0; background: rgba(26, 35, 126, 0.5); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 20px; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s ease, background 0.2s ease;">
                                 ⋮
                             </button>
-                            <div class="modal-acoes-plano-menu" style="position: absolute; right: 0; top: calc(100% + 8px); min-width: 180px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 8px; opacity: 0; visibility: hidden; transform: translateY(-6px); pointer-events: none; transition: all 0.2s ease; z-index: 20;">
+                            <div class="modal-acoes-plano-menu" style="position: absolute; right: 0; top: calc(100% + 8px); min-width: 180px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 8px; display: none; opacity: 0; visibility: hidden; transform: translateY(-6px); pointer-events: none; transition: all 0.2s ease; z-index: 10000;">
                                 <button id="btnListaAlimentos" class="modal-action-btn modal-action-btn-secondary" type="button" style="width: 100%; padding: 10px 12px; margin-bottom: 6px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
                                     Lista de Alimentos
                                 </button>
@@ -141,9 +141,19 @@ export class PlanoAlimentarNutricionista {
                             </button>
                         </div>
                         
-                        <div data-lista-alimentos-form style="padding: 8px 12px; flex: 1; overflow: hidden;">
+                <div data-lista-alimentos-form style="padding: 8px 12px; flex: 1; overflow: hidden;">
                             ${this.renderModalListaAlimentos()}
                         </div>
+                    </div>
+                </div>
+
+                <div id="modalDetalheAlimento" class="modal-overlay" style="display: none;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(92vw, 560px); max-width: 560px; max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="font-size: 15px;">Detalhes do alimento</strong>
+                            <button id="btnFecharDetalheAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">✕</button>
+                        </div>
+                        <div data-detalhe-alimento-form style="padding: 16px; overflow: auto; font-size: 14px; color: #334155;"></div>
                     </div>
                 </div>
     
@@ -628,13 +638,13 @@ export class PlanoAlimentarNutricionista {
         const alimentos = this.filtrarAlimentos(termo);
         const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
         return `
-            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 8px 10px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 110px; box-sizing: border-box;">
-                <div style="display: grid; grid-template-columns: minmax(128px, 0.65fr) 70px minmax(0, 3.65fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
-                    <label style="font-size: 11px; color: #334155; display: flex; flex-direction: column; gap: 3px; min-width: 0; font-weight: 600;">Pesquisar alimento
-                        <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; height: 28px; font-size: 13px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
+            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 78px; box-sizing: border-box;">
+                <div style="display: grid; grid-template-columns: minmax(108px, 0.62fr) 62px minmax(0, 3.78fr); gap: 6px; align-items: start; min-width: 0; height: 100%;">
+                    <label style="font-size: 12px; color: #334155; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-weight: 600;">Pesquisar alimento
+                        <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 4px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 26px; font-size: 13px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
                     </label>
-                    <label style="font-size: 11px; color: #334155; display: flex; flex-direction: column; gap: 3px; min-width: 0; font-weight: 600;">Quantidade
-                        <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; height: 28px; font-size: 13px;">
+                    <label style="font-size: 12px; color: #334155; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-weight: 600;">Quantidade
+                        <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; min-width: 0; padding: 4px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 26px; font-size: 13px;">
                     </label>
                     <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; align-items: stretch; min-height: 0; height: 100%;">
                         ${this.renderResultadosAlimentos(alimentos)}
@@ -650,21 +660,13 @@ export class PlanoAlimentarNutricionista {
         }
 
         return alimentos.map((alimento) => {
-            const detalhesAbertos = Boolean(this.detalhesBuscaAlimentos[alimento.id]);
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 210px; width: 210px; flex: 0 0 210px; height: 64px; overflow: visible; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; position: relative;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 210px; width: 210px; flex: 0 0 210px; height: 62px; overflow: visible; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; position: relative;">
                     <div style="min-width: 0;">
-                        <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; line-height: 1.2;">${this.escapeHtml(alimento.nome)}</strong>
+                        <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; line-height: 1.15;">${this.escapeHtml(alimento.nome)}</strong>
                     </div>
                     <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 6px 8px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; height: 30px;">&#128065;</button>
                     <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="padding: 6px 10px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; height: 30px;">+</button>
-                    ${detalhesAbertos ? `
-                        <div style="position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; width: 280px; background: white; border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 12px; color: #475569; font-size: 13px; line-height: 1.45;">
-                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 6px; font-size: 14px;">${this.escapeHtml(alimento.nome)}</div>
-                            <div style="margin-bottom: 4px;">${this.escapeHtml(alimento.categoria || 'Sem categoria')}</div>
-                            <div>${this.formatarNumero(alimento.kcal || 0, 0)} kcal | C ${this.formatarNumero(alimento.carboidratos || 0)}g | P ${this.formatarNumero(alimento.proteinas || 0)}g | G ${this.formatarNumero(alimento.gorduras || 0)}g por 100g</div>
-                        </div>
-                    ` : ''}
                 </div>
             `;
         }).join('');
@@ -840,16 +842,47 @@ export class PlanoAlimentarNutricionista {
 
         const btnPlanoAcoes = document.getElementById('btnPlanoAcoes');
         const acoesPlano = document.querySelector('.modal-acoes-plano');
+        const menuPlano = document.querySelector('.modal-acoes-plano-menu');
         if (btnPlanoAcoes && acoesPlano) {
+            const abrirMenuPlano = () => {
+                acoesPlano.classList.add('open');
+                if (menuPlano) {
+                    menuPlano.style.display = 'block';
+                    menuPlano.style.opacity = '1';
+                    menuPlano.style.visibility = 'visible';
+                    menuPlano.style.transform = 'translateY(0)';
+                    menuPlano.style.pointerEvents = 'auto';
+                }
+                btnPlanoAcoes.style.background = 'rgba(26, 35, 126, 0.9)';
+            };
+
+            const fecharMenuPlano = () => {
+                acoesPlano.classList.remove('open');
+                if (menuPlano) {
+                    menuPlano.style.opacity = '0';
+                    menuPlano.style.visibility = 'hidden';
+                    menuPlano.style.transform = 'translateY(-6px)';
+                    menuPlano.style.pointerEvents = 'none';
+                    menuPlano.style.display = 'none';
+                }
+                btnPlanoAcoes.style.background = 'rgba(26, 35, 126, 0.5)';
+            };
+
+            acoesPlano.addEventListener('mouseenter', abrirMenuPlano);
+            acoesPlano.addEventListener('mouseleave', fecharMenuPlano);
             btnPlanoAcoes.addEventListener('click', (event) => {
                 event.stopPropagation();
-                acoesPlano.classList.toggle('open');
+                if (acoesPlano.classList.contains('open')) {
+                    fecharMenuPlano();
+                } else {
+                    abrirMenuPlano();
+                }
             });
 
             acoesPlano.querySelectorAll('button').forEach((button) => {
                 if (button === btnPlanoAcoes) return;
                 button.addEventListener('click', () => {
-                    acoesPlano.classList.remove('open');
+                    fecharMenuPlano();
                 });
             });
 
@@ -858,6 +891,16 @@ export class PlanoAlimentarNutricionista {
                     const currentMenu = document.querySelector('.modal-acoes-plano');
                     if (currentMenu && !currentMenu.contains(event.target)) {
                         currentMenu.classList.remove('open');
+                        const currentButton = currentMenu.querySelector('#btnPlanoAcoes');
+                        const currentMenuBox = currentMenu.querySelector('.modal-acoes-plano-menu');
+                        if (currentButton) currentButton.style.background = 'rgba(26, 35, 126, 0.5)';
+                        if (currentMenuBox) {
+                            currentMenuBox.style.opacity = '0';
+                            currentMenuBox.style.visibility = 'hidden';
+                            currentMenuBox.style.transform = 'translateY(-6px)';
+                            currentMenuBox.style.pointerEvents = 'none';
+                            currentMenuBox.style.display = 'none';
+                        }
                     }
                 };
                 document.addEventListener('click', this.planoAcoesOutsideClickHandler);
@@ -883,6 +926,20 @@ export class PlanoAlimentarNutricionista {
                 }
             });
         }
+
+        const modalDetalheAlimento = document.getElementById('modalDetalheAlimento');
+        if (modalDetalheAlimento) {
+            modalDetalheAlimento.addEventListener('click', (e) => {
+                if (e.target === modalDetalheAlimento) {
+                    modalDetalheAlimento.style.display = 'none';
+                }
+            });
+        }
+
+        document.getElementById('btnFecharDetalheAlimento')?.addEventListener('click', () => {
+            const modal = document.getElementById('modalDetalheAlimento');
+            if (modal) modal.style.display = 'none';
+        });
 
         window.planoAlimentarInstance = this;
     }
@@ -929,13 +986,44 @@ export class PlanoAlimentarNutricionista {
     }
 
     alternarDetalhesBuscaAlimento(foodId) {
-        this.detalhesBuscaAlimentos[foodId] = !this.detalhesBuscaAlimentos[foodId];
-        const search = document.getElementById('foodSearch');
-        const results = document.getElementById('foodResults');
-        if (results) {
-            results.innerHTML = this.renderResultadosAlimentos(this.filtrarAlimentos(search?.value || ''));
-            this.attachFoodResultButtons();
+        this.abrirModalDetalheAlimento(foodId);
+    }
+
+    abrirModalDetalheAlimento(foodId) {
+        const alimento = this.alimentosBase.find((item) => item.id === foodId);
+        if (!alimento) return;
+
+        this.detalheAlimentoAtual = alimento;
+        const modal = document.getElementById('modalDetalheAlimento');
+        const formWrapper = modal?.querySelector('[data-detalhe-alimento-form]');
+        if (formWrapper) {
+            formWrapper.innerHTML = `
+                <div style="display: grid; gap: 12px;">
+                    <div style="font-size: 18px; font-weight: 700; color: #1a237e;">${this.escapeHtml(alimento.nome)}</div>
+                    <div style="font-size: 14px; color: #475569;">${this.escapeHtml(alimento.categoria || 'Sem categoria')}</div>
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
+                            <div style="font-size: 12px; color: #64748b;">Energia</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #1e293b;">${this.formatarNumero(alimento.kcal || 0, 0)} kcal</div>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
+                            <div style="font-size: 12px; color: #64748b;">Porção</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #1e293b;">${this.formatarNumero(alimento.gramasPorUnidade || 100, 0)} g</div>
+                        </div>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; line-height: 1.6;">
+                        <div><strong>Carboidratos:</strong> ${this.formatarNumero(alimento.carboidratos || 0)} g</div>
+                        <div><strong>Proteínas:</strong> ${this.formatarNumero(alimento.proteinas || 0)} g</div>
+                        <div><strong>Gorduras:</strong> ${this.formatarNumero(alimento.gorduras || 0)} g</div>
+                        <div><strong>Fibras:</strong> ${this.formatarNumero(alimento.fibras || 0)} g</div>
+                        <div><strong>Sódio:</strong> ${this.formatarNumero(alimento.sodio || 0)} mg</div>
+                    </div>
+                </div>
+            `;
         }
+
+        if (modal) modal.style.display = 'flex';
+        setTimeout(() => document.getElementById('btnFecharDetalheAlimento')?.focus(), 50);
     }
 
     selecionarRefeicao(mealId) {
