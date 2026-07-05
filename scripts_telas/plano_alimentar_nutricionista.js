@@ -745,15 +745,15 @@ export class PlanoAlimentarNutricionista {
         const alimentos = this.filtrarAlimentos(termo);
         const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
         return `
-            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 14px; margin-bottom: 14px; flex: 0 0 230px; overflow: hidden;">
-                <div style="display: grid; grid-template-columns: 220px 120px 1fr; gap: 8px; align-items: start; height: 100%;">
-                    <label style="font-size: 12px; color: #475569;">Pesquisar alimento
-                        <input id="foodSearch" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
+            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden;">
+                <div style="display: grid; grid-template-columns: minmax(220px, 1.15fr) 110px minmax(0, 2.85fr); gap: 8px; align-items: start; min-width: 0;">
+                    <label style="font-size: 11px; color: #475569; display: flex; flex-direction: column; gap: 4px; min-width: 0;">Pesquisar alimento
+                        <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; height: 34px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
                     </label>
-                    <label style="font-size: 12px; color: #475569;">Quantidade
-                        <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                    <label style="font-size: 11px; color: #475569; display: flex; flex-direction: column; gap: 4px; min-width: 0;">Quantidade
+                        <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; height: 34px;">
                     </label>
-                    <div id="foodResults" style="display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; min-width: 0;">
+                    <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; align-items: stretch; min-height: 0;">
                         ${this.renderResultadosAlimentos(alimentos)}
                     </div>
                 </div>
@@ -769,15 +769,15 @@ export class PlanoAlimentarNutricionista {
         return alimentos.map((alimento) => {
             const detalhesAbertos = Boolean(this.detalhesBuscaAlimentos[alimento.id]);
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; min-width: 290px; width: 290px; flex: 0 0 290px; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 260px; width: 260px; flex: 0 0 260px; height: 88px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center;">
                     <div style="min-width: 0;">
-                        <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(alimento.nome)}</strong>
-                        <div style="font-size: 12px; color: #64748b;">${this.escapeHtml(this.formatarQuantidadePreview(alimento))}</div>
+                        <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 1.2;">${this.escapeHtml(alimento.nome)}</strong>
+                        <div style="font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(this.formatarQuantidadePreview(alimento))}</div>
                     </div>
-                    <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 8px 10px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer;">&#128065;</button>
-                    <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="padding: 8px 12px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer;">+</button>
+                    <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 7px 8px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; height: 32px;">&#128065;</button>
+                    <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="padding: 7px 10px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; height: 32px;">+</button>
                     ${detalhesAbertos ? `
-                        <div style="grid-column: 1 / -1; padding-top: 8px; color: #475569; font-size: 12px; line-height: 1.4; border-top: 1px solid #e2e8f0;">
+                        <div style="grid-column: 1 / -1; padding-top: 6px; color: #475569; font-size: 11px; line-height: 1.25; border-top: 1px solid #e2e8f0;">
                             ${this.escapeHtml(alimento.categoria || 'Sem categoria')} | ${this.formatarNumero(alimento.kcal || 0, 0)} kcal | C ${this.formatarNumero(alimento.carboidratos || 0)}g | P ${this.formatarNumero(alimento.proteinas || 0)}g | G ${this.formatarNumero(alimento.gorduras || 0)}g por 100g
                         </div>
                     ` : ''}
