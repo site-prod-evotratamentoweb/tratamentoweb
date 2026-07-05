@@ -204,8 +204,6 @@ export class PlanoAlimentarNutricionista {
                         transform: translateY(0) scale(1.02);
                     }
 
-                    .modal-acoes-plano:hover .modal-acoes-plano-menu,
-                    .modal-acoes-plano:focus-within .modal-acoes-plano-menu,
                     .modal-acoes-plano.open .modal-acoes-plano-menu {
                         opacity: 1;
                         visibility: visible;
@@ -213,8 +211,6 @@ export class PlanoAlimentarNutricionista {
                         pointer-events: auto;
                     }
 
-                    .modal-acoes-plano:hover > #btnPlanoAcoes,
-                    .modal-acoes-plano:focus-within > #btnPlanoAcoes,
                     .modal-acoes-plano.open > #btnPlanoAcoes {
                         background: rgba(26, 35, 126, 0.9);
                     }
@@ -631,7 +627,7 @@ export class PlanoAlimentarNutricionista {
                 <div style="display: grid; grid-template-columns: minmax(132px, 0.68fr) minmax(0, 4.32fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
                     <label style="display: grid; grid-template-rows: 16px 30px; gap: 4px; min-width: 0; align-items: start;">
                         <span style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Pesquisar Alimento</span>
-                        <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;" placeholder="Digite: ar, pao..." value="${this.escapeHtml(termo)}">
+                        <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;" value="${this.escapeHtml(termo)}">
                     </label>
                     <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 0 0 8px 0; align-items: flex-start; min-height: 0; height: 100%; scrollbar-gutter: stable;">
                         ${this.renderResultadosAlimentos(alimentos)}
@@ -658,7 +654,7 @@ export class PlanoAlimentarNutricionista {
 
     renderResultadosAlimentos(alimentos) {
         if (!alimentos.length) {
-            return '<div style="color: #64748b; font-size: 13px; align-self: center;">Digite para pesquisar alimentos.</div>';
+            return '';
         }
 
         return alimentos.map((alimento) => {
@@ -666,7 +662,7 @@ export class PlanoAlimentarNutricionista {
             const quantidadeValor = Number(document.getElementById(quantidadeId)?.value || 1);
             const unidadeMedida = alimento.unidadePadrao || 'porcao';
             return `
-                <div style="min-width: 0; flex: 0 0 calc((100% - 16px) / 3); height: 50px; overflow: hidden; display: grid; grid-template-columns: minmax(96px, 1fr) 52px minmax(46px, 0.44fr) 30px 30px; grid-template-rows: 16px 30px; gap: 4px 5px; align-items: start;">
+                <div style="box-sizing: border-box; min-width: 0; flex: 0 0 calc((100% - 16px) / 3); height: 50px; overflow: hidden; display: grid; grid-template-columns: minmax(96px, 1fr) 52px minmax(46px, 0.44fr) 30px 30px; grid-template-rows: 16px 30px; gap: 4px 5px; align-items: start; padding-left: 8px; border-left: 2px solid #cbd5e1;">
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Nome do Alimento</div>
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">QTD.</div>
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">UNID.</div>
@@ -880,21 +876,15 @@ export class PlanoAlimentarNutricionista {
                 btnPlanoAcoes.style.background = 'rgba(26, 35, 126, 0.5)';
             };
 
-            acoesPlano.addEventListener('mouseenter', abrirMenuPlano);
-            acoesPlano.addEventListener('mouseleave', fecharMenuPlano);
             btnPlanoAcoes.addEventListener('click', (event) => {
                 event.stopPropagation();
-                if (acoesPlano.classList.contains('open')) {
-                    fecharMenuPlano();
-                } else {
-                    abrirMenuPlano();
-                }
+                abrirMenuPlano();
             });
 
             acoesPlano.querySelectorAll('button').forEach((button) => {
                 if (button === btnPlanoAcoes) return;
-                button.addEventListener('click', () => {
-                    fecharMenuPlano();
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation();
                 });
             });
 
