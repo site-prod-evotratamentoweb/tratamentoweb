@@ -582,7 +582,7 @@ export class PlanoAlimentarNutricionista {
             <div class="meal-item-row" data-meal-id="${mealId}" data-item-id="${item.id}" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px; background: #f8fafc;">
                 <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;">
                     <div style="color: #334155; font-size: 13px; line-height: 1.35;">${this.escapeHtml(item.texto)}</div>
-                    <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" style="padding: 6px 9px; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer;">👁</button>
+                    <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" style="padding: 6px 9px; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer;">&#128065;</button>
                     <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" style="padding: 6px 9px; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer;">X</button>
                 </div>
                 ${item.detalhesAberto ? `
