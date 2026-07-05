@@ -27,6 +27,7 @@ export class PlanoAlimentarNutricionista {
         this.alimentosBase = [];
         this.alimentosCarregados = false;
         this.alimentoEditandoId = null;
+        this.refeicaoSelecionada = 'breakfast';
         this.menu = null;
         this.navegador = criarNavegador(userInfo, this.pacientesList);
     }
@@ -491,16 +492,16 @@ export class PlanoAlimentarNutricionista {
                     <button id="btnSalvarAlimento" type="button" style="padding: 9px 10px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer;">Salvar</button>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 160px 120px 120px 160px; gap: 8px; align-items: end; margin-top: 14px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; align-items: end; margin-top: 14px;">
                     <label style="font-size: 12px; color: #475569;">Buscar alimento<input id="foodSearch" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ex: arroz, frango, banana"></label>
                     <label style="font-size: 12px; color: #475569;">Refeicao
                         <select id="foodMealTarget" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
-                            <option value="breakfast">Cafe da manha</option>
-                            <option value="morningSnack">Lanche manha</option>
-                            <option value="lunch">Almoco</option>
-                            <option value="afternoonSnack">Lanche tarde</option>
-                            <option value="dinner">Jantar</option>
-                            <option value="supper">Ceia</option>
+                            <option value="breakfast" ${this.refeicaoSelecionada === 'breakfast' ? 'selected' : ''}>Cafe da manha</option>
+                            <option value="morningSnack" ${this.refeicaoSelecionada === 'morningSnack' ? 'selected' : ''}>Lanche manha</option>
+                            <option value="lunch" ${this.refeicaoSelecionada === 'lunch' ? 'selected' : ''}>Almoco</option>
+                            <option value="afternoonSnack" ${this.refeicaoSelecionada === 'afternoonSnack' ? 'selected' : ''}>Lanche tarde</option>
+                            <option value="dinner" ${this.refeicaoSelecionada === 'dinner' ? 'selected' : ''}>Jantar</option>
+                            <option value="supper" ${this.refeicaoSelecionada === 'supper' ? 'selected' : ''}>Ceia</option>
                         </select>
                     </label>
                     <label style="font-size: 12px; color: #475569;">Quantidade<input id="foodQuantidade" type="number" step="0.1" value="1" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
@@ -511,6 +512,8 @@ export class PlanoAlimentarNutricionista {
                         </select>
                     </label>
                     <label style="font-size: 12px; color: #475569;">Gramas se manual<input id="foodGramasManual" type="number" step="0.1" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ex: 100"></label>
+                    <button id="btnRemoverUltimoAlimento" type="button" style="padding: 9px 10px; border: none; border-radius: 8px; background: #f97316; color: white; cursor: pointer; white-space: nowrap;">Remover ultimo</button>
+                    <button id="btnLimparRefeicao" type="button" style="padding: 9px 10px; border: none; border-radius: 8px; background: #dc2626; color: white; cursor: pointer; white-space: nowrap;">Limpar refeicao</button>
                 </div>
 
                 <div id="foodResults" style="margin-top: 12px; display: grid; gap: 8px;">
@@ -658,6 +661,7 @@ export class PlanoAlimentarNutricionista {
     attachNutritionEvents() {
         const search = document.getElementById('foodSearch');
         const results = document.getElementById('foodResults');
+        const mealTarget = document.getElementById('foodMealTarget');
         const refreshResults = () => {
             if (!results) return;
             results.innerHTML = this.renderResultadosAlimentos(this.filtrarAlimentos(search?.value || ''));
@@ -665,8 +669,16 @@ export class PlanoAlimentarNutricionista {
         };
 
         search?.addEventListener('input', refreshResults);
+        mealTarget?.addEventListener('change', () => {
+            this.refeicaoSelecionada = mealTarget.value || 'breakfast';
+        });
+        document.querySelectorAll('.meal-textarea').forEach((textarea) => {
+            textarea.addEventListener('focus', () => this.selecionarRefeicao(textarea.id));
+        });
         document.getElementById('btnSalvarAlimento')?.addEventListener('click', () => this.salvarAlimentoBase(refreshResults));
         document.getElementById('btnLimparAlimentoForm')?.addEventListener('click', () => this.limparFormularioAlimento());
+        document.getElementById('btnRemoverUltimoAlimento')?.addEventListener('click', () => this.removerUltimoAlimentoDaRefeicao());
+        document.getElementById('btnLimparRefeicao')?.addEventListener('click', () => this.limparRefeicaoSelecionada());
         this.attachFoodResultButtons();
     }
 
@@ -677,6 +689,41 @@ export class PlanoAlimentarNutricionista {
         document.querySelectorAll('.btnAdicionarAlimento').forEach((button) => {
             button.addEventListener('click', () => this.adicionarAlimentoNaRefeicao(button.dataset.foodId));
         });
+    }
+
+    selecionarRefeicao(mealId) {
+        const textarea = document.getElementById(mealId);
+        if (!textarea || !textarea.classList.contains('meal-textarea')) return;
+
+        this.refeicaoSelecionada = mealId;
+        const mealTarget = document.getElementById('foodMealTarget');
+        if (mealTarget) mealTarget.value = mealId;
+    }
+
+    obterRefeicaoSelecionada() {
+        const mealTarget = document.getElementById('foodMealTarget');
+        const mealId = mealTarget?.value || this.refeicaoSelecionada || 'breakfast';
+        return document.getElementById(mealId)?.classList.contains('meal-textarea') ? mealId : 'breakfast';
+    }
+
+    removerUltimoAlimentoDaRefeicao() {
+        const textarea = document.getElementById(this.obterRefeicaoSelecionada());
+        if (!textarea || !textarea.value.trim()) return;
+
+        const linhas = textarea.value.split('\n').filter((linha) => linha.trim() !== '');
+        linhas.pop();
+        textarea.value = linhas.join('\n');
+        textarea.focus();
+    }
+
+    limparRefeicaoSelecionada() {
+        const textarea = document.getElementById(this.obterRefeicaoSelecionada());
+        if (!textarea || !textarea.value.trim()) return;
+
+        if (confirm('Limpar todos os itens desta refeicao?')) {
+            textarea.value = '';
+            textarea.focus();
+        }
     }
 
     limparFormularioAlimento() {
@@ -748,7 +795,8 @@ export class PlanoAlimentarNutricionista {
         const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
         const tipoQuantidade = document.getElementById('foodTipoQuantidade')?.value || 'unidade';
         const gramasManual = document.getElementById('foodGramasManual')?.value;
-        const mealId = document.getElementById('foodMealTarget')?.value || 'breakfast';
+        const mealId = this.obterRefeicaoSelecionada();
+        this.refeicaoSelecionada = mealId;
         const nutrientes = this.calcularNutrientes(alimento, quantidade, tipoQuantidade, gramasManual);
         const quantidadeTexto = tipoQuantidade === 'unidade'
             ? `${this.formatarNumero(quantidade)} ${alimento.unidadePadrao || 'porcao'}`
