@@ -8,8 +8,6 @@ import {
     getDocs,
     query,
     where,
-    orderBy,
-    limit,
     doc,
     updateDoc,
     deleteDoc,
@@ -21,10 +19,7 @@ import {
     getAuth,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-    signOut,
-    sendPasswordResetEmail,
-    confirmPasswordReset,
-    verifyPasswordResetCode
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseApps = new Map();
@@ -147,8 +142,6 @@ export {
     getDocs,
     query,
     where,
-    orderBy,
-    limit,
     doc,
     updateDoc,
     deleteDoc,
@@ -159,9 +152,6 @@ export {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    sendPasswordResetEmail,
-    confirmPasswordReset,
-    verifyPasswordResetCode,
 
     uploadParaImgbb
 };

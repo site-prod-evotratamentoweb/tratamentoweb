@@ -3,7 +3,7 @@ import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
 import { 
     db, collection, addDoc, getDocs, query, where, 
-    doc, updateDoc, deleteDoc, getDoc, orderBy
+    doc, updateDoc, deleteDoc, getDoc
 } from '../0_firebase_api_config.js';
 
 export class ShoppingNutriNutricionista {
