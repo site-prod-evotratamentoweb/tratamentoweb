@@ -90,7 +90,6 @@ function configureOrganizationFirebase(organizationFirebaseConfig, organizationI
 
     db = getFirestore(app);
     auth = getAuth(app);
-    imgbbApiKey = null;
 
     return { app, db, auth };
 }
