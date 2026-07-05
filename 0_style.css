@@ -537,7 +537,7 @@ body.profile-paciente .menu-overlay.open {
 /* ==================== LAYOUT PROFISSIONAL (DESKTOP) ==================== */
 
 body.profile-profissional {
-    padding: 20px;
+    padding: 12px;
 }
 
 body.profile-profissional .dashboard-container {
@@ -545,6 +545,7 @@ body.profile-profissional .dashboard-container {
     border-radius: 2rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     max-width: min(1400px, calc(100vw - 40px));
+    height: calc(100vh - 24px);
     margin: 0 auto;
     overflow: hidden;
 }
@@ -737,23 +738,23 @@ body.profile-profissional .menu-overlay.open {
 
 /* Conteúdo Principal */
 body.profile-profissional .main-content {
-    padding: 32px;
-    max-height: none;
+    padding: 20px 24px;
+    max-height: calc(100vh - 132px);
     overflow-y: visible;
     min-width: 0;
 }
 
 body.profile-profissional .evaluation-section {
     background: white;
-    padding: 28px;
+    padding: 20px;
     border-radius: 1.5rem;
-    margin-bottom: 32px;
+    margin-bottom: 20px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 body.profile-profissional .section-header {
-    margin-bottom: 24px;
-    padding-bottom: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
     border-bottom: 3px solid var(--primary);
     display: inline-block;
 }
@@ -767,9 +768,9 @@ body.profile-profissional .section-header h3 {
 
 body.profile-profissional .info-section {
     background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
-    padding: 24px;
+    padding: 18px;
     border-radius: 1.5rem;
-    margin-bottom: 32px;
+    margin-bottom: 20px;
     color: white;
 }
 
@@ -1084,7 +1085,7 @@ body.profile-profissional .info-group label {
 
 @media (max-width: 992px) {
     body.profile-profissional .main-content {
-        padding: 20px;
+        padding: 18px;
         overflow-y: visible;
     }
     
@@ -1099,12 +1100,13 @@ body.profile-profissional .info-group label {
     }
 
     body.profile-profissional {
-        padding: 16px;
+        padding: 10px;
     }
 
     body.profile-profissional .dashboard-container {
         max-width: calc(100vw - 24px);
         border-radius: 1.5rem;
+        height: calc(100vh - 20px);
     }
 
     body.profile-profissional .top-bar {
@@ -1143,7 +1145,7 @@ body.profile-profissional .info-group label {
     }
     
     body.profile-profissional .main-content {
-        padding: 16px;
+        padding: 14px;
         overflow-y: visible;
     }
     
@@ -1185,6 +1187,7 @@ body.profile-profissional .info-group label {
     body.profile-profissional .dashboard-container {
         max-width: calc(100vw - 16px);
         border-radius: 1.25rem;
+        height: calc(100vh - 16px);
     }
 
     body.profile-profissional .top-bar {

@@ -523,16 +523,16 @@ export class PlanoAlimentarNutricionista {
         });
     }
 
-    formatarQuantidadePreview(alimento, curto = false) {
-        const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
+    formatarQuantidadePreview(alimento, quantidade = 1, curto = false) {
+        const qtd = Number(quantidade || 0);
         const unidade = alimento.unidadePadrao || 'porcao';
-        const gramas = quantidade * Number(alimento.gramasPorUnidade || 100);
+        const gramas = qtd * Number(alimento.gramasPorUnidade || 100);
 
         if (curto) {
-            return `${this.formatarNumero(quantidade)} ${unidade}`;
+            return `${this.formatarNumero(qtd)} ${unidade}`;
         }
 
-        return `${this.formatarNumero(quantidade)} ${unidade} (${this.formatarNumero(gramas, 0)} g)`;
+        return `${this.formatarNumero(qtd)} ${unidade} (${this.formatarNumero(gramas, 0)} g)`;
     }
 
     getRefeicoesPlano() {
@@ -650,6 +650,22 @@ export class PlanoAlimentarNutricionista {
         `;
     }
 
+    obterQuantidadeAlimento(foodId) {
+        const input = document.getElementById(`foodQuantidade_${foodId}`);
+        return Number(input?.value || 1);
+    }
+
+    atualizarPreviewQuantidadeAlimento(foodId) {
+        const alimento = this.alimentosBase.find((item) => item.id === foodId);
+        if (!alimento) return;
+
+        const input = document.getElementById(`foodQuantidade_${foodId}`);
+        const preview = document.querySelector(`[data-quantidade-preview="${foodId}"]`);
+        if (preview) {
+            preview.textContent = this.formatarQuantidadePreview(alimento, input?.value || 1, true);
+        }
+    }
+
     renderResultadosAlimentos(alimentos) {
         if (!alimentos.length) {
             return '<div style="color: #64748b; font-size: 13px; align-self: center;">Digite para pesquisar alimentos.</div>';
@@ -659,12 +675,12 @@ export class PlanoAlimentarNutricionista {
             const quantidadeId = `foodQuantidade_${alimento.id}`;
             const quantidadeValor = Number(document.getElementById(quantidadeId)?.value || 1);
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 320px; width: 320px; flex: 0 0 320px; height: 68px; overflow: visible; display: grid; grid-template-columns: minmax(0, 1.7fr) 72px auto auto; gap: 8px; align-items: center; position: relative;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 420px; width: 420px; flex: 0 0 420px; height: 72px; overflow: visible; display: grid; grid-template-columns: minmax(0, 2.2fr) 84px auto auto; gap: 8px; align-items: center; position: relative;">
                     <div style="min-width: 0;">
-                        <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; line-height: 1.15;">${this.escapeHtml(alimento.nome)}</strong>
-                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">${this.formatarNumero(quantidadeValor)} ${this.escapeHtml(alimento.unidadePadrao || 'porcao')}</div>
+                        <div style="color: #1a237e; display: block; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-size: 15px; line-height: 1.15; padding-bottom: 2px;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
+                        <div data-quantidade-preview="${this.escapeHtml(alimento.id)}" style="font-size: 11px; color: #64748b; margin-top: 2px;">${this.formatarQuantidadePreview(alimento, quantidadeValor, true)}</div>
                     </div>
-                    <input id="${quantidadeId}" type="number" min="0.1" step="0.1" value="${quantidadeValor}" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;">
+                    <input id="${quantidadeId}" class="food-quantidade-input" data-food-id="${this.escapeHtml(alimento.id)}" type="number" min="0.1" step="0.1" value="${quantidadeValor}" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;">
                     <button type="button" class="btnDetalhesBuscaAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Ver detalhes" style="padding: 6px 8px; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; height: 30px;">&#128065;</button>
                     <button type="button" class="btnAdicionarAlimento" data-food-id="${this.escapeHtml(alimento.id)}" aria-label="Adicionar alimento" style="padding: 6px 10px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; height: 30px;">+</button>
                 </div>
@@ -983,6 +999,9 @@ export class PlanoAlimentarNutricionista {
         document.querySelectorAll('.btnAdicionarAlimento').forEach((button) => {
             button.addEventListener('click', () => this.adicionarAlimentoNaRefeicao(button.dataset.foodId));
         });
+        document.querySelectorAll('.food-quantidade-input').forEach((input) => {
+            input.addEventListener('input', () => this.atualizarPreviewQuantidadeAlimento(input.dataset.foodId));
+        });
     }
 
     alternarDetalhesBuscaAlimento(foodId) {
@@ -993,7 +1012,9 @@ export class PlanoAlimentarNutricionista {
         const alimento = this.alimentosBase.find((item) => item.id === foodId);
         if (!alimento) return;
 
-        this.detalheAlimentoAtual = alimento;
+        const quantidade = this.obterQuantidadeAlimento(foodId);
+        const nutrientes = this.calcularNutrientes(alimento, quantidade, 'unidade');
+        const quantidadeTexto = this.formatarQuantidadePreview(alimento, quantidade, true);
         const modal = document.getElementById('modalDetalheAlimento');
         const formWrapper = modal?.querySelector('[data-detalhe-alimento-form]');
         if (formWrapper) {
@@ -1001,22 +1022,25 @@ export class PlanoAlimentarNutricionista {
                 <div style="display: grid; gap: 12px;">
                     <div style="font-size: 18px; font-weight: 700; color: #1a237e;">${this.escapeHtml(alimento.nome)}</div>
                     <div style="font-size: 14px; color: #475569;">${this.escapeHtml(alimento.categoria || 'Sem categoria')}</div>
+                    <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px; padding: 10px 12px; font-size: 15px; color: #1e293b; font-weight: 600;">
+                        ${this.escapeHtml(quantidadeTexto)}
+                    </div>
                     <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
                         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
                             <div style="font-size: 12px; color: #64748b;">Energia</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #1e293b;">${this.formatarNumero(alimento.kcal || 0, 0)} kcal</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #1e293b;">${this.formatarNumero(nutrientes.kcal || 0, 0)} kcal</div>
                         </div>
                         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
                             <div style="font-size: 12px; color: #64748b;">Porção</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #1e293b;">${this.formatarNumero(alimento.gramasPorUnidade || 100, 0)} g</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #1e293b;">${this.formatarNumero(nutrientes.gramas || 0, 0)} g</div>
                         </div>
                     </div>
                     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; line-height: 1.6;">
-                        <div><strong>Carboidratos:</strong> ${this.formatarNumero(alimento.carboidratos || 0)} g</div>
-                        <div><strong>Proteínas:</strong> ${this.formatarNumero(alimento.proteinas || 0)} g</div>
-                        <div><strong>Gorduras:</strong> ${this.formatarNumero(alimento.gorduras || 0)} g</div>
-                        <div><strong>Fibras:</strong> ${this.formatarNumero(alimento.fibras || 0)} g</div>
-                        <div><strong>Sódio:</strong> ${this.formatarNumero(alimento.sodio || 0)} mg</div>
+                        <div><strong>Carboidratos:</strong> ${this.formatarNumero(nutrientes.carboidratos || 0)} g</div>
+                        <div><strong>Proteínas:</strong> ${this.formatarNumero(nutrientes.proteinas || 0)} g</div>
+                        <div><strong>Gorduras:</strong> ${this.formatarNumero(nutrientes.gorduras || 0)} g</div>
+                        <div><strong>Fibras:</strong> ${this.formatarNumero(nutrientes.fibras || 0)} g</div>
+                        <div><strong>Sódio:</strong> ${this.formatarNumero(nutrientes.sodio || 0)} mg</div>
                     </div>
                 </div>
             `;
@@ -1155,7 +1179,7 @@ export class PlanoAlimentarNutricionista {
         const mealId = this.obterRefeicaoSelecionada();
         this.refeicaoSelecionada = mealId;
         const nutrientes = this.calcularNutrientes(alimento, quantidade, 'unidade');
-        const quantidadeTexto = this.formatarQuantidadePreview(alimento, true);
+        const quantidadeTexto = this.formatarQuantidadePreview(alimento, quantidade, true);
         const linha = `${alimento.nome} - ${quantidadeTexto}`;
         this.itensPlano[mealId] = this.itensPlano[mealId] || [];
         this.itensPlano[mealId].push({
