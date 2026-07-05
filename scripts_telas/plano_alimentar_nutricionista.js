@@ -115,10 +115,10 @@ export class PlanoAlimentarNutricionista {
                         
                         <div style="padding: 10px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; align-items: center; border-radius: 0 0 16px 16px;">
                             <div class="modal-acoes-plano" style="position: relative; display: inline-flex; align-items: center;">
-                                <button type="button" style="padding: 10px 14px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                    Ações
+                                <button id="btnPlanoAcoes" type="button" aria-label="Menu de ações" style="width: 40px; height: 40px; padding: 0; background: #1a237e; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 20px; display: inline-flex; align-items: center; justify-content: center;">
+                                    ⋮
                                 </button>
-                                <div class="modal-acoes-plano-menu" style="position: absolute; right: 0; bottom: calc(100% + 8px); min-width: 180px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 8px; display: none; z-index: 20;">
+                                <div class="modal-acoes-plano-menu" style="position: absolute; right: 0; bottom: calc(100% + 8px); min-width: 180px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 8px; opacity: 0; visibility: hidden; transform: translateY(6px); pointer-events: none; transition: all 0.2s ease; z-index: 20;">
                                     <button id="btnListaAlimentos" class="modal-action-btn modal-action-btn-secondary" type="button" style="width: 100%; padding: 10px 12px; margin-bottom: 6px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
                                         Lista de Alimentos
                                     </button>
@@ -197,8 +197,12 @@ export class PlanoAlimentarNutricionista {
                     }
 
                     .modal-acoes-plano:hover .modal-acoes-plano-menu,
-                    .modal-acoes-plano:focus-within .modal-acoes-plano-menu {
-                        display: block;
+                    .modal-acoes-plano:focus-within .modal-acoes-plano-menu,
+                    .modal-acoes-plano.open .modal-acoes-plano-menu {
+                        opacity: 1;
+                        visibility: visible;
+                        transform: translateY(0);
+                        pointer-events: auto;
                     }
                     
                     .fab-icon {
@@ -620,13 +624,13 @@ export class PlanoAlimentarNutricionista {
         const alimentos = this.filtrarAlimentos(termo);
         const quantidade = Number(document.getElementById('foodQuantidade')?.value || 1);
         return `
-            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 150px; box-sizing: border-box;">
-                <div style="display: grid; grid-template-columns: minmax(160px, 0.85fr) 84px minmax(0, 3.25fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
-                    <label style="font-size: 11px; color: #475569; display: flex; flex-direction: column; gap: 4px; min-width: 0;">Pesquisar alimento
-                        <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; height: 34px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
+            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 8px 10px; margin-bottom: 10px; flex: 0 0 auto; overflow: hidden; height: 132px; box-sizing: border-box;">
+                <div style="display: grid; grid-template-columns: minmax(140px, 0.75fr) 76px minmax(0, 3.45fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
+                    <label style="font-size: 10px; color: #475569; display: flex; flex-direction: column; gap: 3px; min-width: 0;">Pesquisar alimento
+                        <input id="foodSearch" autocomplete="off" style="width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
                     </label>
-                    <label style="font-size: 11px; color: #475569; display: flex; flex-direction: column; gap: 4px; min-width: 0;">Quantidade
-                        <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; height: 34px;">
+                    <label style="font-size: 10px; color: #475569; display: flex; flex-direction: column; gap: 3px; min-width: 0;">Quantidade
+                        <input id="foodQuantidade" type="number" min="0.1" step="0.1" value="${quantidade || 1}" style="width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px;">
                     </label>
                     <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; align-items: stretch; min-height: 0; height: 100%;">
                         ${this.renderResultadosAlimentos(alimentos)}
@@ -644,7 +648,7 @@ export class PlanoAlimentarNutricionista {
         return alimentos.map((alimento) => {
             const detalhesAbertos = Boolean(this.detalhesBuscaAlimentos[alimento.id]);
             return `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 220px; width: 220px; flex: 0 0 220px; height: 88px; overflow: visible; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; position: relative;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 210px; width: 210px; flex: 0 0 210px; height: 84px; overflow: visible; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; position: relative;">
                     <div style="min-width: 0;">
                         <strong style="color: #1a237e; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 1.2;">${this.escapeHtml(alimento.nome)}</strong>
                         <div style="font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(this.formatarQuantidadePreview(alimento))}</div>
@@ -828,6 +832,32 @@ export class PlanoAlimentarNutricionista {
         const btnSalvarPlano = document.getElementById('btnSalvarPlano');
         if (btnSalvarPlano) {
             btnSalvarPlano.addEventListener('click', () => this.saveMealPlan());
+        }
+
+        const btnPlanoAcoes = document.getElementById('btnPlanoAcoes');
+        const acoesPlano = document.querySelector('.modal-acoes-plano');
+        if (btnPlanoAcoes && acoesPlano) {
+            btnPlanoAcoes.addEventListener('click', (event) => {
+                event.stopPropagation();
+                acoesPlano.classList.toggle('open');
+            });
+
+            acoesPlano.querySelectorAll('button').forEach((button) => {
+                if (button === btnPlanoAcoes) return;
+                button.addEventListener('click', () => {
+                    acoesPlano.classList.remove('open');
+                });
+            });
+
+            if (!this.planoAcoesOutsideClickHandler) {
+                this.planoAcoesOutsideClickHandler = (event) => {
+                    const currentMenu = document.querySelector('.modal-acoes-plano');
+                    if (currentMenu && !currentMenu.contains(event.target)) {
+                        currentMenu.classList.remove('open');
+                    }
+                };
+                document.addEventListener('click', this.planoAcoesOutsideClickHandler);
+            }
         }
 
         // Fechar modal ao clicar fora

@@ -13,11 +13,24 @@
     --purple: #8b5cf6;
 }
 
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 /* ==================== BASE ==================== */
 
 body {
     background: #264893;
     font-family: 'Segoe UI', 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+img, svg, canvas, video {
+    max-width: 100%;
 }
 
 /* Scrollbar personalizada */
@@ -234,7 +247,7 @@ body.profile-paciente .home-container {
     background: #f8fafc;
     border-radius: 1rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    max-width: 500px;
+    max-width: min(500px, calc(100vw - 20px));
     margin: 0 auto;
     overflow: hidden;
 }
@@ -531,7 +544,7 @@ body.profile-profissional .dashboard-container {
     background: #f8fafc;
     border-radius: 2rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    max-width: 1400px;
+    max-width: min(1400px, calc(100vw - 40px));
     margin: 0 auto;
     overflow: hidden;
 }
@@ -727,6 +740,7 @@ body.profile-profissional .main-content {
     padding: 32px;
     max-height: calc(85vh - 80px);
     overflow-y: auto;
+    min-width: 0;
 }
 
 body.profile-profissional .evaluation-section {
@@ -1082,6 +1096,43 @@ body.profile-profissional .info-group label {
         max-width: 420px;
         padding: 36px 30px;
     }
+
+    body.profile-profissional {
+        padding: 16px;
+    }
+
+    body.profile-profissional .dashboard-container {
+        max-width: calc(100vw - 24px);
+        border-radius: 1.5rem;
+    }
+
+    body.profile-profissional .top-bar {
+        padding: 14px 20px;
+        gap: 12px;
+    }
+
+    body.profile-profissional .logo-area {
+        gap: 12px;
+    }
+
+    body.profile-profissional .logo-area h2 {
+        font-size: 18px;
+    }
+
+    body.profile-profissional .top-bar-actions {
+        gap: 12px;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    body.profile-profissional .user-greeting {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    body.profile-profissional .side-menu {
+        width: min(280px, 86vw);
+    }
 }
 
 @media (max-width: 768px) {
@@ -1123,6 +1174,38 @@ body.profile-profissional .info-group label {
 
     .input-group-custom {
         margin-bottom: 16px;
+    }
+
+    body.profile-profissional {
+        padding: 12px;
+    }
+
+    body.profile-profissional .dashboard-container {
+        max-width: calc(100vw - 16px);
+        border-radius: 1.25rem;
+    }
+
+    body.profile-profissional .top-bar {
+        padding: 12px 16px;
+    }
+
+    body.profile-profissional .top-bar-actions {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    body.profile-profissional .user-greeting {
+        justify-content: center;
+    }
+
+    body.profile-profissional .side-menu {
+        width: min(280px, 92vw);
+    }
+
+    body.profile-profissional .menu-item {
+        padding: 11px 16px;
+        min-height: 42px;
     }
 }
 
@@ -1219,6 +1302,20 @@ body.profile-profissional .info-group label {
 
     body.profile-profissional .menu-header {
         padding: 18px 16px;
+    }
+}
+
+@media (max-width: 1100px) {
+    body.profile-profissional .dashboard-container {
+        max-width: calc(100vw - 18px);
+    }
+
+    body.profile-profissional .logo-area h2 {
+        font-size: 17px;
+    }
+
+    body.profile-profissional .user-greeting span {
+        max-width: 160px;
     }
 }
 
