@@ -96,9 +96,13 @@ export class PlanoAlimentarNutricionista {
                     `}
                 </div>
     
-                <!-- Botão + Flutuante -->
+                <!-- Botões Flutuantes -->
                 ${this.selectedPaciente ? `
                     <div class="fab-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+                        <button id="btnListaAlimentos" class="fab-button fab-button-green" title="Lista de Alimentos">
+                            <span class="fab-icon">☷</span>
+                            <span class="fab-text">Lista de Alimentos</span>
+                        </button>
                         <button id="btnNovoPlano" class="fab-button" title="Novo Plano Alimentar">
                             <span class="fab-icon">+</span>
                             <span class="fab-text">Novo Plano Alimentar</span>
@@ -113,22 +117,15 @@ export class PlanoAlimentarNutricionista {
                             ${this.renderFormularioPlano()}
                         </div>
 
-                        <div class="modal-acoes-plano" style="position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: flex-start; gap: 6px; z-index: 9999;">
+                        <div style="position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: flex-start; gap: 6px; z-index: 9999;">
                             <button id="btnFecharPlano" type="button" aria-label="Fechar modal" onclick="document.getElementById('modalPlano').style.display='none'" style="width: 40px; height: 40px; padding: 0; background: rgba(15, 23, 42, 0.16); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 20px; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s ease, background 0.2s ease;">
                                 X
                             </button>
-                            <button id="btnPlanoAcoes" type="button" aria-label="Menu de ações" style="width: 40px; height: 40px; padding: 0; background: rgba(26, 35, 126, 0.5); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 20px; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s ease, background 0.2s ease;">
-                                ⋮
-                            </button>
-                            <div class="modal-acoes-plano-menu" style="position: absolute; right: 0; top: calc(100% + 8px); min-width: 180px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16); padding: 8px; display: none; opacity: 0; visibility: hidden; transform: translateY(-6px); pointer-events: none; transition: all 0.2s ease; z-index: 10000;">
-                                <button id="btnListaAlimentos" class="modal-action-btn modal-action-btn-secondary" type="button" style="width: 100%; padding: 10px 12px; margin-bottom: 6px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
-                                    Lista de Alimentos
-                                </button>
-                                <button id="btnSalvarPlano" class="modal-action-btn modal-action-btn-primary" type="button" style="width: 100%; padding: 10px 12px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left;">
-                                    Salvar
-                                </button>
-                            </div>
                         </div>
+                        <button id="btnSalvarPlano" class="modal-save-button" type="button" title="Salvar Plano">
+                            <span class="modal-save-icon">💾</span>
+                            <span class="modal-save-text">Salvar</span>
+                        </button>
                     </div>
                 </div>
 
@@ -160,8 +157,10 @@ export class PlanoAlimentarNutricionista {
                 <style>
                     .fab-container {
                         display: flex;
+                        flex-direction: column;
                         align-items: center;
                         justify-content: flex-end;
+                        gap: 12px;
                     }
                     
                     .fab-button {
@@ -190,29 +189,67 @@ export class PlanoAlimentarNutricionista {
                         box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
                     }
 
-                    .modal-action-btn {
-                        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, background 0.2s ease;
+                    .fab-button-green {
+                        background: #0f766e;
+                        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
                     }
 
-                    .modal-action-btn:hover {
-                        transform: translateY(-1px) scale(1.06);
-                        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
-                        filter: brightness(1.03);
+                    .fab-button-green:hover {
+                        width: 240px;
+                        background: #115e59;
+                        box-shadow: 0 6px 20px rgba(15, 118, 110, 0.4);
                     }
 
-                    .modal-action-btn:active {
-                        transform: translateY(0) scale(1.02);
+                    .modal-save-button {
+                        position: absolute;
+                        right: 18px;
+                        bottom: 18px;
+                        width: 56px;
+                        height: 56px;
+                        padding: 12px;
+                        border: none;
+                        border-radius: 50px;
+                        background: #1a237e;
+                        color: white;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
+                        transition: all 0.3s ease;
+                        z-index: 9999;
                     }
 
-                    .modal-acoes-plano.open .modal-acoes-plano-menu {
+                    .modal-save-button:hover {
+                        width: 150px;
+                        padding: 12px 22px;
+                        gap: 10px;
+                        background: #283593;
+                        box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
+                    }
+
+                    .modal-save-icon {
+                        font-size: 22px;
+                        min-width: 30px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .modal-save-text {
+                        opacity: 0;
+                        transform: translateX(-8px);
+                        transition: all 0.3s ease;
+                        font-size: 16px;
+                        font-weight: 600;
+                    }
+
+                    .modal-save-button:hover .modal-save-text {
                         opacity: 1;
-                        visibility: visible;
-                        transform: translateY(0);
-                        pointer-events: auto;
-                    }
-
-                    .modal-acoes-plano.open > #btnPlanoAcoes {
-                        background: rgba(26, 35, 126, 0.9);
+                        transform: translateX(0);
                     }
                     
                     .fab-icon {
@@ -843,70 +880,11 @@ export class PlanoAlimentarNutricionista {
             });
         }
 
+        document.getElementById('btnListaAlimentos')?.addEventListener('click', () => this.abrirModalListaAlimentos());
+
         const btnSalvarPlano = document.getElementById('btnSalvarPlano');
         if (btnSalvarPlano) {
             btnSalvarPlano.addEventListener('click', () => this.saveMealPlan());
-        }
-
-        const btnPlanoAcoes = document.getElementById('btnPlanoAcoes');
-        const acoesPlano = document.querySelector('.modal-acoes-plano');
-        const menuPlano = document.querySelector('.modal-acoes-plano-menu');
-        if (btnPlanoAcoes && acoesPlano) {
-            const abrirMenuPlano = () => {
-                acoesPlano.classList.add('open');
-                if (menuPlano) {
-                    menuPlano.style.display = 'block';
-                    menuPlano.style.opacity = '1';
-                    menuPlano.style.visibility = 'visible';
-                    menuPlano.style.transform = 'translateY(0)';
-                    menuPlano.style.pointerEvents = 'auto';
-                }
-                btnPlanoAcoes.style.background = 'rgba(26, 35, 126, 0.9)';
-            };
-
-            const fecharMenuPlano = () => {
-                acoesPlano.classList.remove('open');
-                if (menuPlano) {
-                    menuPlano.style.opacity = '0';
-                    menuPlano.style.visibility = 'hidden';
-                    menuPlano.style.transform = 'translateY(-6px)';
-                    menuPlano.style.pointerEvents = 'none';
-                    menuPlano.style.display = 'none';
-                }
-                btnPlanoAcoes.style.background = 'rgba(26, 35, 126, 0.5)';
-            };
-
-            btnPlanoAcoes.addEventListener('click', (event) => {
-                event.stopPropagation();
-                abrirMenuPlano();
-            });
-
-            acoesPlano.querySelectorAll('button').forEach((button) => {
-                if (button === btnPlanoAcoes) return;
-                button.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                });
-            });
-
-            if (!this.planoAcoesOutsideClickHandler) {
-                this.planoAcoesOutsideClickHandler = (event) => {
-                    const currentMenu = document.querySelector('.modal-acoes-plano');
-                    if (currentMenu && !currentMenu.contains(event.target)) {
-                        currentMenu.classList.remove('open');
-                        const currentButton = currentMenu.querySelector('#btnPlanoAcoes');
-                        const currentMenuBox = currentMenu.querySelector('.modal-acoes-plano-menu');
-                        if (currentButton) currentButton.style.background = 'rgba(26, 35, 126, 0.5)';
-                        if (currentMenuBox) {
-                            currentMenuBox.style.opacity = '0';
-                            currentMenuBox.style.visibility = 'hidden';
-                            currentMenuBox.style.transform = 'translateY(-6px)';
-                            currentMenuBox.style.pointerEvents = 'none';
-                            currentMenuBox.style.display = 'none';
-                        }
-                    }
-                };
-                document.addEventListener('click', this.planoAcoesOutsideClickHandler);
-            }
         }
 
         // Fechar modal ao clicar fora
@@ -960,7 +938,6 @@ export class PlanoAlimentarNutricionista {
         quantidade?.addEventListener('input', refreshResults);
         this.attachMealEditorEvents();
         this.attachFoodResultButtons();
-        document.getElementById('btnListaAlimentos')?.addEventListener('click', () => this.abrirModalListaAlimentos());
     }
 
     attachMealEditorEvents() {
