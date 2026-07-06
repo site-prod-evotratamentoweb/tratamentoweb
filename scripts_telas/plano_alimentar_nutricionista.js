@@ -110,6 +110,8 @@ function mesclarListaPadrao(padrao, valores) {
     return [...padrao, ...extras];
 }
 
+const PLANO_BIA_SANTOS_DOCUMENTO_ID = '30-06-2026_14:04h';
+
 export class PlanoAlimentarNutricionista {
     constructor(userInfo, pacientesList) {
         this.userInfo = userInfo;
@@ -602,7 +604,19 @@ export class PlanoAlimentarNutricionista {
 
     planoModeloBiaSantosJaExiste() {
         return this.planosList.some((plano) => (
+            plano.id === PLANO_BIA_SANTOS_DOCUMENTO_ID
+            || (
             plano.modelo_plano === 'base_nutricional_linhas_v2_opcoes'
+            && plano.paciente_login === 'bia.santos'
+            && plano.origem_plano_antigo === PLANO_BIA_SANTOS_NOVO_MODELO.origem_plano_antigo
+            )
+        ));
+    }
+
+    obterPlanoModeloBiaSantosAleatorio() {
+        return this.planosList.find((plano) => (
+            plano.id !== PLANO_BIA_SANTOS_DOCUMENTO_ID
+            && plano.modelo_plano === 'base_nutricional_linhas_v2_opcoes'
             && plano.paciente_login === 'bia.santos'
             && plano.origem_plano_antigo === PLANO_BIA_SANTOS_NOVO_MODELO.origem_plano_antigo
         ));
@@ -1942,11 +1956,36 @@ export class PlanoAlimentarNutricionista {
     }
 
     async garantirPlanoModeloBiaSantos() {
-        if (!this.podeCriarPlanoModeloBiaSantos() || this.planoModeloBiaSantosJaExiste() || this.criandoPlanoBiaSantos) {
+        if (!this.podeCriarPlanoModeloBiaSantos() || this.criandoPlanoBiaSantos) {
             return;
         }
 
+        await this.migrarPlanoModeloBiaSantosParaIdComData();
+
+        if (this.planoModeloBiaSantosJaExiste()) return;
+
         await this.criarPlanoModeloBiaSantos({ silencioso: true, semRecarregar: true });
+    }
+
+    async migrarPlanoModeloBiaSantosParaIdComData() {
+        if (this.planosList.some((plano) => plano.id === PLANO_BIA_SANTOS_DOCUMENTO_ID)) return;
+
+        const planoAleatorio = this.obterPlanoModeloBiaSantosAleatorio();
+        if (!planoAleatorio) return;
+
+        const { id: planoAleatorioId, ...dadosPlano } = planoAleatorio;
+        const refComData = doc(db, 'planos_alimentares', 'grazielle.carvalho', 'bia.santos', PLANO_BIA_SANTOS_DOCUMENTO_ID);
+        await setDoc(refComData, {
+            ...dadosPlano,
+            id_migrado_de: planoAleatorioId,
+            data_migracao_id: new Date().toISOString()
+        }, { merge: true });
+
+        await deleteDoc(doc(db, 'planos_alimentares', 'grazielle.carvalho', 'bia.santos', planoAleatorioId));
+
+        this.planosList = this.planosList
+            .filter((plano) => plano.id !== planoAleatorioId)
+            .concat([{ id: PLANO_BIA_SANTOS_DOCUMENTO_ID, ...dadosPlano }]);
     }
 
     async criarPlanoModeloBiaSantos(opcoes = {}) {
@@ -1973,9 +2012,8 @@ export class PlanoAlimentarNutricionista {
             this.criandoPlanoBiaSantos = true;
             const mealPlanData = this.montarPlanoModeloBiaSantos();
 
-            const pacienteCollectionRef = collection(db, 'planos_alimentares', 'grazielle.carvalho', 'bia.santos');
-            const ref = await addDoc(pacienteCollectionRef, mealPlanData);
-            this.planosList.push({ id: ref.id, ...mealPlanData });
+            await setDoc(doc(db, 'planos_alimentares', 'grazielle.carvalho', 'bia.santos', PLANO_BIA_SANTOS_DOCUMENTO_ID), mealPlanData, { merge: true });
+            this.planosList.push({ id: PLANO_BIA_SANTOS_DOCUMENTO_ID, ...mealPlanData });
 
             if (!opcoes.silencioso) {
                 alert('Plano novo modelo criado para bia.santos.');
