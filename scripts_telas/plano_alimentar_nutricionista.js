@@ -860,6 +860,7 @@ export class PlanoAlimentarNutricionista {
             texto: opcoes.length ? this.formatarTextoItemPlano({ opcoes }) : texto,
             detalhes: item.detalhes || opcoes[0]?.detalhes || null,
             opcoes,
+            opcaoVisivelIndex: Number(item.opcaoVisivelIndex || 0),
             detalhesAberto: false
         };
     }
