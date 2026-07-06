@@ -594,8 +594,10 @@ export class PlanoAlimentarNutricionista {
         this.configAlimentosCarregada = true;
     }
 
-    renderDatalistOptions(valores = []) {
-        return valores.map((valor) => `<option value="${this.escapeHtml(valor)}"></option>`).join('');
+    renderSelectOptions(valores = [], selected = '') {
+        return valores.map((valor) => `
+            <option value="${this.escapeHtml(valor)}" ${valor === selected ? 'selected' : ''}>${this.escapeHtml(valor)}</option>
+        `).join('');
     }
 
     renderConfiguracoesAlimentos() {
@@ -863,10 +865,18 @@ export class PlanoAlimentarNutricionista {
         return `
             <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: end;">
                 <label style="font-size: 12px; color: #475569; grid-column: span 2;">Nome<input id="foodNome" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                <label style="font-size: 12px; color: #475569;">Categoria<input id="foodCategoria" list="categoriasAlimentosList" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                <label style="font-size: 12px; color: #475569;">Unidade<input id="foodUnidade" list="unidadesAlimentosList" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="porcao"></label>
-                <datalist id="categoriasAlimentosList">${this.renderDatalistOptions(this.categoriasAlimentos)}</datalist>
-                <datalist id="unidadesAlimentosList">${this.renderDatalistOptions(this.unidadesAlimentos)}</datalist>
+                <label style="font-size: 12px; color: #475569;">Categoria
+                    <select id="foodCategoria" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                        <option value="">Selecione</option>
+                        ${this.renderSelectOptions(this.categoriasAlimentos)}
+                    </select>
+                </label>
+                <label style="font-size: 12px; color: #475569;">Unidade
+                    <select id="foodUnidade" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                        <option value="">Selecione</option>
+                        ${this.renderSelectOptions(this.unidadesAlimentos)}
+                    </select>
+                </label>
                 <label style="font-size: 12px; color: #475569;">g/unid<input id="foodGramasUnidade" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
                 <label style="font-size: 12px; color: #475569;">kcal<input id="foodKcal" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
                 <label style="font-size: 12px; color: #475569;">Carb<input id="foodCarboidratos" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
@@ -1464,15 +1474,25 @@ export class PlanoAlimentarNutricionista {
 
     async salvarAlimentoBase(onSaved) {
         const nome = document.getElementById('foodNome')?.value?.trim();
+        const categoria = document.getElementById('foodCategoria')?.value?.trim();
+        const unidadePadrao = document.getElementById('foodUnidade')?.value?.trim();
         if (!nome) {
             alert('Informe o nome do alimento.');
+            return;
+        }
+        if (!categoria || !this.categoriasAlimentos.includes(categoria)) {
+            alert('Selecione uma categoria cadastrada.');
+            return;
+        }
+        if (!unidadePadrao || !this.unidadesAlimentos.includes(unidadePadrao)) {
+            alert('Selecione uma unidade cadastrada.');
             return;
         }
 
         const payload = {
             nome,
-            categoria: document.getElementById('foodCategoria')?.value?.trim() || 'Geral',
-            unidadePadrao: document.getElementById('foodUnidade')?.value?.trim() || 'porcao',
+            categoria,
+            unidadePadrao,
             gramasPorUnidade: Number(document.getElementById('foodGramasUnidade')?.value || 100),
             kcal: Number(document.getElementById('foodKcal')?.value || 0),
             carboidratos: Number(document.getElementById('foodCarboidratos')?.value || 0),
