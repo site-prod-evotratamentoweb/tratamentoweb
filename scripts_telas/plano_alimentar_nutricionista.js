@@ -605,19 +605,11 @@ export class PlanoAlimentarNutricionista {
                     <label style="font-size: 12px; color: #475569; font-weight: 600;">Categorias existentes
                         <textarea id="configCategoriasAlimentos" rows="12" style="width: 100%; resize: vertical; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">${this.escapeHtml(this.categoriasAlimentos.join('\n'))}</textarea>
                     </label>
-                    <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px;">
-                        <input id="novaCategoriaAlimento" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Nova categoria">
-                        <button id="btnAdicionarCategoriaAlimento" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #334155; color: white; cursor: pointer;">Adicionar</button>
-                    </div>
                 </div>
                 <div style="display: grid; gap: 10px;">
                     <label style="font-size: 12px; color: #475569; font-weight: 600;">Unidades existentes
                         <textarea id="configUnidadesAlimentos" rows="12" style="width: 100%; resize: vertical; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">${this.escapeHtml(this.unidadesAlimentos.join('\n'))}</textarea>
                     </label>
-                    <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px;">
-                        <input id="novaUnidadeAlimento" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Nova unidade">
-                        <button id="btnAdicionarUnidadeAlimento" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #334155; color: white; cursor: pointer;">Adicionar</button>
-                    </div>
                 </div>
                 <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px;">
                     <button id="btnCancelarConfigAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
@@ -982,22 +974,7 @@ export class PlanoAlimentarNutricionista {
             .sort((a, b) => a.localeCompare(b, 'pt-BR'));
     }
 
-    adicionarValorConfig(inputId, textareaId) {
-        const input = document.getElementById(inputId);
-        const textarea = document.getElementById(textareaId);
-        const valor = input?.value?.trim();
-        if (!valor || !textarea) return;
-
-        const valores = [...new Set([...String(textarea.value || '').split('\n').map((item) => item.trim()).filter(Boolean), valor])]
-            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-        textarea.value = valores.join('\n');
-        input.value = '';
-        input.focus();
-    }
-
     attachConfigAlimentosEvents() {
-        document.getElementById('btnAdicionarCategoriaAlimento')?.addEventListener('click', () => this.adicionarValorConfig('novaCategoriaAlimento', 'configCategoriasAlimentos'));
-        document.getElementById('btnAdicionarUnidadeAlimento')?.addEventListener('click', () => this.adicionarValorConfig('novaUnidadeAlimento', 'configUnidadesAlimentos'));
         document.getElementById('btnCancelarConfigAlimentos')?.addEventListener('click', () => this.fecharModalConfigAlimentos());
         document.getElementById('btnSalvarConfigAlimentos')?.addEventListener('click', () => this.salvarConfiguracoesAlimentos());
     }
