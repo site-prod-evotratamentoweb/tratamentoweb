@@ -18,6 +18,97 @@ import {
     setDoc
 } from '../0_firebase_api_config.js';
 
+const CATEGORIAS_ALIMENTOS_PADRAO = [
+    'Açúc./doces',
+    'Alim. prep.',
+    'Aves',
+    'Bebidas',
+    'Carnes',
+    'Cereais',
+    'Cogumelos',
+    'Frutas',
+    'Gord./óleos',
+    'Industrial',
+    'Laticínios',
+    'Legumes',
+    'Leguminosos',
+    'Nozes/sem.',
+    'Outros',
+    'Ovos',
+    'Pescados',
+    'Suplementos',
+    'Temperos',
+    'Tub./raízes',
+    'Verduras'
+];
+
+const UNIDADES_ALIMENTOS_PADRAO = [
+    'Banda',
+    'Bife',
+    'Bisnaga',
+    'Bola',
+    'C. amer.',
+    'C. requej.',
+    'Caixa',
+    'Caneca',
+    'Col. café',
+    'Col. chá',
+    'Col. servir',
+    'Col. sobrem',
+    'Col. sopa',
+    'Concha',
+    'Copo',
+    'Cubo',
+    'Dente',
+    'Dose',
+    'Envelope',
+    'Escumad.',
+    'Fatia',
+    'Filé',
+    'Folha',
+    'Frasco',
+    'Garrafa',
+    'Gomo',
+    'Grama',
+    'Lata',
+    'Litro',
+    'Maço',
+    'Metade',
+    'Miligrama',
+    'Mililitro',
+    'Oitavo',
+    'P. fundo',
+    'P. raso',
+    'P. sobrem',
+    'Pacote',
+    'Pedaço',
+    'Pegador',
+    'Pires',
+    'Porção',
+    'Posta',
+    'Pote',
+    'Quarto',
+    'Quilograma',
+    'Ramo',
+    'Rodela',
+    'Sachê',
+    'Scoop',
+    'Talo',
+    'Tigela',
+    'Tubo',
+    'Unidade',
+    'Xíc. café',
+    'Xíc. chá'
+];
+
+function mesclarListaPadrao(padrao, valores) {
+    const extras = [...new Set(valores.map((valor) => String(valor || '').trim()).filter(Boolean))]
+        .filter((valor) => !padrao.includes(valor))
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    return [...padrao, ...extras];
+}
+
 export class PlanoAlimentarNutricionista {
     constructor(userInfo, pacientesList) {
         this.userInfo = userInfo;
@@ -547,8 +638,7 @@ export class PlanoAlimentarNutricionista {
             ...this.getAlimentosIniciais().map((alimento) => alimento.categoria),
             ...this.alimentosBase.map((alimento) => alimento.categoria)
         ];
-        return [...new Set(valores.map((valor) => String(valor || '').trim()).filter(Boolean))]
-            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        return mesclarListaPadrao(CATEGORIAS_ALIMENTOS_PADRAO, valores);
     }
 
     obterUnidadesDerivadas() {
@@ -556,8 +646,7 @@ export class PlanoAlimentarNutricionista {
             ...this.getAlimentosIniciais().map((alimento) => alimento.unidadePadrao),
             ...this.alimentosBase.map((alimento) => alimento.unidadePadrao)
         ];
-        return [...new Set(valores.map((valor) => String(valor || '').trim()).filter(Boolean))]
-            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        return mesclarListaPadrao(UNIDADES_ALIMENTOS_PADRAO, valores);
     }
 
     async carregarConfiguracoesAlimentos() {
