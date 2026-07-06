@@ -527,7 +527,7 @@ export class PlanoAlimentarNutricionista {
         const snapshot = await getDocs(ref);
         this.alimentosBase = [];
         snapshot.forEach((docSnap) => {
-            if (docSnap.id !== '__configuracoes__') {
+            if (docSnap.id !== '_configuracoes_alimentos') {
                 this.alimentosBase.push({ id: docSnap.id, ...docSnap.data() });
             }
         });
@@ -545,7 +545,7 @@ export class PlanoAlimentarNutricionista {
             const novoSnapshot = await getDocs(ref);
             this.alimentosBase = [];
             novoSnapshot.forEach((docSnap) => {
-                if (docSnap.id !== '__configuracoes__') {
+                if (docSnap.id !== '_configuracoes_alimentos') {
                     this.alimentosBase.push({ id: docSnap.id, ...docSnap.data() });
                 }
             });
@@ -575,7 +575,7 @@ export class PlanoAlimentarNutricionista {
     async carregarConfiguracoesAlimentos() {
         if (this.configAlimentosCarregada) return;
 
-        const configRef = doc(db, 'base_alimentos_nutricionais', '__configuracoes__');
+        const configRef = doc(db, 'base_alimentos_nutricionais', '_configuracoes_alimentos');
         const configSnap = await getDoc(configRef);
         if (configSnap.exists()) {
             const data = configSnap.data();
@@ -1011,7 +1011,7 @@ export class PlanoAlimentarNutricionista {
             return;
         }
 
-        await setDoc(doc(db, 'base_alimentos_nutricionais', '__configuracoes__'), {
+        await setDoc(doc(db, 'base_alimentos_nutricionais', '_configuracoes_alimentos'), {
             tipo: 'configuracoes_alimentos',
             categorias,
             unidades,
@@ -1148,7 +1148,7 @@ export class PlanoAlimentarNutricionista {
             const ref = collection(db, 'base_alimentos_nutricionais');
             const snapshot = await getDocs(ref);
             await Promise.all(snapshot.docs
-                .filter((docSnap) => docSnap.id !== '__configuracoes__')
+                .filter((docSnap) => docSnap.id !== '_configuracoes_alimentos')
                 .map((docSnap) => deleteDoc(doc(db, 'base_alimentos_nutricionais', docSnap.id))));
             await Promise.all(alimentosImportados.map((alimento) => addDoc(ref, {
                 ...alimento,
