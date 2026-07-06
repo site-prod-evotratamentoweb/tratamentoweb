@@ -1,16 +1,16 @@
 export const PLANO_BIA_SANTOS_NOVO_MODELO = {
   "paciente_login": "bia.santos",
-  "breakfast": "Op??o 1: Pão, trigo, francês - 2 Unidade ou Op??o 2: Cuscuz, de milho, cozido com sal - 2 Col. servir ou Op??o 3: Batata, doce, cozida - 3 Unidade\nOp??o 1: Manteiga, com sal - 1 Col. sopa ou Op??o 2: Queijo, mozarela - 2 Fatia\nOp??o 1: Ovo, de galinha, inteiro, cozido/10minutos - 2 Unidade ou Op??o 2: Frango, peito, sem pele, cozido - 1 Filé\nOp??o 1: Café, infusão 10% - 1 Xíc. café ou Op??o 2: Leite, de vaca, integral - 1 Copo\nBanana, prata, crua - 1 Unidade",
-  "morningSnack": "Op??o 1: Banana, prata, crua - 1 Unidade ou Op??o 2: Iogurte, natural - 1 Pote\nOp??o 1: Amendoim, grão, cru - 1 Porção ou Op??o 2: Aveia, flocos, crua - 1 Col. sopa\nLeite, de vaca, integral, pó - 1 Col. sopa",
-  "lunch": "Op??o 1: Arroz, tipo 1, cozido - 4 Col. servir ou Op??o 2: Mandioca, cozida - 4 Unidade ou Op??o 3: Batata, inglesa, cozida - 1 Unidade\nOp??o 1: Feijão, carioca, cozido - 3 Concha ou Op??o 2: Carne, bovina, acém, moído, cozido - 3 Bife\nOp??o 1: Frango, coxa, sem pele, cozida - 2 Unidade ou Op??o 2: Frango, coxa, com pele, assada - 2 Unidade ou Op??o 3: Carne, bovina, contra-filé, sem gordura, grelhado - 2 Filé\nOp??o 1: Alface, crespa, crua - 4 Folha ou Op??o 2: Couve, manteiga, crua - 2 Folha\nOp??o 1: Tomate, salada - 1 Unidade ou Op??o 2: Cenoura, crua - 1 Unidade ou Op??o 3: Chuchu, cozido - 1 Unidade\nOp??o 1: Azeite, de oliva, extra virgem - 1 Col. sopa ou Op??o 2: Limão, tahiti, cru - 0,5 Unidade\nLaranja, pêra, crua - 1 Unidade",
-  "afternoonSnack": "Op??o 1: Pão, trigo, forma, integral - 2 Fatia ou Op??o 2: Tapioca, com manteiga - 1 Unidade\nOp??o 1: Frango, peito, sem pele, cozido - 1 Filé ou Op??o 2: Atum, conserva em óleo - 1 Lata ou Op??o 3: Ovo, de galinha, inteiro, frito - 1 Unidade\nQueijo, requeijão, cremoso - 1 Col. sopa\nBanana, prata, crua - 1 Unidade",
-  "dinner": "Op??o 1: Ovo, de galinha, inteiro, cozido/10minutos - 2 Unidade ou Op??o 2: Frango, peito, sem pele, cozido - 1 Filé ou Op??o 3: Carne, bovina, acém, moído, cozido - 1 Bife\nOp??o 1: Cuscuz, de milho, cozido com sal - 2 Col. servir ou Op??o 2: Banana, prata, crua - 1 Unidade\nQueijo, mozarela - 2 Fatia",
-  "supper": "Op??o 1: Mamão, Papaia, cru - 1 Fatia ou Op??o 2: Laranja, pêra, crua - 1 Unidade\nOp??o 1: Linhaça, semente - 1 Col. sopa ou Op??o 2: Aveia, flocos, crua - 1 Col. sopa",
+  "breakfast": "Opção 1: Pão, trigo, francês - 2 Unidade ou Opção 2: Cuscuz, de milho, cozido com sal - 2 Col. servir ou Opção 3: Batata, doce, cozida - 3 Unidade\nOpção 1: Manteiga, com sal - 1 Col. sopa ou Opção 2: Queijo, mozarela - 2 Fatia\nOpção 1: Ovo, de galinha, inteiro, cozido/10minutos - 2 Unidade ou Opção 2: Frango, peito, sem pele, cozido - 1 Filé\nOpção 1: Café, infusão 10% - 1 Xíc. café ou Opção 2: Leite, de vaca, integral - 1 Copo\nBanana, prata, crua - 1 Unidade",
+  "morningSnack": "Opção 1: Banana, prata, crua - 1 Unidade ou Opção 2: Iogurte, natural - 1 Pote\nOpção 1: Amendoim, grão, cru - 1 Porção ou Opção 2: Aveia, flocos, crua - 1 Col. sopa\nLeite, de vaca, integral, pó - 1 Col. sopa",
+  "lunch": "Opção 1: Arroz, tipo 1, cozido - 4 Col. servir ou Opção 2: Mandioca, cozida - 4 Unidade ou Opção 3: Batata, inglesa, cozida - 1 Unidade\nOpção 1: Feijão, carioca, cozido - 3 Concha ou Opção 2: Carne, bovina, acém, moído, cozido - 3 Bife\nOpção 1: Frango, coxa, sem pele, cozida - 2 Unidade ou Opção 2: Frango, coxa, com pele, assada - 2 Unidade ou Opção 3: Carne, bovina, contra-filé, sem gordura, grelhado - 2 Filé\nOpção 1: Alface, crespa, crua - 4 Folha ou Opção 2: Couve, manteiga, crua - 2 Folha\nOpção 1: Tomate, salada - 1 Unidade ou Opção 2: Cenoura, crua - 1 Unidade ou Opção 3: Chuchu, cozido - 1 Unidade\nOpção 1: Azeite, de oliva, extra virgem - 1 Col. sopa ou Opção 2: Limão, tahiti, cru - 0,5 Unidade\nLaranja, pêra, crua - 1 Unidade",
+  "afternoonSnack": "Opção 1: Pão, trigo, forma, integral - 2 Fatia ou Opção 2: Tapioca, com manteiga - 1 Unidade\nOpção 1: Frango, peito, sem pele, cozido - 1 Filé ou Opção 2: Atum, conserva em óleo - 1 Lata ou Opção 3: Ovo, de galinha, inteiro, frito - 1 Unidade\nQueijo, requeijão, cremoso - 1 Col. sopa\nBanana, prata, crua - 1 Unidade",
+  "dinner": "Opção 1: Ovo, de galinha, inteiro, cozido/10minutos - 2 Unidade ou Opção 2: Frango, peito, sem pele, cozido - 1 Filé ou Opção 3: Carne, bovina, acém, moído, cozido - 1 Bife\nOpção 1: Cuscuz, de milho, cozido com sal - 2 Col. servir ou Opção 2: Banana, prata, crua - 1 Unidade\nQueijo, mozarela - 2 Fatia",
+  "supper": "Opção 1: Mamão, Papaia, cru - 1 Fatia ou Opção 2: Laranja, pêra, crua - 1 Unidade\nOpção 1: Linhaça, semente - 1 Col. sopa ou Opção 2: Aveia, flocos, crua - 1 Col. sopa",
   "itens_plano": {
     "breakfast": [
       {
         "id": "item_breakfast_01",
-        "texto": "Op??o 1: Pão, trigo, francês - 2 Unidade ou Op??o 2: Cuscuz, de milho, cozido com sal - 2 Col. servir ou Op??o 3: Batata, doce, cozida - 3 Unidade",
+        "texto": "Opção 1: Pão, trigo, francês - 2 Unidade ou Opção 2: Cuscuz, de milho, cozido com sal - 2 Col. servir ou Opção 3: Batata, doce, cozida - 3 Unidade",
         "detalhes": {
           "nome": "Pão, trigo, francês",
           "quantidadeTexto": "2 Unidade",
@@ -61,11 +61,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_breakfast_02",
-        "texto": "Op??o 1: Manteiga, com sal - 1 Col. sopa ou Op??o 2: Queijo, mozarela - 2 Fatia",
+        "texto": "Opção 1: Manteiga, com sal - 1 Col. sopa ou Opção 2: Queijo, mozarela - 2 Fatia",
         "detalhes": {
           "nome": "Manteiga, com sal",
           "quantidadeTexto": "1 Col. sopa",
@@ -103,11 +104,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_breakfast_03",
-        "texto": "Op??o 1: Ovo, de galinha, inteiro, cozido/10minutos - 2 Unidade ou Op??o 2: Frango, peito, sem pele, cozido - 1 Filé",
+        "texto": "Opção 1: Ovo, de galinha, inteiro, cozido/10minutos - 2 Unidade ou Opção 2: Frango, peito, sem pele, cozido - 1 Filé",
         "detalhes": {
           "nome": "Ovo, de galinha, inteiro, cozido/10minutos",
           "quantidadeTexto": "2 Unidade",
@@ -145,11 +147,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_breakfast_04",
-        "texto": "Op??o 1: Café, infusão 10% - 1 Xíc. café ou Op??o 2: Leite, de vaca, integral - 1 Copo",
+        "texto": "Opção 1: Café, infusão 10% - 1 Xíc. café ou Opção 2: Leite, de vaca, integral - 1 Copo",
         "detalhes": {
           "nome": "Café, infusão 10%",
           "quantidadeTexto": "1 Xíc. café",
@@ -187,6 +190,7 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
@@ -216,13 +220,14 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       }
     ],
     "morningSnack": [
       {
         "id": "item_morningSnack_01",
-        "texto": "Op??o 1: Banana, prata, crua - 1 Unidade ou Op??o 2: Iogurte, natural - 1 Pote",
+        "texto": "Opção 1: Banana, prata, crua - 1 Unidade ou Opção 2: Iogurte, natural - 1 Pote",
         "detalhes": {
           "nome": "Banana, prata, crua",
           "quantidadeTexto": "1 Unidade",
@@ -260,11 +265,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_morningSnack_02",
-        "texto": "Op??o 1: Amendoim, grão, cru - 1 Porção ou Op??o 2: Aveia, flocos, crua - 1 Col. sopa",
+        "texto": "Opção 1: Amendoim, grão, cru - 1 Porção ou Opção 2: Aveia, flocos, crua - 1 Col. sopa",
         "detalhes": {
           "nome": "Amendoim, grão, cru",
           "quantidadeTexto": "1 Porção",
@@ -302,6 +308,7 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
@@ -331,13 +338,14 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       }
     ],
     "lunch": [
       {
         "id": "item_lunch_01",
-        "texto": "Op??o 1: Arroz, tipo 1, cozido - 4 Col. servir ou Op??o 2: Mandioca, cozida - 4 Unidade ou Op??o 3: Batata, inglesa, cozida - 1 Unidade",
+        "texto": "Opção 1: Arroz, tipo 1, cozido - 4 Col. servir ou Opção 2: Mandioca, cozida - 4 Unidade ou Opção 3: Batata, inglesa, cozida - 1 Unidade",
         "detalhes": {
           "nome": "Arroz, tipo 1, cozido",
           "quantidadeTexto": "4 Col. servir",
@@ -388,11 +396,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_lunch_02",
-        "texto": "Op??o 1: Feijão, carioca, cozido - 3 Concha ou Op??o 2: Carne, bovina, acém, moído, cozido - 3 Bife",
+        "texto": "Opção 1: Feijão, carioca, cozido - 3 Concha ou Opção 2: Carne, bovina, acém, moído, cozido - 3 Bife",
         "detalhes": {
           "nome": "Feijão, carioca, cozido",
           "quantidadeTexto": "3 Concha",
@@ -430,11 +439,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_lunch_03",
-        "texto": "Op??o 1: Frango, coxa, sem pele, cozida - 2 Unidade ou Op??o 2: Frango, coxa, com pele, assada - 2 Unidade ou Op??o 3: Carne, bovina, contra-filé, sem gordura, grelhado - 2 Filé",
+        "texto": "Opção 1: Frango, coxa, sem pele, cozida - 2 Unidade ou Opção 2: Frango, coxa, com pele, assada - 2 Unidade ou Opção 3: Carne, bovina, contra-filé, sem gordura, grelhado - 2 Filé",
         "detalhes": {
           "nome": "Frango, coxa, sem pele, cozida",
           "quantidadeTexto": "2 Unidade",
@@ -485,11 +495,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_lunch_04",
-        "texto": "Op??o 1: Alface, crespa, crua - 4 Folha ou Op??o 2: Couve, manteiga, crua - 2 Folha",
+        "texto": "Opção 1: Alface, crespa, crua - 4 Folha ou Opção 2: Couve, manteiga, crua - 2 Folha",
         "detalhes": {
           "nome": "Alface, crespa, crua",
           "quantidadeTexto": "4 Folha",
@@ -527,11 +538,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_lunch_05",
-        "texto": "Op??o 1: Tomate, salada - 1 Unidade ou Op??o 2: Cenoura, crua - 1 Unidade ou Op??o 3: Chuchu, cozido - 1 Unidade",
+        "texto": "Opção 1: Tomate, salada - 1 Unidade ou Opção 2: Cenoura, crua - 1 Unidade ou Opção 3: Chuchu, cozido - 1 Unidade",
         "detalhes": {
           "nome": "Tomate, salada",
           "quantidadeTexto": "1 Unidade",
@@ -582,11 +594,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_lunch_06",
-        "texto": "Op??o 1: Azeite, de oliva, extra virgem - 1 Col. sopa ou Op??o 2: Limão, tahiti, cru - 0,5 Unidade",
+        "texto": "Opção 1: Azeite, de oliva, extra virgem - 1 Col. sopa ou Opção 2: Limão, tahiti, cru - 0,5 Unidade",
         "detalhes": {
           "nome": "Azeite, de oliva, extra virgem",
           "quantidadeTexto": "1 Col. sopa",
@@ -624,6 +637,7 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
@@ -653,13 +667,14 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       }
     ],
     "afternoonSnack": [
       {
         "id": "item_afternoonSnack_01",
-        "texto": "Op??o 1: Pão, trigo, forma, integral - 2 Fatia ou Op??o 2: Tapioca, com manteiga - 1 Unidade",
+        "texto": "Opção 1: Pão, trigo, forma, integral - 2 Fatia ou Opção 2: Tapioca, com manteiga - 1 Unidade",
         "detalhes": {
           "nome": "Pão, trigo, forma, integral",
           "quantidadeTexto": "2 Fatia",
@@ -697,11 +712,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_afternoonSnack_02",
-        "texto": "Op??o 1: Frango, peito, sem pele, cozido - 1 Filé ou Op??o 2: Atum, conserva em óleo - 1 Lata ou Op??o 3: Ovo, de galinha, inteiro, frito - 1 Unidade",
+        "texto": "Opção 1: Frango, peito, sem pele, cozido - 1 Filé ou Opção 2: Atum, conserva em óleo - 1 Lata ou Opção 3: Ovo, de galinha, inteiro, frito - 1 Unidade",
         "detalhes": {
           "nome": "Frango, peito, sem pele, cozido",
           "quantidadeTexto": "1 Filé",
@@ -752,6 +768,7 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
@@ -781,6 +798,7 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
@@ -810,13 +828,14 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       }
     ],
     "dinner": [
       {
         "id": "item_dinner_01",
-        "texto": "Op??o 1: Ovo, de galinha, inteiro, cozido/10minutos - 2 Unidade ou Op??o 2: Frango, peito, sem pele, cozido - 1 Filé ou Op??o 3: Carne, bovina, acém, moído, cozido - 1 Bife",
+        "texto": "Opção 1: Ovo, de galinha, inteiro, cozido/10minutos - 2 Unidade ou Opção 2: Frango, peito, sem pele, cozido - 1 Filé ou Opção 3: Carne, bovina, acém, moído, cozido - 1 Bife",
         "detalhes": {
           "nome": "Ovo, de galinha, inteiro, cozido/10minutos",
           "quantidadeTexto": "2 Unidade",
@@ -867,11 +886,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_dinner_02",
-        "texto": "Op??o 1: Cuscuz, de milho, cozido com sal - 2 Col. servir ou Op??o 2: Banana, prata, crua - 1 Unidade",
+        "texto": "Opção 1: Cuscuz, de milho, cozido com sal - 2 Col. servir ou Opção 2: Banana, prata, crua - 1 Unidade",
         "detalhes": {
           "nome": "Cuscuz, de milho, cozido com sal",
           "quantidadeTexto": "2 Col. servir",
@@ -909,6 +929,7 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
@@ -938,13 +959,14 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       }
     ],
     "supper": [
       {
         "id": "item_supper_01",
-        "texto": "Op??o 1: Mamão, Papaia, cru - 1 Fatia ou Op??o 2: Laranja, pêra, crua - 1 Unidade",
+        "texto": "Opção 1: Mamão, Papaia, cru - 1 Fatia ou Opção 2: Laranja, pêra, crua - 1 Unidade",
         "detalhes": {
           "nome": "Mamão, Papaia, cru",
           "quantidadeTexto": "1 Fatia",
@@ -982,11 +1004,12 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       },
       {
         "id": "item_supper_02",
-        "texto": "Op??o 1: Linhaça, semente - 1 Col. sopa ou Op??o 2: Aveia, flocos, crua - 1 Col. sopa",
+        "texto": "Opção 1: Linhaça, semente - 1 Col. sopa ou Opção 2: Aveia, flocos, crua - 1 Col. sopa",
         "detalhes": {
           "nome": "Linhaça, semente",
           "quantidadeTexto": "1 Col. sopa",
@@ -1024,6 +1047,7 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
             }
           }
         ],
+        "opcaoVisivelIndex": 0,
         "detalhesAberto": false
       }
     ]
@@ -1032,7 +1056,7 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
   "modelo_plano": "base_nutricional_linhas_v2_opcoes",
   "origem_plano_antigo": "Plano alimentar informado em 30/06/2026 14:04h",
   "alimentos_fora_da_base_para_cadastro_manual": [
-    "Caf? com leite ado?ado",
+    "Café com leite adoçado",
     "Vitamina de fruta com whey",
     "Whey protein",
     "Banana da terra cozida",
@@ -1042,25 +1066,26 @@ export const PLANO_BIA_SANTOS_NOVO_MODELO = {
     "Farinha de amendoim",
     "Iogurte natural com whey",
     "Pasta de amendoim",
-    "Macarr?o cozido/massa cozida sem molho",
+    "Macarrão cozido/massa cozida sem molho",
     "Salada variada pronta",
     "Verduras cozidas variadas",
-    "Pur? de batata",
-    "Gr?o-de-bico cozido",
+    "Purê de batata",
+    "Grão-de-bico cozido",
     "Carne ensopada com batata",
     "Escondidinho de aipim com frango desfiado",
-    "Escondidinho de aipim com carne mo?da",
+    "Escondidinho de aipim com carne moída",
     "Escondidinho de batata com frango desfiado",
-    "Escondidinho de batata com carne mo?da",
-    "Sandu?che natural de frango desfiado",
-    "Sandu?che natural de atum",
+    "Escondidinho de batata com carne moída",
+    "Sanduíche natural de frango desfiado",
+    "Sanduíche natural de atum",
     "Vitamina de banana com whey",
-    "Tapioca recheada com ovo e requeij?o",
+    "Tapioca recheada com ovo e requeijão",
     "Sopa de legumes com carne",
     "Sopa de legumes com frango",
     "Vitamina de banana",
     "Cuscuz de tapioca",
     "Vitamina de frutas",
-    "Vitamina de mam?o com laranja e linha?a"
+    "Vitamina de mamão com laranja e linhaça"
   ]
-};
+}
+;
