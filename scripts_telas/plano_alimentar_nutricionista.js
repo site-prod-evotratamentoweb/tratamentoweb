@@ -3,6 +3,7 @@
 import { FuncoesCompartilhadas } from './0_home.js';
 import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
+import { ALIMENTOS_TACO } from './base_alimentos_taco.js';
 import { 
     db,
     collection, 
@@ -491,20 +492,7 @@ export class PlanoAlimentarNutricionista {
     }
 
     getAlimentosIniciais() {
-        return [
-            { nome: 'Arroz branco cozido', categoria: 'Cereais', unidadePadrao: 'colher de sopa', gramasPorUnidade: 25, kcal: 128, carboidratos: 28.1, proteinas: 2.5, gorduras: 0.2, fibras: 1.6, sodio: 1 },
-            { nome: 'Feijao carioca cozido', categoria: 'Leguminosas', unidadePadrao: 'concha media', gramasPorUnidade: 86, kcal: 76, carboidratos: 13.6, proteinas: 4.8, gorduras: 0.5, fibras: 8.5, sodio: 2 },
-            { nome: 'Peito de frango grelhado', categoria: 'Proteinas', unidadePadrao: 'file medio', gramasPorUnidade: 100, kcal: 159, carboidratos: 0, proteinas: 32, gorduras: 2.5, fibras: 0, sodio: 50 },
-            { nome: 'Ovo de galinha inteiro', categoria: 'Proteinas', unidadePadrao: 'unidade', gramasPorUnidade: 50, kcal: 143, carboidratos: 1.6, proteinas: 13, gorduras: 8.9, fibras: 0, sodio: 168 },
-            { nome: 'Banana prata', categoria: 'Frutas', unidadePadrao: 'unidade', gramasPorUnidade: 86, kcal: 98, carboidratos: 26, proteinas: 1.3, gorduras: 0.1, fibras: 2, sodio: 0 },
-            { nome: 'Maca com casca', categoria: 'Frutas', unidadePadrao: 'unidade', gramasPorUnidade: 130, kcal: 56, carboidratos: 15.2, proteinas: 0.3, gorduras: 0.2, fibras: 1.3, sodio: 0 },
-            { nome: 'Aveia em flocos', categoria: 'Cereais', unidadePadrao: 'colher de sopa', gramasPorUnidade: 10, kcal: 394, carboidratos: 66.6, proteinas: 13.9, gorduras: 8.5, fibras: 9.1, sodio: 5 },
-            { nome: 'Leite integral', categoria: 'Laticinios', unidadePadrao: 'copo', gramasPorUnidade: 200, kcal: 61, carboidratos: 4.7, proteinas: 3.2, gorduras: 3.3, fibras: 0, sodio: 43 },
-            { nome: 'Iogurte natural integral', categoria: 'Laticinios', unidadePadrao: 'pote', gramasPorUnidade: 170, kcal: 76, carboidratos: 5.3, proteinas: 4.1, gorduras: 4.3, fibras: 0, sodio: 52 },
-            { nome: 'Batata doce cozida', categoria: 'Tuberculos', unidadePadrao: 'fatia media', gramasPorUnidade: 50, kcal: 77, carboidratos: 18.4, proteinas: 0.6, gorduras: 0.1, fibras: 2.2, sodio: 3 },
-            { nome: 'Azeite de oliva', categoria: 'Oleos e gorduras', unidadePadrao: 'colher de sopa', gramasPorUnidade: 8, kcal: 884, carboidratos: 0, proteinas: 0, gorduras: 100, fibras: 0, sodio: 0 },
-            { nome: 'Pao frances', categoria: 'Paes', unidadePadrao: 'unidade', gramasPorUnidade: 50, kcal: 300, carboidratos: 58.6, proteinas: 8, gorduras: 3.1, fibras: 2.3, sodio: 648 }
-        ];
+        return ALIMENTOS_TACO;
     }
 
     normalizarBusca(valor) {
@@ -536,7 +524,7 @@ export class PlanoAlimentarNutricionista {
             for (const alimento of this.getAlimentosIniciais()) {
                 await addDoc(ref, {
                     ...alimento,
-                    fonte: 'base_inicial_editavel',
+                    fonte: alimento.fonte || 'base_inicial_editavel',
                     criado_por: this.userInfo.login,
                     data_criacao: new Date().toISOString()
                 });
@@ -842,12 +830,13 @@ export class PlanoAlimentarNutricionista {
         return `
             <div style="display: flex; flex-direction: column; gap: 14px; height: 100%; overflow: hidden;">
                 <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 14px; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: grid; grid-template-columns: minmax(220px, 1fr) auto auto auto auto; gap: 8px; align-items: end; flex: 0 0 auto;">
+                    <div style="display: grid; grid-template-columns: minmax(220px, 1fr) auto auto auto auto auto; gap: 8px; align-items: end; flex: 0 0 auto;">
                         <label style="font-size: 12px; color: #475569;">Pesquisar Alimento
                             <input id="listaFoodSearch" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" value="${this.escapeHtml(termo)}">
                         </label>
                         <button id="btnConfigAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #475569; color: white; cursor: pointer; font-weight: 600;">Configurações</button>
                         <button id="btnNovoAlimento" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Novo Alimento</button>
+                        <button id="btnAtualizarListaTaco" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #15803d; color: white; cursor: pointer; font-weight: 600;">Atualizar TACO</button>
                         <button id="btnExportarListaAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer; font-weight: 600;">Exportar Lista</button>
                         <button id="btnImportarListaAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #334155; color: white; cursor: pointer; font-weight: 600;">Importar Lista</button>
                         <input id="inputImportarListaAlimentos" type="file" accept=".xlsx,.xls" style="display: none;">
@@ -955,6 +944,7 @@ export class PlanoAlimentarNutricionista {
         search?.addEventListener('input', refresh);
         document.getElementById('btnConfigAlimentos')?.addEventListener('click', () => this.abrirModalConfigAlimentos());
         document.getElementById('btnNovoAlimento')?.addEventListener('click', () => this.abrirModalNovoAlimento());
+        document.getElementById('btnAtualizarListaTaco')?.addEventListener('click', () => this.atualizarListaAlimentosTaco());
         document.getElementById('btnExportarListaAlimentos')?.addEventListener('click', () => this.exportarListaAlimentosXlsx());
         document.getElementById('btnImportarListaAlimentos')?.addEventListener('click', () => document.getElementById('inputImportarListaAlimentos')?.click());
         document.getElementById('inputImportarListaAlimentos')?.addEventListener('change', (event) => this.importarListaAlimentosXlsx(event));
@@ -1084,6 +1074,51 @@ export class PlanoAlimentarNutricionista {
         };
     }
 
+    async substituirListaAlimentos(alimentos, fonte) {
+        const ref = collection(db, 'base_alimentos_nutricionais');
+        const snapshot = await getDocs(ref);
+        await Promise.all(snapshot.docs
+            .filter((docSnap) => docSnap.id !== '_configuracoes_alimentos')
+            .map((docSnap) => deleteDoc(doc(db, 'base_alimentos_nutricionais', docSnap.id))));
+
+        await Promise.all(alimentos.map((alimento) => addDoc(ref, {
+            ...alimento,
+            fonte: alimento.fonte || fonte,
+            criado_por: this.userInfo.login,
+            data_criacao: new Date().toISOString()
+        })));
+
+        this.alimentosCarregados = false;
+        await this.carregarBaseAlimentos();
+        this.categoriasAlimentos = this.obterCategoriasDerivadas();
+        this.unidadesAlimentos = this.obterUnidadesDerivadas();
+        await this.salvarConfiguracoesAlimentosSilencioso();
+        this.renderizarListaAlimentosModal();
+    }
+
+    async salvarConfiguracoesAlimentosSilencioso() {
+        await setDoc(doc(db, 'base_alimentos_nutricionais', '_configuracoes_alimentos'), {
+            tipo: 'configuracoes_alimentos',
+            categorias: this.categoriasAlimentos,
+            unidades: this.unidadesAlimentos,
+            atualizado_por: this.userInfo.login,
+            data_atualizacao: new Date().toISOString()
+        }, { merge: true });
+        this.configAlimentosCarregada = true;
+    }
+
+    async atualizarListaAlimentosTaco() {
+        const confirmado = confirm('A lista de alimentos atual sera substituida pela lista completa da TACO. Deseja continuar?');
+        if (!confirmado) return;
+
+        try {
+            await this.substituirListaAlimentos(this.getAlimentosIniciais(), 'taco');
+            alert('Lista TACO atualizada com sucesso.');
+        } catch (error) {
+            alert('Nao foi possivel atualizar a lista TACO.');
+        }
+    }
+
     async exportarListaAlimentosXlsx() {
         try {
             await this.carregarBaseAlimentos();
@@ -1132,20 +1167,7 @@ export class PlanoAlimentarNutricionista {
                 return;
             }
 
-            const ref = collection(db, 'base_alimentos_nutricionais');
-            const snapshot = await getDocs(ref);
-            await Promise.all(snapshot.docs
-                .filter((docSnap) => docSnap.id !== '_configuracoes_alimentos')
-                .map((docSnap) => deleteDoc(doc(db, 'base_alimentos_nutricionais', docSnap.id))));
-            await Promise.all(alimentosImportados.map((alimento) => addDoc(ref, {
-                ...alimento,
-                criado_por: this.userInfo.login,
-                data_criacao: new Date().toISOString()
-            })));
-
-            this.alimentosCarregados = false;
-            await this.carregarBaseAlimentos();
-            this.renderizarListaAlimentosModal();
+            await this.substituirListaAlimentos(alimentosImportados, 'xlsx_importado');
             alert('Lista de alimentos importada com sucesso.');
         } catch (error) {
             alert('Nao foi possivel importar a lista de alimentos.');
