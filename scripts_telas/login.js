@@ -297,7 +297,8 @@ export class LoginManager {
                     cargo: userData.cargo,
                     perfil: userData.perfil,
                     authToken: result.token?.idToken || '',
-                    userRef
+                    userRef,
+                    rememberLogin: rememberCheckbox?.checked
                 };
 
                 this.showCreatePasswordScreen();
@@ -460,6 +461,7 @@ export class LoginManager {
                     perfil: userData.perfil || 'operador'
                 });
 
+                this.saveRememberedCredentials(this.tempData.rememberLogin, this.tempData.organizacao, this.tempData.login);
                 localStorage.setItem('currentUser', JSON.stringify(sessionUser));
                 this.showHome(sessionUser);
             } catch (error) {
