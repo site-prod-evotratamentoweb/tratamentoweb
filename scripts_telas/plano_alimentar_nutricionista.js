@@ -13,7 +13,8 @@ import {
     doc, 
     deleteDoc,
     updateDoc,
-    getDoc
+    getDoc,
+    setDoc
 } from '../0_firebase_api_config.js';
 
 export class PlanoAlimentarNutricionista {
@@ -27,6 +28,9 @@ export class PlanoAlimentarNutricionista {
         this.planoEditando = null;
         this.alimentosBase = [];
         this.alimentosCarregados = false;
+        this.configAlimentosCarregada = false;
+        this.categoriasAlimentos = [];
+        this.unidadesAlimentos = [];
         this.alimentoEditandoId = null;
         this.refeicaoSelecionada = 'breakfast';
         this.itensPlano = this.criarEstadoItensPlano();
@@ -97,18 +101,18 @@ export class PlanoAlimentarNutricionista {
                 </div>
     
                 <!-- Botões Flutuantes -->
-                ${this.selectedPaciente ? `
-                    <div class="fab-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
-                        <button id="btnListaAlimentos" class="fab-button fab-button-green" title="Lista de Alimentos">
-                            <span class="fab-icon">☷</span>
-                            <span class="fab-text">Lista de Alimentos</span>
-                        </button>
-                        <button id="btnNovoPlano" class="fab-button" title="Novo Plano Alimentar">
-                            <span class="fab-icon">+</span>
-                            <span class="fab-text">Novo Plano Alimentar</span>
-                        </button>
-                    </div>
-                ` : ''}
+                <div class="fab-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+                    <button id="btnListaAlimentos" class="fab-button fab-button-green" title="Lista de Alimentos">
+                        <span class="fab-icon">☷</span>
+                        <span class="fab-text">Lista de Alimentos</span>
+                    </button>
+                    ${this.selectedPaciente ? `
+                    <button id="btnNovoPlano" class="fab-button" title="Novo Plano Alimentar">
+                        <span class="fab-icon">+</span>
+                        <span class="fab-text">Novo Plano Alimentar</span>
+                    </button>
+                    ` : ''}
+                </div>
     
                 <!-- Modal para Criar/Editar Plano -->
                 <div id="modalPlano" class="modal-overlay" style="display: none;">
@@ -130,16 +134,25 @@ export class PlanoAlimentarNutricionista {
                 </div>
 
                 <div id="modalListaAlimentos" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: 96vw; max-width: 1520px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
-                        <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 12px 16px; border-radius: 16px 16px 0 0; display: flex; justify-content: flex-end; align-items: center;">
-                            <button onclick="document.getElementById('modalListaAlimentos').style.display='none'" 
-                                    style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 20px;">
-                                X
-                            </button>
-                        </div>
-                        
-                <div data-lista-alimentos-form style="padding: 8px 12px; flex: 1; overflow: hidden;">
+                    <div class="modal-content" style="position: relative; background: white; border-radius: 16px; width: 96vw; max-width: 1520px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                        <button onclick="document.getElementById('modalListaAlimentos').style.display='none'"
+                                style="position: absolute; top: 12px; right: 12px; z-index: 5; background: rgba(15,23,42,0.14); color: #334155; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">
+                            X
+                        </button>
+                        <div data-lista-alimentos-form style="padding: 16px 58px 16px 16px; flex: 1; overflow: hidden;">
                             ${this.renderModalListaAlimentos()}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="modalConfigAlimentos" class="modal-overlay" style="display: none;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(94vw, 860px); max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="font-size: 15px;">Configuracoes</strong>
+                            <button id="btnFecharConfigAlimentos" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
+                        </div>
+                        <div data-config-alimentos-form style="padding: 16px; overflow: auto;">
+                            ${this.renderConfiguracoesAlimentos()}
                         </div>
                     </div>
                 </div>
@@ -533,6 +546,79 @@ export class PlanoAlimentarNutricionista {
         this.alimentosCarregados = true;
     }
 
+    obterCategoriasDerivadas() {
+        const valores = [
+            ...this.getAlimentosIniciais().map((alimento) => alimento.categoria),
+            ...this.alimentosBase.map((alimento) => alimento.categoria)
+        ];
+        return [...new Set(valores.map((valor) => String(valor || '').trim()).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    }
+
+    obterUnidadesDerivadas() {
+        const valores = [
+            ...this.getAlimentosIniciais().map((alimento) => alimento.unidadePadrao),
+            ...this.alimentosBase.map((alimento) => alimento.unidadePadrao)
+        ];
+        return [...new Set(valores.map((valor) => String(valor || '').trim()).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    }
+
+    async carregarConfiguracoesAlimentos() {
+        if (this.configAlimentosCarregada) return;
+
+        const configRef = doc(db, 'configuracoes_plano_alimentar', 'alimentos');
+        const configSnap = await getDoc(configRef);
+        if (configSnap.exists()) {
+            const data = configSnap.data();
+            this.categoriasAlimentos = Array.isArray(data.categorias) ? data.categorias : [];
+            this.unidadesAlimentos = Array.isArray(data.unidades) ? data.unidades : [];
+        }
+
+        if (!this.categoriasAlimentos.length) {
+            this.categoriasAlimentos = this.obterCategoriasDerivadas();
+        }
+
+        if (!this.unidadesAlimentos.length) {
+            this.unidadesAlimentos = this.obterUnidadesDerivadas();
+        }
+
+        this.configAlimentosCarregada = true;
+    }
+
+    renderDatalistOptions(valores = []) {
+        return valores.map((valor) => `<option value="${this.escapeHtml(valor)}"></option>`).join('');
+    }
+
+    renderConfiguracoesAlimentos() {
+        return `
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+                <div style="display: grid; gap: 10px;">
+                    <label style="font-size: 12px; color: #475569; font-weight: 600;">Categorias existentes
+                        <textarea id="configCategoriasAlimentos" rows="12" style="width: 100%; resize: vertical; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">${this.escapeHtml(this.categoriasAlimentos.join('\n'))}</textarea>
+                    </label>
+                    <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px;">
+                        <input id="novaCategoriaAlimento" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Nova categoria">
+                        <button id="btnAdicionarCategoriaAlimento" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #334155; color: white; cursor: pointer;">Adicionar</button>
+                    </div>
+                </div>
+                <div style="display: grid; gap: 10px;">
+                    <label style="font-size: 12px; color: #475569; font-weight: 600;">Unidades existentes
+                        <textarea id="configUnidadesAlimentos" rows="12" style="width: 100%; resize: vertical; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">${this.escapeHtml(this.unidadesAlimentos.join('\n'))}</textarea>
+                    </label>
+                    <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px;">
+                        <input id="novaUnidadeAlimento" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Nova unidade">
+                        <button id="btnAdicionarUnidadeAlimento" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #334155; color: white; cursor: pointer;">Adicionar</button>
+                    </div>
+                </div>
+                <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px;">
+                    <button id="btnCancelarConfigAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
+                    <button id="btnSalvarConfigAlimentos" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Salvar Configuracoes</button>
+                </div>
+            </div>
+        `;
+    }
+
     filtrarAlimentos(termo = '') {
         const busca = this.normalizarBusca(termo);
         if (!busca) return [];
@@ -754,10 +840,11 @@ export class PlanoAlimentarNutricionista {
         return `
             <div style="display: flex; flex-direction: column; gap: 14px; height: 100%; overflow: hidden;">
                 <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 14px; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: grid; grid-template-columns: minmax(220px, 1fr) auto auto auto; gap: 8px; align-items: end; flex: 0 0 auto;">
+                    <div style="display: grid; grid-template-columns: minmax(220px, 1fr) auto auto auto auto; gap: 8px; align-items: end; flex: 0 0 auto;">
                         <label style="font-size: 12px; color: #475569;">Pesquisar Alimento
                             <input id="listaFoodSearch" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" value="${this.escapeHtml(termo)}">
                         </label>
+                        <button id="btnConfigAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #475569; color: white; cursor: pointer; font-weight: 600;">Configuracoes</button>
                         <button id="btnNovoAlimento" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Novo Alimento</button>
                         <button id="btnExportarListaAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer; font-weight: 600;">Exportar Lista</button>
                         <button id="btnImportarListaAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #334155; color: white; cursor: pointer; font-weight: 600;">Importar Lista</button>
@@ -776,8 +863,10 @@ export class PlanoAlimentarNutricionista {
         return `
             <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: end;">
                 <label style="font-size: 12px; color: #475569; grid-column: span 2;">Nome<input id="foodNome" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                <label style="font-size: 12px; color: #475569;">Categoria<input id="foodCategoria" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                <label style="font-size: 12px; color: #475569;">Unidade<input id="foodUnidade" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="porcao"></label>
+                <label style="font-size: 12px; color: #475569;">Categoria<input id="foodCategoria" list="categoriasAlimentosList" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                <label style="font-size: 12px; color: #475569;">Unidade<input id="foodUnidade" list="unidadesAlimentosList" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="porcao"></label>
+                <datalist id="categoriasAlimentosList">${this.renderDatalistOptions(this.categoriasAlimentos)}</datalist>
+                <datalist id="unidadesAlimentosList">${this.renderDatalistOptions(this.unidadesAlimentos)}</datalist>
                 <label style="font-size: 12px; color: #475569;">g/unid<input id="foodGramasUnidade" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
                 <label style="font-size: 12px; color: #475569;">kcal<input id="foodKcal" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
                 <label style="font-size: 12px; color: #475569;">Carb<input id="foodCarboidratos" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
@@ -818,6 +907,14 @@ export class PlanoAlimentarNutricionista {
             this.alimentosBase = [];
         }
 
+        try {
+            await this.carregarConfiguracoesAlimentos();
+        } catch (error) {
+            this.categoriasAlimentos = this.obterCategoriasDerivadas();
+            this.unidadesAlimentos = this.obterUnidadesDerivadas();
+            this.configAlimentosCarregada = true;
+        }
+
         this.renderizarListaAlimentosModal();
         modal.style.display = 'flex';
         setTimeout(() => {
@@ -846,11 +943,78 @@ export class PlanoAlimentarNutricionista {
         };
 
         search?.addEventListener('input', refresh);
+        document.getElementById('btnConfigAlimentos')?.addEventListener('click', () => this.abrirModalConfigAlimentos());
         document.getElementById('btnNovoAlimento')?.addEventListener('click', () => this.abrirModalNovoAlimento());
         document.getElementById('btnExportarListaAlimentos')?.addEventListener('click', () => this.exportarListaAlimentosXlsx());
         document.getElementById('btnImportarListaAlimentos')?.addEventListener('click', () => document.getElementById('inputImportarListaAlimentos')?.click());
         document.getElementById('inputImportarListaAlimentos')?.addEventListener('change', (event) => this.importarListaAlimentosXlsx(event));
         this.attachListaAlimentosResultButtons();
+    }
+
+    abrirModalConfigAlimentos() {
+        const modal = document.getElementById('modalConfigAlimentos');
+        if (!modal) return;
+
+        const formWrapper = modal.querySelector('[data-config-alimentos-form]');
+        if (formWrapper) formWrapper.innerHTML = this.renderConfiguracoesAlimentos();
+        modal.style.display = 'flex';
+        this.attachConfigAlimentosEvents();
+    }
+
+    fecharModalConfigAlimentos() {
+        const modal = document.getElementById('modalConfigAlimentos');
+        if (modal) modal.style.display = 'none';
+    }
+
+    lerListaConfigTextarea(id) {
+        return [...new Set(String(document.getElementById(id)?.value || '')
+            .split('\n')
+            .map((valor) => valor.trim())
+            .filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    }
+
+    adicionarValorConfig(inputId, textareaId) {
+        const input = document.getElementById(inputId);
+        const textarea = document.getElementById(textareaId);
+        const valor = input?.value?.trim();
+        if (!valor || !textarea) return;
+
+        const valores = [...new Set([...String(textarea.value || '').split('\n').map((item) => item.trim()).filter(Boolean), valor])]
+            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        textarea.value = valores.join('\n');
+        input.value = '';
+        input.focus();
+    }
+
+    attachConfigAlimentosEvents() {
+        document.getElementById('btnAdicionarCategoriaAlimento')?.addEventListener('click', () => this.adicionarValorConfig('novaCategoriaAlimento', 'configCategoriasAlimentos'));
+        document.getElementById('btnAdicionarUnidadeAlimento')?.addEventListener('click', () => this.adicionarValorConfig('novaUnidadeAlimento', 'configUnidadesAlimentos'));
+        document.getElementById('btnCancelarConfigAlimentos')?.addEventListener('click', () => this.fecharModalConfigAlimentos());
+        document.getElementById('btnSalvarConfigAlimentos')?.addEventListener('click', () => this.salvarConfiguracoesAlimentos());
+    }
+
+    async salvarConfiguracoesAlimentos() {
+        const categorias = this.lerListaConfigTextarea('configCategoriasAlimentos');
+        const unidades = this.lerListaConfigTextarea('configUnidadesAlimentos');
+
+        if (!categorias.length || !unidades.length) {
+            alert('Informe pelo menos uma categoria e uma unidade.');
+            return;
+        }
+
+        await setDoc(doc(db, 'configuracoes_plano_alimentar', 'alimentos'), {
+            categorias,
+            unidades,
+            atualizado_por: this.userInfo.login,
+            data_atualizacao: new Date().toISOString()
+        }, { merge: true });
+
+        this.categoriasAlimentos = categorias;
+        this.unidadesAlimentos = unidades;
+        this.configAlimentosCarregada = true;
+        this.fecharModalConfigAlimentos();
+        this.renderizarListaAlimentosModal();
     }
 
     attachListaAlimentosResultButtons() {
@@ -1095,12 +1259,22 @@ export class PlanoAlimentarNutricionista {
             });
         }
 
+        const modalConfigAlimentos = document.getElementById('modalConfigAlimentos');
+        if (modalConfigAlimentos) {
+            modalConfigAlimentos.addEventListener('click', (e) => {
+                if (e.target === modalConfigAlimentos) {
+                    this.fecharModalConfigAlimentos();
+                }
+            });
+        }
+
         document.getElementById('btnFecharDetalheAlimento')?.addEventListener('click', () => {
             const modal = document.getElementById('modalDetalheAlimento');
             if (modal) modal.style.display = 'none';
         });
 
         document.getElementById('btnFecharNovoAlimento')?.addEventListener('click', () => this.fecharModalNovoAlimento());
+        document.getElementById('btnFecharConfigAlimentos')?.addEventListener('click', () => this.fecharModalConfigAlimentos());
 
         window.planoAlimentarInstance = this;
     }
