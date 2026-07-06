@@ -4,6 +4,7 @@ import { FuncoesCompartilhadas } from './0_home.js';
 import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
 import { ALIMENTOS_TACO } from './base_alimentos_taco.js';
+import { PLANO_BIA_SANTOS_NOVO_MODELO } from './plano_bia_santos_template.js';
 import { 
     db,
     collection, 
@@ -125,6 +126,7 @@ export class PlanoAlimentarNutricionista {
         this.unidadesAlimentos = [];
         this.alimentoEditandoId = null;
         this.refeicaoSelecionada = 'breakfast';
+        this.opcaoDestinoPlano = null;
         this.itensPlano = this.criarEstadoItensPlano();
         this.detalhesBuscaAlimentos = {};
         this.menu = null;
@@ -199,6 +201,12 @@ export class PlanoAlimentarNutricionista {
                         <span class="fab-text">Lista de Alimentos</span>
                     </button>
                     ${this.selectedPaciente ? `
+                    ${this.podeCriarPlanoModeloBiaSantos() ? `
+                    <button id="btnCriarPlanoBiaSantos" class="fab-button fab-button-green" title="Criar Plano Bia Santos">
+                        <span class="fab-icon">+</span>
+                        <span class="fab-text">Plano Bia Santos</span>
+                    </button>
+                    ` : ''}
                     <button id="btnNovoPlano" class="fab-button" title="Novo Plano Alimentar">
                         <span class="fab-icon">+</span>
                         <span class="fab-text">Novo Plano Alimentar</span>
@@ -586,6 +594,11 @@ export class PlanoAlimentarNutricionista {
         return ALIMENTOS_TACO;
     }
 
+    podeCriarPlanoModeloBiaSantos() {
+        return this.userInfo?.login === 'grazielle.carvalho'
+            && this.selectedPaciente?.login === 'bia.santos';
+    }
+
     normalizarBusca(valor) {
         return String(valor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
@@ -767,23 +780,80 @@ export class PlanoAlimentarNutricionista {
     }
 
     criarItemPlanoDeLinha(linha) {
+        const texto = this.resumirTextoItemPlano(linha);
         return {
             id: this.gerarIdItemPlano(),
-            texto: this.resumirTextoItemPlano(linha),
+            texto,
             detalhes: null,
+            opcoes: [{
+                id: this.gerarIdItemPlano(),
+                texto,
+                detalhes: null
+            }],
             detalhesAberto: false
         };
+    }
+
+    criarOpcaoItemPlano(alimento, quantidade) {
+        const nutrientes = this.calcularNutrientes(alimento, quantidade, 'unidade');
+        const quantidadeTexto = this.formatarQuantidadePreview(alimento, quantidade, true);
+        const texto = `${alimento.nome} - ${quantidadeTexto}`;
+
+        return {
+            id: this.gerarIdItemPlano(),
+            texto,
+            detalhes: {
+                nome: alimento.nome,
+                quantidadeTexto,
+                gramas: nutrientes.gramas,
+                kcal: nutrientes.kcal,
+                carboidratos: nutrientes.carboidratos,
+                proteinas: nutrientes.proteinas,
+                gorduras: nutrientes.gorduras
+            }
+        };
+    }
+
+    normalizarItemPlano(item) {
+        const texto = this.resumirTextoItemPlano(item.texto || '');
+        const opcoesOriginais = Array.isArray(item.opcoes) && item.opcoes.length
+            ? item.opcoes
+            : [{
+                id: item.id || this.gerarIdItemPlano(),
+                texto,
+                detalhes: item.detalhes || null
+            }];
+
+        const opcoes = opcoesOriginais
+            .map((opcao) => ({
+                id: opcao.id || this.gerarIdItemPlano(),
+                texto: this.resumirTextoItemPlano(opcao.texto || ''),
+                detalhes: opcao.detalhes || null
+            }))
+            .filter((opcao) => opcao.texto);
+
+        return {
+            id: item.id || this.gerarIdItemPlano(),
+            texto: opcoes.length ? this.formatarTextoItemPlano({ opcoes }) : texto,
+            detalhes: item.detalhes || opcoes[0]?.detalhes || null,
+            opcoes,
+            detalhesAberto: false
+        };
+    }
+
+    formatarTextoItemPlano(item) {
+        const opcoes = Array.isArray(item.opcoes) ? item.opcoes.filter((opcao) => opcao.texto) : [];
+        if (!opcoes.length) return this.resumirTextoItemPlano(item.texto || '');
+        if (opcoes.length === 1) return opcoes[0].texto;
+        return opcoes.map((opcao, index) => `Opção ${index + 1}: ${opcao.texto}`).join(' ou ');
     }
 
     criarEstadoItensPlano(plano = {}) {
         return this.getRefeicoesPlano().reduce((estado, refeicao) => {
             if (Array.isArray(plano.itens_plano?.[refeicao.id])) {
-                estado[refeicao.id] = plano.itens_plano[refeicao.id].map((item) => ({
-                    id: item.id || this.gerarIdItemPlano(),
-                    texto: this.resumirTextoItemPlano(item.texto || ''),
-                    detalhes: item.detalhes || null,
-                    detalhesAberto: false
-                })).filter((item) => item.texto);
+                estado[refeicao.id] = plano.itens_plano[refeicao.id]
+                    .map((item) => this.normalizarItemPlano(item))
+                    .filter((item) => item.opcoes.length || item.texto);
                 return estado;
             }
 
@@ -822,13 +892,27 @@ export class PlanoAlimentarNutricionista {
     }
 
     renderItemRefeicao(mealId, item) {
+        const ativoParaOpcao = this.opcaoDestinoPlano?.mealId === mealId && this.opcaoDestinoPlano?.itemId === item.id;
+        const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
+            ? item.opcoes
+            : [{ id: item.id, texto: item.texto, detalhes: item.detalhes }];
+
         return `
             <div class="meal-item-row" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: visible; border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px; background: #f8fafc;">
-                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;">
-                    <div style="color: #334155; font-size: 13px; line-height: 1.35;">${this.escapeHtml(item.texto)}</div>
+                <div style="display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: start;">
+                    <div style="display: grid; gap: 5px; min-width: 0;">
+                        ${opcoes.map((opcao, index) => `
+                            <div style="display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: start; color: #334155; font-size: 13px; line-height: 1.35;">
+                                <span style="color: #1a237e; font-weight: 700; white-space: nowrap;">Opção ${index + 1}</span>
+                                <span>${this.escapeHtml(opcao.texto)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button type="button" class="btnAdicionarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Adicionar opção" title="Adicionar opção neste alimento" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: ${ativoParaOpcao ? '#1a237e' : '#dcfce7'}; color: ${ativoParaOpcao ? 'white' : '#166534'}; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700;">+</button>
                     <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                     <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" style="padding: 6px 9px; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer;">X</button>
                 </div>
+                ${ativoParaOpcao ? '<div style="margin-top: 7px; font-size: 12px; color: #1a237e; font-weight: 600;">Selecione um alimento acima para adicionar como próxima opção.</div>' : ''}
             </div>
         `;
     }
@@ -1323,6 +1407,8 @@ export class PlanoAlimentarNutricionista {
             });
         }
 
+        document.getElementById('btnCriarPlanoBiaSantos')?.addEventListener('click', () => this.criarPlanoModeloBiaSantos());
+
         document.getElementById('btnListaAlimentos')?.addEventListener('click', () => this.abrirModalListaAlimentos());
 
         const btnSalvarPlano = document.getElementById('btnSalvarPlano');
@@ -1417,6 +1503,9 @@ export class PlanoAlimentarNutricionista {
         document.querySelectorAll('.btnDetalhesItemPlano').forEach((button) => {
             button.addEventListener('click', () => this.alternarDetalhesItemPlano(button.dataset.mealId, button.dataset.itemId));
         });
+        document.querySelectorAll('.btnAdicionarOpcaoItemPlano').forEach((button) => {
+            button.addEventListener('click', () => this.prepararAdicionarOpcaoItemPlano(button.dataset.mealId, button.dataset.itemId));
+        });
     }
 
     attachFoodResultButtons() {
@@ -1498,6 +1587,19 @@ export class PlanoAlimentarNutricionista {
 
     excluirItemPlano(mealId, itemId) {
         this.itensPlano[mealId] = (this.itensPlano[mealId] || []).filter((item) => item.id !== itemId);
+        if (this.opcaoDestinoPlano?.mealId === mealId && this.opcaoDestinoPlano?.itemId === itemId) {
+            this.opcaoDestinoPlano = null;
+        }
+        this.renderizarRefeicoesPlano();
+    }
+
+    prepararAdicionarOpcaoItemPlano(mealId, itemId) {
+        if (this.opcaoDestinoPlano?.mealId === mealId && this.opcaoDestinoPlano?.itemId === itemId) {
+            this.opcaoDestinoPlano = null;
+        } else {
+            this.opcaoDestinoPlano = { mealId, itemId };
+            this.refeicaoSelecionada = mealId;
+        }
         this.renderizarRefeicoesPlano();
     }
 
@@ -1510,23 +1612,36 @@ export class PlanoAlimentarNutricionista {
 
     abrirModalDetalheItemPlano(item) {
         const detalhes = item.detalhes;
+        const opcoes = Array.isArray(item.opcoes) ? item.opcoes : [];
         const modal = document.getElementById('modalDetalheAlimento');
         const formWrapper = modal?.querySelector('[data-detalhe-alimento-form]');
         if (formWrapper) {
             formWrapper.innerHTML = `
                 <div style="display: grid; gap: 12px;">
-                    <div style="font-size: 18px; font-weight: 700; color: #1a237e;">${this.escapeHtml(detalhes?.nome || item.texto)}</div>
-                    <div style="font-size: 14px; color: #475569;">${this.escapeHtml(detalhes?.quantidadeTexto || 'Sem quantidade informada')}</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #1a237e;">${this.escapeHtml(opcoes.length > 1 ? 'Alternativas do alimento' : detalhes?.nome || item.texto)}</div>
+                    <div style="font-size: 14px; color: #475569;">${this.escapeHtml(opcoes.length > 1 ? `${opcoes.length} opções cadastradas` : detalhes?.quantidadeTexto || 'Sem quantidade informada')}</div>
                     <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px; padding: 10px 12px; font-size: 15px; color: #1e293b; font-weight: 600;">
-                        ${this.escapeHtml(item.texto)}
+                        ${this.escapeHtml(this.formatarTextoItemPlano(item))}
                     </div>
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; line-height: 1.6;">
-                        <div><strong>Gramas:</strong> ${this.formatarNumero(detalhes?.gramas || 0, 0)} g</div>
-                        <div><strong>Energia:</strong> ${this.formatarNumero(detalhes?.kcal || 0, 0)} kcal</div>
-                        <div><strong>Carboidratos:</strong> ${this.formatarNumero(detalhes?.carboidratos || 0)} g</div>
-                        <div><strong>Proteínas:</strong> ${this.formatarNumero(detalhes?.proteinas || 0)} g</div>
-                        <div><strong>Gorduras:</strong> ${this.formatarNumero(detalhes?.gorduras || 0)} g</div>
-                    </div>
+                    ${opcoes.length ? opcoes.map((opcao, index) => `
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; line-height: 1.6;">
+                            <div style="font-weight: 700; color: #1a237e; margin-bottom: 4px;">Opção ${index + 1}: ${this.escapeHtml(opcao.detalhes?.nome || opcao.texto)}</div>
+                            <div><strong>Quantidade:</strong> ${this.escapeHtml(opcao.detalhes?.quantidadeTexto || 'Sem quantidade informada')}</div>
+                            <div><strong>Gramas:</strong> ${this.formatarNumero(opcao.detalhes?.gramas || 0, 0)} g</div>
+                            <div><strong>Energia:</strong> ${this.formatarNumero(opcao.detalhes?.kcal || 0, 0)} kcal</div>
+                            <div><strong>Carboidratos:</strong> ${this.formatarNumero(opcao.detalhes?.carboidratos || 0)} g</div>
+                            <div><strong>Proteínas:</strong> ${this.formatarNumero(opcao.detalhes?.proteinas || 0)} g</div>
+                            <div><strong>Gorduras:</strong> ${this.formatarNumero(opcao.detalhes?.gorduras || 0)} g</div>
+                        </div>
+                    `).join('') : `
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; line-height: 1.6;">
+                            <div><strong>Gramas:</strong> ${this.formatarNumero(detalhes?.gramas || 0, 0)} g</div>
+                            <div><strong>Energia:</strong> ${this.formatarNumero(detalhes?.kcal || 0, 0)} kcal</div>
+                            <div><strong>Carboidratos:</strong> ${this.formatarNumero(detalhes?.carboidratos || 0)} g</div>
+                            <div><strong>Proteínas:</strong> ${this.formatarNumero(detalhes?.proteinas || 0)} g</div>
+                            <div><strong>Gorduras:</strong> ${this.formatarNumero(detalhes?.gorduras || 0)} g</div>
+                        </div>
+                    `}
                 </div>
             `;
         }
@@ -1556,7 +1671,7 @@ export class PlanoAlimentarNutricionista {
 
     obterTextoRefeicao(mealId) {
         return (this.itensPlano[mealId] || [])
-            .map((item) => item.texto)
+            .map((item) => this.formatarTextoItemPlano(item))
             .join('\n');
     }
 
@@ -1641,22 +1756,36 @@ export class PlanoAlimentarNutricionista {
         const quantidade = Number(document.getElementById(`foodQuantidade_${foodId}`)?.value || 1);
         const mealId = this.obterRefeicaoSelecionada();
         this.refeicaoSelecionada = mealId;
-        const nutrientes = this.calcularNutrientes(alimento, quantidade, 'unidade');
-        const quantidadeTexto = this.formatarQuantidadePreview(alimento, quantidade, true);
-        const linha = `${alimento.nome} - ${quantidadeTexto}`;
+        const opcao = this.criarOpcaoItemPlano(alimento, quantidade);
         this.itensPlano[mealId] = this.itensPlano[mealId] || [];
+
+        if (this.opcaoDestinoPlano) {
+            const itemDestino = (this.itensPlano[this.opcaoDestinoPlano.mealId] || [])
+                .find((item) => item.id === this.opcaoDestinoPlano.itemId);
+            if (itemDestino) {
+                itemDestino.opcoes = Array.isArray(itemDestino.opcoes) && itemDestino.opcoes.length
+                    ? itemDestino.opcoes
+                    : [{
+                        id: itemDestino.id,
+                        texto: itemDestino.texto,
+                        detalhes: itemDestino.detalhes || null
+                    }];
+                itemDestino.opcoes.push(opcao);
+                itemDestino.texto = this.formatarTextoItemPlano(itemDestino);
+                itemDestino.detalhes = itemDestino.opcoes[0]?.detalhes || null;
+                this.refeicaoSelecionada = this.opcaoDestinoPlano.mealId;
+                this.opcaoDestinoPlano = null;
+                this.renderizarRefeicoesPlano();
+                return;
+            }
+            this.opcaoDestinoPlano = null;
+        }
+
         this.itensPlano[mealId].push({
             id: this.gerarIdItemPlano(),
-            texto: linha,
-            detalhes: {
-                nome: alimento.nome,
-                quantidadeTexto,
-                gramas: nutrientes.gramas,
-                kcal: nutrientes.kcal,
-                carboidratos: nutrientes.carboidratos,
-                proteinas: nutrientes.proteinas,
-                gorduras: nutrientes.gorduras
-            },
+            texto: opcao.texto,
+            detalhes: opcao.detalhes,
+            opcoes: [opcao],
             detalhesAberto: false
         });
         this.renderizarRefeicoesPlano();
@@ -1778,6 +1907,37 @@ export class PlanoAlimentarNutricionista {
             
         } catch (error) {
             alert('❌ Erro ao salvar: ' + error.message);
+        }
+    }
+
+    async criarPlanoModeloBiaSantos() {
+        if (!this.podeCriarPlanoModeloBiaSantos()) {
+            alert('Selecione a paciente bia.santos com a profissional grazielle.carvalho.');
+            return;
+        }
+
+        const confirmado = confirm('Criar o plano alimentar novo modelo para bia.santos?');
+        if (!confirmado) return;
+
+        try {
+            const mealPlanData = {
+                ...PLANO_BIA_SANTOS_NOVO_MODELO,
+                profissional_nome: this.userInfo.nome || PLANO_BIA_SANTOS_NOVO_MODELO.profissional_nome,
+                profissional_login: this.userInfo.login,
+                paciente_login: this.selectedPaciente.login,
+                paciente_nome: this.selectedPaciente.nome || '',
+                criado_por: this.userInfo.login,
+                data_criacao: new Date().toISOString()
+            };
+
+            const pacienteCollectionRef = collection(db, 'planos_alimentares', 'grazielle.carvalho', 'bia.santos');
+            await addDoc(pacienteCollectionRef, mealPlanData);
+
+            alert('Plano novo modelo criado para bia.santos.');
+            await this.loadPlanos();
+            await this.render();
+        } catch (error) {
+            alert('Nao foi possivel criar o plano para bia.santos: ' + error.message);
         }
     }
 
