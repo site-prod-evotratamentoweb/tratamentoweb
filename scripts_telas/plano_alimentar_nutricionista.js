@@ -127,6 +127,7 @@ export class PlanoAlimentarNutricionista {
         this.alimentoEditandoId = null;
         this.refeicaoSelecionada = 'breakfast';
         this.opcaoDestinoPlano = null;
+        this.criandoPlanoBiaSantos = false;
         this.itensPlano = this.criarEstadoItensPlano();
         this.detalhesBuscaAlimentos = {};
         this.menu = null;
@@ -599,6 +600,14 @@ export class PlanoAlimentarNutricionista {
             && this.selectedPaciente?.login === 'bia.santos';
     }
 
+    planoModeloBiaSantosJaExiste() {
+        return this.planosList.some((plano) => (
+            plano.modelo_plano === 'base_nutricional_linhas_v2_opcoes'
+            && plano.paciente_login === 'bia.santos'
+            && plano.origem_plano_antigo === PLANO_BIA_SANTOS_NOVO_MODELO.origem_plano_antigo
+        ));
+    }
+
     normalizarBusca(valor) {
         return String(valor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
@@ -976,6 +985,13 @@ export class PlanoAlimentarNutricionista {
                     </div>
             `;
         }).join('');
+    }
+
+    renderizarPlanosContainer() {
+        const container = document.getElementById('planosContainer');
+        if (container) {
+            container.innerHTML = this.renderPlanosList();
+        }
     }
 
     renderFormularioPlano() {
@@ -1806,6 +1822,9 @@ export class PlanoAlimentarNutricionista {
             querySnapshot.forEach((docSnap) => {
                 this.planosList.push({ id: docSnap.id, ...docSnap.data() });
             });
+
+            await this.garantirPlanoModeloBiaSantos();
+            this.renderizarPlanosContainer();
             
         } catch (error) {
             this.planosList = [];
@@ -1910,34 +1929,67 @@ export class PlanoAlimentarNutricionista {
         }
     }
 
-    async criarPlanoModeloBiaSantos() {
-        if (!this.podeCriarPlanoModeloBiaSantos()) {
-            alert('Selecione a paciente bia.santos com a profissional grazielle.carvalho.');
+    montarPlanoModeloBiaSantos() {
+        return {
+            ...PLANO_BIA_SANTOS_NOVO_MODELO,
+            profissional_nome: this.userInfo.nome || PLANO_BIA_SANTOS_NOVO_MODELO.profissional_nome,
+            profissional_login: this.userInfo.login,
+            paciente_login: this.selectedPaciente.login,
+            paciente_nome: this.selectedPaciente.nome || '',
+            criado_por: this.userInfo.login,
+            data_criacao: new Date().toISOString()
+        };
+    }
+
+    async garantirPlanoModeloBiaSantos() {
+        if (!this.podeCriarPlanoModeloBiaSantos() || this.planoModeloBiaSantosJaExiste() || this.criandoPlanoBiaSantos) {
             return;
         }
 
-        const confirmado = confirm('Criar o plano alimentar novo modelo para bia.santos?');
-        if (!confirmado) return;
+        await this.criarPlanoModeloBiaSantos({ silencioso: true, semRecarregar: true });
+    }
+
+    async criarPlanoModeloBiaSantos(opcoes = {}) {
+        if (!this.podeCriarPlanoModeloBiaSantos()) {
+            if (!opcoes.silencioso) {
+                alert('Selecione a paciente bia.santos com a profissional grazielle.carvalho.');
+            }
+            return;
+        }
+
+        if (this.planoModeloBiaSantosJaExiste()) {
+            if (!opcoes.silencioso) {
+                alert('Este plano novo modelo ja existe para bia.santos.');
+            }
+            return;
+        }
+
+        if (!opcoes.silencioso) {
+            const confirmado = confirm('Criar o plano alimentar novo modelo para bia.santos?');
+            if (!confirmado) return;
+        }
 
         try {
-            const mealPlanData = {
-                ...PLANO_BIA_SANTOS_NOVO_MODELO,
-                profissional_nome: this.userInfo.nome || PLANO_BIA_SANTOS_NOVO_MODELO.profissional_nome,
-                profissional_login: this.userInfo.login,
-                paciente_login: this.selectedPaciente.login,
-                paciente_nome: this.selectedPaciente.nome || '',
-                criado_por: this.userInfo.login,
-                data_criacao: new Date().toISOString()
-            };
+            this.criandoPlanoBiaSantos = true;
+            const mealPlanData = this.montarPlanoModeloBiaSantos();
 
             const pacienteCollectionRef = collection(db, 'planos_alimentares', 'grazielle.carvalho', 'bia.santos');
-            await addDoc(pacienteCollectionRef, mealPlanData);
+            const ref = await addDoc(pacienteCollectionRef, mealPlanData);
+            this.planosList.push({ id: ref.id, ...mealPlanData });
 
-            alert('Plano novo modelo criado para bia.santos.');
-            await this.loadPlanos();
-            await this.render();
+            if (!opcoes.silencioso) {
+                alert('Plano novo modelo criado para bia.santos.');
+            }
+            if (!opcoes.semRecarregar) {
+                await this.loadPlanos();
+                await this.render();
+            }
         } catch (error) {
-            alert('Nao foi possivel criar o plano para bia.santos: ' + error.message);
+            if (!opcoes.silencioso) {
+                alert('Nao foi possivel criar o plano para bia.santos: ' + error.message);
+            }
+        } finally {
+            this.criandoPlanoBiaSantos = false;
         }
     }
 
