@@ -148,7 +148,7 @@ export class PlanoAlimentarNutricionista {
                 <div id="modalConfigAlimentos" class="modal-overlay" style="display: none;">
                     <div class="modal-content" style="background: white; border-radius: 16px; width: min(94vw, 860px); max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
-                            <strong style="font-size: 15px;">Configuracoes</strong>
+                            <strong style="font-size: 15px;">Configurações</strong>
                             <button id="btnFecharConfigAlimentos" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
                         </div>
                         <div data-config-alimentos-form style="padding: 16px; overflow: auto;">
@@ -526,7 +526,11 @@ export class PlanoAlimentarNutricionista {
         const ref = collection(db, 'base_alimentos_nutricionais');
         const snapshot = await getDocs(ref);
         this.alimentosBase = [];
-        snapshot.forEach((docSnap) => this.alimentosBase.push({ id: docSnap.id, ...docSnap.data() }));
+        snapshot.forEach((docSnap) => {
+            if (docSnap.id !== '__configuracoes__') {
+                this.alimentosBase.push({ id: docSnap.id, ...docSnap.data() });
+            }
+        });
 
         if (this.alimentosBase.length === 0) {
             for (const alimento of this.getAlimentosIniciais()) {
@@ -540,7 +544,11 @@ export class PlanoAlimentarNutricionista {
 
             const novoSnapshot = await getDocs(ref);
             this.alimentosBase = [];
-            novoSnapshot.forEach((docSnap) => this.alimentosBase.push({ id: docSnap.id, ...docSnap.data() }));
+            novoSnapshot.forEach((docSnap) => {
+                if (docSnap.id !== '__configuracoes__') {
+                    this.alimentosBase.push({ id: docSnap.id, ...docSnap.data() });
+                }
+            });
         }
 
         this.alimentosCarregados = true;
@@ -567,7 +575,7 @@ export class PlanoAlimentarNutricionista {
     async carregarConfiguracoesAlimentos() {
         if (this.configAlimentosCarregada) return;
 
-        const configRef = doc(db, 'configuracoes_plano_alimentar', 'alimentos');
+        const configRef = doc(db, 'base_alimentos_nutricionais', '__configuracoes__');
         const configSnap = await getDoc(configRef);
         if (configSnap.exists()) {
             const data = configSnap.data();
@@ -613,7 +621,7 @@ export class PlanoAlimentarNutricionista {
                 </div>
                 <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px;">
                     <button id="btnCancelarConfigAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
-                    <button id="btnSalvarConfigAlimentos" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Salvar Configuracoes</button>
+                    <button id="btnSalvarConfigAlimentos" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Salvar Configurações</button>
                 </div>
             </div>
         `;
@@ -844,7 +852,7 @@ export class PlanoAlimentarNutricionista {
                         <label style="font-size: 12px; color: #475569;">Pesquisar Alimento
                             <input id="listaFoodSearch" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" value="${this.escapeHtml(termo)}">
                         </label>
-                        <button id="btnConfigAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #475569; color: white; cursor: pointer; font-weight: 600;">Configuracoes</button>
+                        <button id="btnConfigAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #475569; color: white; cursor: pointer; font-weight: 600;">Configurações</button>
                         <button id="btnNovoAlimento" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Novo Alimento</button>
                         <button id="btnExportarListaAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer; font-weight: 600;">Exportar Lista</button>
                         <button id="btnImportarListaAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #334155; color: white; cursor: pointer; font-weight: 600;">Importar Lista</button>
@@ -1003,7 +1011,8 @@ export class PlanoAlimentarNutricionista {
             return;
         }
 
-        await setDoc(doc(db, 'configuracoes_plano_alimentar', 'alimentos'), {
+        await setDoc(doc(db, 'base_alimentos_nutricionais', '__configuracoes__'), {
+            tipo: 'configuracoes_alimentos',
             categorias,
             unidades,
             atualizado_por: this.userInfo.login,
@@ -1138,7 +1147,9 @@ export class PlanoAlimentarNutricionista {
 
             const ref = collection(db, 'base_alimentos_nutricionais');
             const snapshot = await getDocs(ref);
-            await Promise.all(snapshot.docs.map((docSnap) => deleteDoc(doc(db, 'base_alimentos_nutricionais', docSnap.id))));
+            await Promise.all(snapshot.docs
+                .filter((docSnap) => docSnap.id !== '__configuracoes__')
+                .map((docSnap) => deleteDoc(doc(db, 'base_alimentos_nutricionais', docSnap.id))));
             await Promise.all(alimentosImportados.map((alimento) => addDoc(ref, {
                 ...alimento,
                 criado_por: this.userInfo.login,
