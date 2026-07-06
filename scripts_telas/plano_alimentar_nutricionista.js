@@ -537,14 +537,7 @@ export class PlanoAlimentarNutricionista {
                             </div>
                             
                             <!-- Refeições -->
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px;">
-                                ${this.renderRefeicaoCard('🌅 Café da Manhã', plano.breakfast)}
-                                ${this.renderRefeicaoCard('🍎 Lanche da Manhã', plano.morningSnack)}
-                                ${this.renderRefeicaoCard('🍽️ Almoço', plano.lunch)}
-                                ${this.renderRefeicaoCard('🍌 Lanche da Tarde', plano.afternoonSnack)}
-                                ${this.renderRefeicaoCard('🌙 Jantar', plano.dinner)}
-                                ${this.renderRefeicaoCard('⭐ Ceia', plano.supper)}
-                            </div>
+                            ${this.renderRefeicoesPlanoSalvo(plano)}
                             
                             <!-- Informações Adicionais -->
                             ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
@@ -580,6 +573,70 @@ export class PlanoAlimentarNutricionista {
             <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <strong style="color: #1a237e; display: block; margin-bottom: 6px;">${titulo}</strong>
                 <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap;">${this.escapeHtml(conteudo)}</p>
+            </div>
+        `;
+    }
+
+    renderRefeicoesPlanoSalvo(plano) {
+        const refeicoes = [
+            { id: 'breakfast', titulo: 'Café da Manhã', icone: '🌅' },
+            { id: 'morningSnack', titulo: 'Lanche da Manhã', icone: '🍎' },
+            { id: 'lunch', titulo: 'Almoço', icone: '🍽️' },
+            { id: 'afternoonSnack', titulo: 'Lanche da Tarde', icone: '🍌' },
+            { id: 'dinner', titulo: 'Jantar', icone: '🌙' },
+            { id: 'supper', titulo: 'Ceia', icone: '⭐' }
+        ];
+
+        return `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                ${refeicoes.map((refeicao) => this.renderRefeicaoPlanoSalvo(plano, refeicao)).join('')}
+            </div>
+        `;
+    }
+
+    renderRefeicaoPlanoSalvo(plano, refeicao) {
+        const itens = Array.isArray(plano.itens_plano?.[refeicao.id])
+            ? plano.itens_plano[refeicao.id].map((item) => this.normalizarItemPlano(item))
+            : [];
+
+        if (!itens.length) {
+            return this.renderRefeicaoCard(`${refeicao.icone} ${refeicao.titulo}`, plano[refeicao.id]);
+        }
+
+        return `
+            <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden;">
+                <div style="background: #f1f5f9; color: #1a237e; padding: 10px 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <span>${refeicao.icone}</span>
+                    <span>${refeicao.titulo}</span>
+                </div>
+                <div style="padding: 10px; display: grid; gap: 8px;">
+                    ${itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item)).join('')}
+                </div>
+            </section>
+        `;
+    }
+
+    renderItemPlanoSalvo(planoId, mealId, item) {
+        const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
+            ? item.opcoes
+            : [{ id: item.id, texto: item.texto, detalhes: item.detalhes }];
+        const opcaoVisivelIndex = Math.max(0, Math.min(opcoes.length - 1, Number(item.opcaoVisivelIndex || 0)));
+        const opcaoVisivel = opcoes[opcaoVisivelIndex];
+        const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : 0;
+
+        return `
+            <div style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 9px; background: #f8fafc;">
+                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: start;">
+                    <div style="display: grid; gap: 5px; min-width: 0;">
+                        <div style="display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: start; color: #334155; font-size: 13px; line-height: 1.35;">
+                            <span style="color: #1a237e; font-weight: 700; white-space: nowrap;">Opção ${opcaoVisivelIndex + 1}</span>
+                            <span>${this.escapeHtml(opcaoVisivel.texto)}</span>
+                        </div>
+                        ${opcoes.length > 1 ? `<div style="font-size: 11px; color: #64748b;">${opcoes.length} opções cadastradas para este alimento</div>` : ''}
+                    </div>
+                    ${opcoes.length > 1 ? `<button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.alternarOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Ver opção ${proximaOpcaoIndex + 1}" title="Ver opção ${proximaOpcaoIndex + 1}" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">${proximaOpcaoIndex + 1}</button>` : `<span aria-hidden="true" style="width: 30px; min-width: 30px; height: 30px;"></span>`}
+                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalheOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Ver detalhes" title="Ver detalhes da opção atual" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                </div>
             </div>
         `;
     }
@@ -1897,6 +1954,28 @@ export class PlanoAlimentarNutricionista {
             this.planoExpandido = planoId;
         }
         this.render();
+    }
+
+    encontrarItemPlanoSalvo(planoId, mealId, itemId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        const item = plano?.itens_plano?.[mealId]?.find((registro) => registro.id === itemId);
+        return { plano, item };
+    }
+
+    alternarOpcaoPlanoSalvo(planoId, mealId, itemId) {
+        const { item } = this.encontrarItemPlanoSalvo(planoId, mealId, itemId);
+        if (!item || !Array.isArray(item.opcoes) || item.opcoes.length < 2) return;
+
+        item.opcaoVisivelIndex = (Number(item.opcaoVisivelIndex || 0) + 1) % item.opcoes.length;
+        this.render();
+        this.abrirDetalheOpcaoPlanoSalvo(planoId, mealId, itemId);
+    }
+
+    abrirDetalheOpcaoPlanoSalvo(planoId, mealId, itemId) {
+        const { item } = this.encontrarItemPlanoSalvo(planoId, mealId, itemId);
+        if (!item) return;
+
+        this.abrirModalDetalheItemPlano(this.normalizarItemPlano(item), Number(item.opcaoVisivelIndex || 0));
     }
 
     editarPlano(planoId) {
