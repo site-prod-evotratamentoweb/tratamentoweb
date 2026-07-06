@@ -144,6 +144,18 @@ export class PlanoAlimentarNutricionista {
                     </div>
                 </div>
 
+                <div id="modalNovoAlimento" class="modal-overlay" style="display: none;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(94vw, 980px); max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <strong id="modalNovoAlimentoTitulo" style="font-size: 15px;">Novo Alimento</strong>
+                            <button id="btnFecharNovoAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
+                        </div>
+                        <div data-novo-alimento-form style="padding: 16px; overflow: auto;">
+                            ${this.renderFormularioAlimento()}
+                        </div>
+                    </div>
+                </div>
+
                 <div id="modalDetalheAlimento" class="modal-overlay" style="display: none;">
                     <div class="modal-content" style="background: white; border-radius: 16px; width: min(92vw, 560px); max-width: 560px; max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
@@ -206,7 +218,7 @@ export class PlanoAlimentarNutricionista {
                         bottom: 18px;
                         width: 56px;
                         height: 56px;
-                        padding: 12px;
+                        padding: 0;
                         border: none;
                         border-radius: 50px;
                         background: #1a237e;
@@ -225,7 +237,7 @@ export class PlanoAlimentarNutricionista {
 
                     .modal-save-button:hover {
                         width: 150px;
-                        padding: 12px 22px;
+                        padding: 0 18px 0 0;
                         gap: 10px;
                         background: #283593;
                         box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
@@ -233,7 +245,7 @@ export class PlanoAlimentarNutricionista {
 
                     .modal-save-icon {
                         font-size: 22px;
-                        min-width: 30px;
+                        flex: 0 0 56px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
@@ -741,31 +753,39 @@ export class PlanoAlimentarNutricionista {
 
         return `
             <div style="display: flex; flex-direction: column; gap: 14px; height: 100%; overflow: hidden;">
-                <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 14px; flex: 0 0 auto;">
-                    <div style="display: grid; grid-template-columns: 1.2fr 150px 120px 120px 120px 120px 120px 120px 120px auto; gap: 8px; align-items: end;">
-                        <label style="font-size: 12px; color: #475569;">Nome<input id="foodNome" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                        <label style="font-size: 12px; color: #475569;">Categoria<input id="foodCategoria" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                        <label style="font-size: 12px; color: #475569;">Unidade<input id="foodUnidade" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="porcao"></label>
-                        <label style="font-size: 12px; color: #475569;">g/unid<input id="foodGramasUnidade" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                        <label style="font-size: 12px; color: #475569;">kcal<input id="foodKcal" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                        <label style="font-size: 12px; color: #475569;">Carb<input id="foodCarboidratos" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                        <label style="font-size: 12px; color: #475569;">Prot<input id="foodProteinas" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                        <label style="font-size: 12px; color: #475569;">Gord<input id="foodGorduras" type="number" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
-                        <button id="btnSalvarAlimento" type="button" style="padding: 9px 10px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer;">Salvar</button>
-                    </div>
-                </div>
-
                 <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 14px; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: grid; grid-template-columns: minmax(220px, 1fr) auto; gap: 8px; align-items: end; flex: 0 0 auto;">
-                        <label style="font-size: 12px; color: #475569;">Pesquisar na lista
-                            <input id="listaFoodSearch" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Digite: ar, pao, frango..." value="${this.escapeHtml(termo)}">
+                    <div style="display: grid; grid-template-columns: minmax(220px, 1fr) auto auto auto; gap: 8px; align-items: end; flex: 0 0 auto;">
+                        <label style="font-size: 12px; color: #475569;">Pesquisar Alimento
+                            <input id="listaFoodSearch" autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" value="${this.escapeHtml(termo)}">
                         </label>
-                        <button id="btnLimparAlimentoForm" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Novo alimento</button>
+                        <button id="btnNovoAlimento" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Novo Alimento</button>
+                        <button id="btnExportarListaAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer; font-weight: 600;">Exportar Lista</button>
+                        <button id="btnImportarListaAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #334155; color: white; cursor: pointer; font-weight: 600;">Importar Lista</button>
+                        <input id="inputImportarListaAlimentos" type="file" accept=".xlsx,.xls" style="display: none;">
                     </div>
 
                     <div id="listaFoodResults" style="flex: 1; overflow-y: auto; display: grid; gap: 8px; padding-right: 4px;">
                         ${this.renderResultadosListaAlimentos(alimentos)}
                     </div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderFormularioAlimento() {
+        return `
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: end;">
+                <label style="font-size: 12px; color: #475569; grid-column: span 2;">Nome<input id="foodNome" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                <label style="font-size: 12px; color: #475569;">Categoria<input id="foodCategoria" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                <label style="font-size: 12px; color: #475569;">Unidade<input id="foodUnidade" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="porcao"></label>
+                <label style="font-size: 12px; color: #475569;">g/unid<input id="foodGramasUnidade" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                <label style="font-size: 12px; color: #475569;">kcal<input id="foodKcal" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                <label style="font-size: 12px; color: #475569;">Carb<input id="foodCarboidratos" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                <label style="font-size: 12px; color: #475569;">Prot<input id="foodProteinas" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                <label style="font-size: 12px; color: #475569;">Gord<input id="foodGorduras" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px;">
+                    <button id="btnCancelarAlimento" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
+                    <button id="btnSalvarAlimento" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Salvar</button>
                 </div>
             </div>
         `;
@@ -826,14 +846,16 @@ export class PlanoAlimentarNutricionista {
         };
 
         search?.addEventListener('input', refresh);
-        document.getElementById('btnSalvarAlimento')?.addEventListener('click', () => this.salvarAlimentoBase(refresh));
-        document.getElementById('btnLimparAlimentoForm')?.addEventListener('click', () => this.limparFormularioAlimento());
+        document.getElementById('btnNovoAlimento')?.addEventListener('click', () => this.abrirModalNovoAlimento());
+        document.getElementById('btnExportarListaAlimentos')?.addEventListener('click', () => this.exportarListaAlimentosXlsx());
+        document.getElementById('btnImportarListaAlimentos')?.addEventListener('click', () => document.getElementById('inputImportarListaAlimentos')?.click());
+        document.getElementById('inputImportarListaAlimentos')?.addEventListener('change', (event) => this.importarListaAlimentosXlsx(event));
         this.attachListaAlimentosResultButtons();
     }
 
     attachListaAlimentosResultButtons() {
         document.querySelectorAll('.btnEditarAlimento').forEach((button) => {
-            button.addEventListener('click', () => this.preencherFormularioAlimento(button.dataset.foodId));
+            button.addEventListener('click', () => this.abrirModalNovoAlimento(button.dataset.foodId));
         });
         document.querySelectorAll('.btnExcluirAlimento').forEach((button) => {
             button.addEventListener('click', () => this.excluirAlimentoBase(button.dataset.foodId));
@@ -849,6 +871,154 @@ export class PlanoAlimentarNutricionista {
         this.alimentosCarregados = false;
         await this.carregarBaseAlimentos();
         this.renderizarListaAlimentosModal();
+    }
+
+    async carregarXlsxLib() {
+        if (window.XLSX) return window.XLSX;
+
+        await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+            script.onload = resolve;
+            script.onerror = () => reject(new Error('Nao foi possivel carregar a biblioteca XLSX.'));
+            document.head.appendChild(script);
+        });
+
+        return window.XLSX;
+    }
+
+    getCamposExportacaoAlimentos() {
+        return [
+            { key: 'nome', label: 'Nome' },
+            { key: 'categoria', label: 'Categoria' },
+            { key: 'unidadePadrao', label: 'Unidade' },
+            { key: 'gramasPorUnidade', label: 'g/unid' },
+            { key: 'kcal', label: 'kcal' },
+            { key: 'carboidratos', label: 'Carb' },
+            { key: 'proteinas', label: 'Prot' },
+            { key: 'gorduras', label: 'Gord' },
+            { key: 'fibras', label: 'Fibras' },
+            { key: 'sodio', label: 'Sodio' }
+        ];
+    }
+
+    normalizarAlimentoImportado(row) {
+        const get = (...keys) => keys.map((key) => row[key]).find((value) => value !== undefined && value !== null && String(value).trim() !== '');
+        const nome = String(get('Nome', 'nome') || '').trim();
+        if (!nome) return null;
+
+        return {
+            nome,
+            categoria: String(get('Categoria', 'categoria') || 'Geral').trim(),
+            unidadePadrao: String(get('Unidade', 'unidadePadrao', 'Unidade Padrao') || 'porcao').trim(),
+            gramasPorUnidade: Number(get('g/unid', 'gramasPorUnidade', 'Gramas Por Unidade') || 100),
+            kcal: Number(get('kcal', 'Kcal') || 0),
+            carboidratos: Number(get('Carb', 'carboidratos') || 0),
+            proteinas: Number(get('Prot', 'proteinas') || 0),
+            gorduras: Number(get('Gord', 'gorduras') || 0),
+            fibras: Number(get('Fibras', 'fibras') || 0),
+            sodio: Number(get('Sodio', 'sodio') || 0),
+            fonte: 'xlsx_importado',
+            atualizado_por: this.userInfo.login,
+            data_atualizacao: new Date().toISOString()
+        };
+    }
+
+    async exportarListaAlimentosXlsx() {
+        try {
+            await this.carregarBaseAlimentos();
+            const XLSX = await this.carregarXlsxLib();
+            const campos = this.getCamposExportacaoAlimentos();
+            const dados = this.alimentosBase
+                .slice()
+                .sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'))
+                .map((alimento) => campos.reduce((row, campo) => {
+                    row[campo.label] = alimento[campo.key] ?? '';
+                    return row;
+                }, {}));
+
+            const worksheet = XLSX.utils.json_to_sheet(dados);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Alimentos');
+            XLSX.writeFile(workbook, `lista_alimentos_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        } catch (error) {
+            alert('Nao foi possivel exportar a lista de alimentos.');
+        }
+    }
+
+    async importarListaAlimentosXlsx(event) {
+        const input = event.target;
+        const file = input?.files?.[0];
+        if (!file) return;
+
+        const confirmado = confirm('A lista de alimentos atual sera substituida pela lista importada. Deseja continuar?');
+        if (!confirmado) {
+            input.value = '';
+            return;
+        }
+
+        try {
+            const XLSX = await this.carregarXlsxLib();
+            const buffer = await file.arrayBuffer();
+            const workbook = XLSX.read(buffer, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+            const alimentosImportados = rows
+                .map((row) => this.normalizarAlimentoImportado(row))
+                .filter(Boolean);
+
+            if (!alimentosImportados.length) {
+                alert('A planilha nao possui alimentos validos.');
+                return;
+            }
+
+            const ref = collection(db, 'base_alimentos_nutricionais');
+            const snapshot = await getDocs(ref);
+            await Promise.all(snapshot.docs.map((docSnap) => deleteDoc(doc(db, 'base_alimentos_nutricionais', docSnap.id))));
+            await Promise.all(alimentosImportados.map((alimento) => addDoc(ref, {
+                ...alimento,
+                criado_por: this.userInfo.login,
+                data_criacao: new Date().toISOString()
+            })));
+
+            this.alimentosCarregados = false;
+            await this.carregarBaseAlimentos();
+            this.renderizarListaAlimentosModal();
+            alert('Lista de alimentos importada com sucesso.');
+        } catch (error) {
+            alert('Nao foi possivel importar a lista de alimentos.');
+        } finally {
+            input.value = '';
+        }
+    }
+
+    abrirModalNovoAlimento(foodId = null) {
+        const modal = document.getElementById('modalNovoAlimento');
+        if (!modal) return;
+
+        this.alimentoEditandoId = foodId;
+        const title = document.getElementById('modalNovoAlimentoTitulo');
+        if (title) title.textContent = foodId ? 'Editar Alimento' : 'Novo Alimento';
+
+        const formWrapper = modal.querySelector('[data-novo-alimento-form]');
+        if (formWrapper) formWrapper.innerHTML = this.renderFormularioAlimento();
+
+        modal.style.display = 'flex';
+        if (foodId) {
+            this.preencherFormularioAlimento(foodId);
+        } else {
+            this.limparFormularioAlimento();
+        }
+
+        document.getElementById('btnSalvarAlimento')?.addEventListener('click', () => this.salvarAlimentoBase());
+        document.getElementById('btnCancelarAlimento')?.addEventListener('click', () => this.fecharModalNovoAlimento());
+        setTimeout(() => document.getElementById('foodNome')?.focus(), 80);
+    }
+
+    fecharModalNovoAlimento() {
+        const modal = document.getElementById('modalNovoAlimento');
+        if (modal) modal.style.display = 'none';
+        this.alimentoEditandoId = null;
     }
 
     attachEvents() {
@@ -916,10 +1086,21 @@ export class PlanoAlimentarNutricionista {
             });
         }
 
+        const modalNovoAlimento = document.getElementById('modalNovoAlimento');
+        if (modalNovoAlimento) {
+            modalNovoAlimento.addEventListener('click', (e) => {
+                if (e.target === modalNovoAlimento) {
+                    this.fecharModalNovoAlimento();
+                }
+            });
+        }
+
         document.getElementById('btnFecharDetalheAlimento')?.addEventListener('click', () => {
             const modal = document.getElementById('modalDetalheAlimento');
             if (modal) modal.style.display = 'none';
         });
+
+        document.getElementById('btnFecharNovoAlimento')?.addEventListener('click', () => this.fecharModalNovoAlimento());
 
         window.planoAlimentarInstance = this;
     }
@@ -1156,6 +1337,7 @@ export class PlanoAlimentarNutricionista {
         await this.carregarBaseAlimentos();
         this.limparFormularioAlimento();
         this.renderizarListaAlimentosModal();
+        this.fecharModalNovoAlimento();
         onSaved?.();
     }
 
