@@ -90,7 +90,7 @@ export class NavegadorNutricionista extends NavegadorBase {
     }
 
     async irParaPlanoAlimentar() {
-        const { PlanoAlimentarNutricionista } = await import('./plano_alimentar_nutricionista.js');
+        const { PlanoAlimentarNutricionista } = await import('./plano_alimentar_nutricionista.js?v=config-alimentos-20260706');
         const planoScreen = new PlanoAlimentarNutricionista(this.userInfo, this.pacientesList);
         planoScreen.render();
     }
