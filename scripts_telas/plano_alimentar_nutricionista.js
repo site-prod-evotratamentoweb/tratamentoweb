@@ -169,7 +169,7 @@ export class PlanoAlimentarNutricionista {
                 <div class="main-content" style="flex: 1; overflow: hidden; padding: 8px 12px; min-height: 0;">
                     <!-- Seleção de Paciente -->
                     <div id="pacienteInfo" style="margin-bottom: 8px;">
-                        <select id="pacienteSelect" style="width: 100%; max-width: 350px; padding: 7px 10px; border-radius: 8px; border: 2px solid #e2e8f0; background: white; font-size: 13px;">
+                        <select id="pacienteSelect" style="width: 100%; max-width: 350px; padding: 9px 12px; border-radius: 8px; border: 2px solid #e2e8f0; background: white; font-size: 15px;">
                             <option value="">-- Selecione um paciente --</option>
                             ${this.pacientesList.map(p => `
                                 <option value="${this.escapeHtml(p.login)}" ${this.selectedPaciente?.login === p.login ? 'selected' : ''}>
@@ -183,9 +183,9 @@ export class PlanoAlimentarNutricionista {
                         <!-- Lista de Planos -->
                         <div style="margin-bottom: 0;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <h3 style="color: #1a237e; margin: 0; font-size: 15px; line-height: 1.1;">
+                                <h3 style="color: #1a237e; margin: 0; font-size: 20px; line-height: 1.2;">
                                     📋 Planos Alimentares
-                                    ${this.planosList.length > 0 ? `<span style="font-size: 12px; color: #64748b;">(${this.planosList.length})</span>` : ''}
+                                    ${this.planosList.length > 0 ? `<span style="font-size: 14px; color: #64748b;">(${this.planosList.length})</span>` : ''}
                                 </h3>
                             </div>
                             
@@ -276,7 +276,7 @@ export class PlanoAlimentarNutricionista {
                     </div>
                 </div>
 
-                <div id="modalDetalheAlimento" class="modal-overlay" style="display: none;">
+                <div id="modalDetalheAlimento" class="modal-overlay" style="display: none; z-index: 3000;">
                     <div class="modal-content" style="background: white; border-radius: 16px; width: min(92vw, 560px); max-width: 560px; max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
                             <strong style="font-size: 15px;">Detalhes do alimento</strong>
@@ -291,6 +291,7 @@ export class PlanoAlimentarNutricionista {
                         <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: 0 0 auto;">
                             <strong id="modalVisualizarPlanoTitulo" style="font-size: 16px;">Plano alimentar</strong>
                             <div style="display: flex; align-items: center; gap: 8px;">
+                                <button id="btnConcluirEdicaoPlanoVisualizado" type="button" style="display: none; height: 34px; padding: 0 12px; background: #dcfce7; color: #166534; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;">Concluir Edição</button>
                                 <div data-visualizar-plano-actions style="display: flex; align-items: center; gap: 8px;"></div>
                                 <button id="btnFecharVisualizarPlano" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
                             </div>
@@ -516,34 +517,31 @@ export class PlanoAlimentarNutricionista {
                     overflow: hidden;
                 ">
                     <!-- Cabeçalho do Card -->
-                    <div onclick="window.planoAlimentarInstance.abrirModalVisualizarPlano('${plano.id}')" 
-                         style="padding: 8px 10px; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px;">
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <div style="padding: 12px 14px; display: flex; align-items: center; justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
+                        <div onclick="window.planoAlimentarInstance.abrirModalVisualizarPlano('${plano.id}')" style="cursor: pointer; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                             <span style="
                                 background: ${index === 0 ? '#22c55e' : '#64748b'}; 
                                 color: white; 
-                                padding: 4px 10px; 
+                                padding: 5px 12px; 
                                 border-radius: 20px; 
-                                font-size: 12px; 
+                                font-size: 14px; 
                                 font-weight: 600;
                             ">
                                 ${index === 0 ? 'ATUAL' : `v${planosOrdenados.length - index}`}
                             </span>
                             
-                            <span style="color: #1a237e; font-size: 13px; font-weight: 600;">
+                            <span style="color: #1a237e; font-size: 17px; font-weight: 700;">
                                 📅 ${dataFormatada}
                             </span>
                         </div>
                         
-                        <div style="display: flex; align-items: center; gap: 6px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-left: 4px;">
                             ${plano.goals ? `
-                                <span style="color: #475569; font-size: 12px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <span style="color: #475569; font-size: 14px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                     🎯 ${this.escapeHtml(plano.goals)}
                                 </span>
                             ` : ''}
-                            <span title="Abrir plano" style="width: 28px; height: 28px; color: #64748b; font-size: 18px; display: inline-flex; align-items: center; justify-content: center;">
-                                ▣
-                            </span>
+                            <button type="button" onclick="window.planoAlimentarInstance.abrirModalVisualizarPlano('${plano.id}')" title="Exibir plano" aria-label="Exibir plano" style="height: 36px; padding: 0 14px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700;">Exibir Plano</button>
                         </div>
                     </div>
                 </div>
@@ -773,7 +771,7 @@ export class PlanoAlimentarNutricionista {
                 <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.toggleMenuAcoesPlano()" title="Menu do plano" aria-label="Menu do plano" style="height: 34px; padding: 0 12px; background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 18px;">☰</button>
                 <div id="menuAcoesPlano" style="display: none; position: absolute; right: 0; top: 40px; width: 190px; background: white; color: #334155; border: 1px solid #dbe3ef; border-radius: 8px; box-shadow: 0 12px 28px rgba(15,23,42,0.18); overflow: hidden; z-index: 10000;">
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Detalhes do Plano</button>
-                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.alternarEdicaoPlanoVisualizado('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">${this.visualizacaoPlanoEditando ? 'Concluir Edição' : 'Editar Plano'}</button>
+                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.alternarEdicaoPlanoVisualizado('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Editar Plano</button>
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.exportarPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Exportar</button>
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.excluirPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #b91c1c; text-align: left; cursor: pointer; font-size: 14px;">Excluir Plano</button>
                 </div>
@@ -1708,6 +1706,9 @@ export class PlanoAlimentarNutricionista {
         document.getElementById('btnFecharConfigAlimentos')?.addEventListener('click', () => this.fecharModalConfigAlimentos());
         document.getElementById('btnFecharEditarOpcaoPlano')?.addEventListener('click', () => this.fecharModalEditarOpcaoPlano());
         document.getElementById('btnFecharVisualizarPlano')?.addEventListener('click', () => this.fecharModalVisualizarPlano());
+        document.getElementById('btnConcluirEdicaoPlanoVisualizado')?.addEventListener('click', () => {
+            if (this.planoExpandido) this.alternarEdicaoPlanoVisualizado(this.planoExpandido);
+        });
 
         window.planoAlimentarInstance = this;
     }
@@ -2292,8 +2293,10 @@ export class PlanoAlimentarNutricionista {
         const titulo = document.getElementById('modalVisualizarPlanoTitulo');
         const formWrapper = modal?.querySelector('[data-visualizar-plano-form]');
         const actionsWrapper = modal?.querySelector('[data-visualizar-plano-actions]');
+        const concluirButton = document.getElementById('btnConcluirEdicaoPlanoVisualizado');
         if (titulo) titulo.textContent = `Plano alimentar - ${this.formatarDataExibicao(plano.id)}`;
         if (actionsWrapper) actionsWrapper.innerHTML = this.renderAcoesPlanoVisualizacao(plano.id);
+        if (concluirButton) concluirButton.style.display = this.visualizacaoPlanoEditando ? 'inline-flex' : 'none';
         if (formWrapper) formWrapper.innerHTML = this.renderPlanoVisualizacao(plano);
         if (modal) modal.style.display = 'flex';
     }
@@ -2303,6 +2306,8 @@ export class PlanoAlimentarNutricionista {
         if (modal) modal.style.display = 'none';
         const actionsWrapper = modal?.querySelector('[data-visualizar-plano-actions]');
         if (actionsWrapper) actionsWrapper.innerHTML = '';
+        const concluirButton = document.getElementById('btnConcluirEdicaoPlanoVisualizado');
+        if (concluirButton) concluirButton.style.display = 'none';
         this.visualizacaoPlanoEditando = false;
         this.visualizacaoOpcaoDestino = null;
     }
@@ -2480,7 +2485,10 @@ export class PlanoAlimentarNutricionista {
         if (formWrapper) {
             formWrapper.innerHTML = this.renderDetalhesNutricionaisResumo(titulo, resumo);
         }
-        if (modal) modal.style.display = 'flex';
+        if (modal) {
+            modal.style.zIndex = '3000';
+            modal.style.display = 'flex';
+        }
     }
 
     abrirDetalhesNutricionaisPlanoSalvo(planoId) {
