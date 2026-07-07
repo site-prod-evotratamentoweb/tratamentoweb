@@ -538,18 +538,6 @@ export class PlanoAlimentarNutricionista {
                     <!-- Detalhes Expandidos -->
                     ${isExpanded ? `
                         <div class="plano-detalhes" style="border-top: 1px solid #e2e8f0; padding: 20px; background: #f8fafc;">
-                            <!-- Informações -->
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
-                                <div style="background: white; padding: 12px; border-radius: 8px;">
-                                    <strong style="color: #1a237e;">👨‍⚕️ Profissional:</strong>
-                                    <span style="color: #475569;">${this.escapeHtml(plano.profissional_nome || 'Não informado')}</span>
-                                </div>
-                                <div style="background: white; padding: 12px; border-radius: 8px;">
-                                    <strong style="color: #1a237e;">📅 Data:</strong>
-                                    <span style="color: #475569;">${dataFormatada}</span>
-                                </div>
-                            </div>
-                            
                             <!-- Refeições -->
                             ${this.renderRefeicoesPlanoSalvo(plano)}
                             
@@ -584,8 +572,10 @@ export class PlanoAlimentarNutricionista {
             { id: 'dinner', titulo: 'Jantar', icone: '🌙' },
             { id: 'supper', titulo: 'Ceia', icone: '⭐' }
         ];
-
         return `
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${plano.id}')" aria-label="Ver detalhes nutricionais totais" title="Ver detalhes nutricionais totais" style="width: 34px; height: 34px; padding: 0; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+            </div>
             <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, clamp(142px, 21vh, 190px)); gap: 10px; margin-bottom: 14px; overflow: hidden;">
                 ${refeicoes.map((refeicao) => this.renderRefeicaoPlanoSalvo(plano, refeicao)).join('')}
             </div>
@@ -603,14 +593,85 @@ export class PlanoAlimentarNutricionista {
 
         return `
             <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; height: clamp(142px, 21vh, 190px); min-height: 0; display: flex; flex-direction: column;">
-                <div style="background: #f1f5f9; color: #1a237e; padding: 8px 10px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
-                    <span>${refeicao.icone}</span>
-                    <span>${refeicao.titulo}</span>
+                <div style="background: #f1f5f9; color: #1a237e; padding: 8px 10px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: 0 0 auto;">
+                    <span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0;">
+                        <span>${refeicao.icone}</span>
+                        <span>${refeicao.titulo}</span>
+                    </span>
+                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisRefeicaoSalva('${plano.id}', '${refeicao.id}')" aria-label="Ver detalhes nutricionais da refeição" title="Ver detalhes nutricionais da refeição" style="width: 28px; min-width: 28px; height: 28px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                 </div>
                 <div style="padding: 8px; display: grid; align-content: start; gap: 7px; overflow-y: auto; flex: 1; min-height: 0;">
                     ${itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item)).join('')}
                 </div>
             </section>
+        `;
+    }
+
+    criarResumoNutricionalVazio() {
+        return {
+            gramas: 0,
+            kcal: 0,
+            carboidratos: 0,
+            proteinas: 0,
+            gorduras: 0,
+            fibras: 0,
+            sodio: 0
+        };
+    }
+
+    somarResumoNutricional(destino, origem = {}) {
+        Object.keys(destino).forEach((key) => {
+            destino[key] += Number(origem[key] || 0);
+        });
+        return destino;
+    }
+
+    obterOpcaoVisivelItemPlanoSalvo(item) {
+        const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
+            ? item.opcoes
+            : [{ id: item.id, texto: item.texto, detalhes: item.detalhes }];
+        const opcaoVisivelIndex = Math.max(0, Math.min(opcoes.length - 1, Number(item.opcaoVisivelIndex || 0)));
+        return opcoes[opcaoVisivelIndex] || null;
+    }
+
+    calcularTotaisItensPlanoSalvo(itens = []) {
+        return itens.reduce((total, item) => {
+            const opcao = this.obterOpcaoVisivelItemPlanoSalvo(item);
+            return this.somarResumoNutricional(total, opcao?.detalhes || {});
+        }, this.criarResumoNutricionalVazio());
+    }
+
+    calcularTotaisPlanoSalvo(plano, refeicoes) {
+        return refeicoes.reduce((total, refeicao) => {
+            const itens = Array.isArray(plano.itens_plano?.[refeicao.id])
+                ? plano.itens_plano[refeicao.id].map((item) => this.normalizarItemPlano(item))
+                : [];
+            return this.somarResumoNutricional(total, this.calcularTotaisItensPlanoSalvo(itens));
+        }, this.criarResumoNutricionalVazio());
+    }
+
+    renderDetalhesNutricionaisResumo(titulo, resumo) {
+        return `
+            <div style="display: grid; gap: 12px;">
+                <div style="font-size: 18px; font-weight: 700; color: #1a237e;">${this.escapeHtml(titulo)}</div>
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
+                        <div style="font-size: 12px; color: #64748b;">Energia</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #1e293b;">${this.formatarNumero(resumo.kcal || 0, 0)} kcal</div>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
+                        <div style="font-size: 12px; color: #64748b;">Quantidade</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #1e293b;">${this.formatarNumero(resumo.gramas || 0, 0)} g</div>
+                    </div>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; line-height: 1.6;">
+                    <div><strong>Carboidratos:</strong> ${this.formatarNumero(resumo.carboidratos || 0)} g</div>
+                    <div><strong>Proteínas:</strong> ${this.formatarNumero(resumo.proteinas || 0)} g</div>
+                    <div><strong>Gorduras:</strong> ${this.formatarNumero(resumo.gorduras || 0)} g</div>
+                    <div><strong>Fibras:</strong> ${this.formatarNumero(resumo.fibras || 0)} g</div>
+                    <div><strong>Sódio:</strong> ${this.formatarNumero(resumo.sodio || 0)} mg</div>
+                </div>
+            </div>
         `;
     }
 
@@ -2170,6 +2231,35 @@ export class PlanoAlimentarNutricionista {
         if (!item) return;
 
         this.abrirModalDetalheItemPlano(this.normalizarItemPlano(item), Number(item.opcaoVisivelIndex || 0));
+    }
+
+    abrirModalResumoNutricional(titulo, resumo) {
+        const modal = document.getElementById('modalDetalheAlimento');
+        const formWrapper = modal?.querySelector('[data-detalhe-alimento-form]');
+        if (formWrapper) {
+            formWrapper.innerHTML = this.renderDetalhesNutricionaisResumo(titulo, resumo);
+        }
+        if (modal) modal.style.display = 'flex';
+    }
+
+    abrirDetalhesNutricionaisPlanoSalvo(planoId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        if (!plano) return;
+
+        const resumo = this.calcularTotaisPlanoSalvo(plano, this.getRefeicoesPlano());
+        this.abrirModalResumoNutricional('Total do plano', resumo);
+    }
+
+    abrirDetalhesNutricionaisRefeicaoSalva(planoId, mealId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        const refeicao = this.getRefeicoesPlano().find((item) => item.id === mealId);
+        if (!plano || !refeicao) return;
+
+        const itens = Array.isArray(plano.itens_plano?.[mealId])
+            ? plano.itens_plano[mealId].map((item) => this.normalizarItemPlano(item))
+            : [];
+        const resumo = this.calcularTotaisItensPlanoSalvo(itens);
+        this.abrirModalResumoNutricional(`Detalhes - ${refeicao.titulo}`, resumo);
     }
 
     editarPlano(planoId) {
