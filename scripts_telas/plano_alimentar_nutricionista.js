@@ -526,6 +526,7 @@ export class PlanoAlimentarNutricionista {
                                     🎯 ${this.escapeHtml(plano.goals)}
                                 </span>
                             ` : ''}
+                            <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${plano.id}')" title="Detalhes gerais" aria-label="Detalhes gerais do plano" style="width: 34px; height: 34px; padding: 0; background: #e0f2fe; color: #0369a1; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 15px;">&#128065;</button>
                             <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.editarPlano('${plano.id}')" title="Editar plano" aria-label="Editar plano" style="width: 34px; height: 34px; padding: 0; background: #fef3c7; color: #92400e; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 15px;">✎</button>
                             <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.exportarPlano('${plano.id}')" title="Exportar plano" aria-label="Exportar plano" style="width: 34px; height: 34px; padding: 0; background: #e0f2fe; color: #0369a1; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 15px;">⇩</button>
                             <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.excluirPlano('${plano.id}')" title="Excluir plano" aria-label="Excluir plano" style="width: 34px; height: 34px; padding: 0; background: #fee2e2; color: #b91c1c; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 15px;">X</button>
@@ -573,9 +574,6 @@ export class PlanoAlimentarNutricionista {
             { id: 'supper', titulo: 'Ceia', icone: '⭐' }
         ];
         return `
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
-                <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${plano.id}')" aria-label="Ver detalhes nutricionais totais" title="Ver detalhes nutricionais totais" style="width: 34px; height: 34px; padding: 0; border: none; border-radius: 8px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
-            </div>
             <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, clamp(142px, 21vh, 190px)); gap: 10px; margin-bottom: 14px; overflow: hidden;">
                 ${refeicoes.map((refeicao) => this.renderRefeicaoPlanoSalvo(plano, refeicao)).join('')}
             </div>
@@ -681,19 +679,15 @@ export class PlanoAlimentarNutricionista {
             : [{ id: item.id, texto: item.texto, detalhes: item.detalhes }];
         const opcaoVisivelIndex = Math.max(0, Math.min(opcoes.length - 1, Number(item.opcaoVisivelIndex || 0)));
         const opcaoVisivel = opcoes[opcaoVisivelIndex];
-        const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : 0;
+        const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : opcaoVisivelIndex;
 
         return `
-            <div style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 9px; background: #f8fafc;">
-                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: start;">
-                    <div style="display: grid; gap: 5px; min-width: 0;">
-                        <div style="display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: start; color: #334155; font-size: 13px; line-height: 1.35;">
-                            <span style="color: #1a237e; font-weight: 700; white-space: nowrap;">Opção ${opcaoVisivelIndex + 1}</span>
-                            <span>${this.escapeHtml(opcaoVisivel.texto)}</span>
-                        </div>
-                        ${opcoes.length > 1 ? `<div style="font-size: 11px; color: #64748b;">${opcoes.length} opções cadastradas para este alimento</div>` : ''}
+            <div style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 7px; background: #f8fafc;">
+                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 7px; align-items: start;">
+                    <div style="min-width: 0; color: #334155; font-size: 13px; line-height: 1.3;">
+                        ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
-                    ${opcoes.length > 1 ? `<button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.alternarOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Ver opção ${proximaOpcaoIndex + 1}" title="Ver opção ${proximaOpcaoIndex + 1}" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">${proximaOpcaoIndex + 1}</button>` : `<span aria-hidden="true" style="width: 30px; min-width: 30px; height: 30px;"></span>`}
+                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.alternarOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: 38px; min-width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
                     <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalheOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Ver detalhes" title="Ver detalhes da opção atual" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                 </div>
             </div>
@@ -985,7 +979,7 @@ export class PlanoAlimentarNutricionista {
         const opcoes = Array.isArray(item.opcoes) ? item.opcoes.filter((opcao) => opcao.texto) : [];
         if (!opcoes.length) return this.resumirTextoItemPlano(item.texto || '');
         if (opcoes.length === 1) return opcoes[0].texto;
-        return opcoes.map((opcao, index) => `Opção ${index + 1}: ${opcao.texto}`).join(' ou ');
+        return opcoes.map((opcao) => opcao.texto).join(' ou ');
     }
 
     criarEstadoItensPlano(plano = {}) {
@@ -1037,22 +1031,18 @@ export class PlanoAlimentarNutricionista {
             : [{ id: item.id, texto: item.texto, detalhes: item.detalhes }];
         const opcaoVisivelIndex = Math.max(0, Math.min(opcoes.length - 1, Number(item.opcaoVisivelIndex || 0)));
         const opcaoVisivel = opcoes[opcaoVisivelIndex];
-        const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : 0;
+        const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : opcaoVisivelIndex;
 
         return `
-            <div class="meal-item-row" draggable="true" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: hidden; border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 8px; background: #f8fafc; min-height: 72px;">
-                <div style="display: grid; grid-template-columns: 1fr 68px; gap: 8px; align-items: start;">
-                    <div style="display: grid; gap: 5px; min-width: 0;">
-                        <div style="display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: start; color: #334155; font-size: 13px; line-height: 1.35;">
-                            <span style="color: #1a237e; font-weight: 700; white-space: nowrap;">Opção ${opcaoVisivelIndex + 1}</span>
-                            <span>${this.escapeHtml(opcaoVisivel.texto)}</span>
-                        </div>
-                        ${opcoes.length > 1 ? `<div style="font-size: 11px; color: #64748b;">${opcoes.length} opções cadastradas para este alimento</div>` : ''}
+            <div class="meal-item-row" draggable="true" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: hidden; border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 7px; background: #f8fafc; min-height: 58px;">
+                <div style="display: grid; grid-template-columns: 1fr 76px; gap: 7px; align-items: start;">
+                    <div style="min-width: 0; color: #334155; font-size: 13px; line-height: 1.3;">
+                        ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(2, 30px); grid-template-rows: repeat(2, 30px); gap: 6px;">
-                        <button type="button" class="btnAlternarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Ver próxima opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1}` : 'Sem outras opções'}" ${opcoes.length > 1 ? '' : 'disabled'} style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: ${opcoes.length > 1 ? '#fef3c7' : '#e2e8f0'}; color: ${opcoes.length > 1 ? '#92400e' : '#94a3b8'}; cursor: ${opcoes.length > 1 ? 'pointer' : 'not-allowed'}; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">${opcoes.length > 1 ? proximaOpcaoIndex + 1 : '1'}</button>
+                    <div style="display: grid; grid-template-columns: 38px 30px; grid-template-rows: repeat(2, 30px); gap: 6px;">
+                        <button type="button" class="btnAlternarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
                         <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" title="Ver detalhes da opção atual" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
-                        <button type="button" class="btnEditarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Editar opção" title="Editar opção atual" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #ede9fe; color: #6d28d9; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✎</button>
+                        <button type="button" class="btnEditarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Editar opção" title="Editar opção atual" style="width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #ede9fe; color: #6d28d9; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✎</button>
                         <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" title="Excluir alimento" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">X</button>
                     </div>
                 </div>
@@ -1959,7 +1949,6 @@ export class PlanoAlimentarNutricionista {
 
         item.opcaoVisivelIndex = (Number(item.opcaoVisivelIndex || 0) + 1) % item.opcoes.length;
         this.renderizarRefeicoesPlano();
-        this.abrirModalDetalheItemPlano(item, item.opcaoVisivelIndex);
     }
 
     alternarDetalhesItemPlano(mealId, itemId) {
@@ -1981,7 +1970,7 @@ export class PlanoAlimentarNutricionista {
             formWrapper.innerHTML = `
                 <div style="display: grid; gap: 12px;">
                     <div style="font-size: 18px; font-weight: 700; color: #1a237e;">${this.escapeHtml(detalhesAtuais?.nome || opcaoAtual?.texto || item.texto)}</div>
-                    <div style="font-size: 14px; color: #475569;">${this.escapeHtml(opcoes.length > 1 ? `Opção ${opcaoAtualIndex + 1} de ${opcoes.length}` : detalhesAtuais?.quantidadeTexto || 'Sem quantidade informada')}</div>
+                    <div style="font-size: 14px; color: #475569;">${this.escapeHtml(opcoes.length > 1 ? `${opcaoAtualIndex + 1}/${opcoes.length}` : detalhesAtuais?.quantidadeTexto || 'Sem quantidade informada')}</div>
                     <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px; padding: 10px 12px; font-size: 15px; color: #1e293b; font-weight: 600;">
                         ${this.escapeHtml(opcaoAtual?.texto || this.formatarTextoItemPlano(item))}
                     </div>
