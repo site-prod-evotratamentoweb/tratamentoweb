@@ -3052,7 +3052,7 @@ export class PlanoAlimentarNutricionista {
                     .notes { margin-top: 8px; display: grid; gap: 7px; }
                     .note { border: 1px solid #e2e8f0; border-radius: 9px; padding: 9px; break-inside: avoid; font-size: 12px; line-height: 1.35; }
                     .note strong { color: #1a237e; display: block; margin-bottom: 4px; }
-                    .footer { margin: 8px 0 0; color: #64748b; font-size: 11px; text-align: center; }
+                    .print-copyright { position: fixed; left: 0; bottom: 0; color: #64748b; font-size: 10px; }
                     @media print { body { background: white; } .page { padding: 0; } }
                 </style>
             </head>
@@ -3098,7 +3098,7 @@ export class PlanoAlimentarNutricionista {
                         </section>
                     `).join('')}
 
-                    <h2 class="section-title">Substituições e detalhes dos alimentos</h2>
+                    <h2 class="section-title page-break">Substituições e detalhes dos alimentos</h2>
                     ${refeicoesDetalhadas.map((refeicao) => `
                         <section class="detail-meal">
                             <h3><span>${refeicao.titulo}</span></h3>
@@ -3126,9 +3126,8 @@ export class PlanoAlimentarNutricionista {
                         </section>
                     ` : ''}
 
-                    <div class="footer">Documento gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
-
                     ${graficosEvolucao}
+                    <div class="print-copyright">© TRATAMENTO WEB</div>
                 </main>
                 <script>
                     window.addEventListener('load', () => {
