@@ -2560,6 +2560,7 @@ export class PlanoAlimentarNutricionista {
                 supper: this.obterTextoRefeicao('supper'),
                 itens_plano: this.itensPlano,
                 profissional_nome: this.userInfo.nome,
+                profissional_foto_url: this.userInfo.foto_perfil_url || this.userInfo.fotoPerfilUrl || this.userInfo.foto || '',
                 modelo_plano: 'base_nutricional_linhas_v2'
             };
 
@@ -2588,6 +2589,7 @@ export class PlanoAlimentarNutricionista {
         return {
             ...PLANO_BIA_SANTOS_NOVO_MODELO,
             profissional_nome: this.userInfo.nome || PLANO_BIA_SANTOS_NOVO_MODELO.profissional_nome,
+            profissional_foto_url: this.userInfo.foto_perfil_url || this.userInfo.fotoPerfilUrl || this.userInfo.foto || '',
             profissional_login: this.userInfo.login,
             paciente_login: this.selectedPaciente.login,
             paciente_nome: this.selectedPaciente.nome || '',
@@ -2742,6 +2744,23 @@ export class PlanoAlimentarNutricionista {
     }
 
     async exportarPlano(planoId) {
+        const formato = prompt('Exportar plano em qual formato?\n\nDigite PDF ou XLSX:', 'PDF');
+        if (!formato) return;
+
+        const escolha = this.normalizarBusca(formato);
+        if (escolha === 'pdf') {
+            this.exportarPlanoPdf(planoId);
+            return;
+        }
+        if (escolha === 'xlsx' || escolha === 'excel') {
+            await this.exportarPlanoXlsx(planoId);
+            return;
+        }
+
+        alert('Formato invalido. Digite PDF ou XLSX.');
+    }
+
+    async exportarPlanoXlsx(planoId) {
         const plano = this.planosList.find(p => p.id === planoId);
         if (!plano) return;
 
@@ -2762,6 +2781,116 @@ export class PlanoAlimentarNutricionista {
         } catch (error) {
             alert('Nao foi possivel exportar o plano em XLSX.');
         }
+    }
+
+    montarRefeicoesPdfPlano(plano) {
+        return this.getRefeicoesPlano().map((refeicao) => {
+            const itens = Array.isArray(plano.itens_plano?.[refeicao.id])
+                ? plano.itens_plano[refeicao.id].map((item) => this.normalizarItemPlano(item))
+                : [];
+            const linhas = itens.length
+                ? itens.map((item) => this.obterOpcaoVisivelItemPlanoSalvo(item)?.texto || item.texto).filter(Boolean)
+                : String(plano[refeicao.id] || '').split('\n').map((linha) => linha.trim()).filter(Boolean);
+
+            return { ...refeicao, linhas };
+        });
+    }
+
+    exportarPlanoPdf(planoId) {
+        const plano = this.planosList.find(p => p.id === planoId);
+        if (!plano) return;
+
+        const dataFormatada = this.formatarDataExibicao(planoId);
+        const fotoProfissional = this.userInfo.foto_perfil_url || this.userInfo.fotoPerfilUrl || this.userInfo.foto || plano.profissional_foto_url || '';
+        const profissionalNome = plano.profissional_nome || this.userInfo.nome || 'Profissional';
+        const pacienteNome = this.selectedPaciente?.nome || plano.paciente_nome || 'Paciente';
+        const refeicoes = this.montarRefeicoesPdfPlano(plano);
+
+        const html = `
+            <!doctype html>
+            <html lang="pt-BR">
+            <head>
+                <meta charset="utf-8">
+                <title>Plano alimentar - ${this.escapeHtml(pacienteNome)}</title>
+                <style>
+                    @page { size: A4; margin: 14mm; }
+                    * { box-sizing: border-box; }
+                    body { font-family: Arial, sans-serif; color: #1f2937; margin: 0; background: #f8fafc; }
+                    .page { background: white; min-height: 100vh; padding: 22px; }
+                    .header { display: flex; justify-content: space-between; align-items: center; gap: 18px; border-bottom: 3px solid #1a237e; padding-bottom: 16px; margin-bottom: 18px; }
+                    .brand h1 { margin: 0 0 6px; color: #1a237e; font-size: 28px; }
+                    .brand p { margin: 3px 0; color: #475569; font-size: 14px; }
+                    .prof { display: flex; align-items: center; gap: 12px; text-align: right; }
+                    .prof img { width: 72px; height: 72px; object-fit: cover; border-radius: 50%; border: 3px solid #e0e7ff; }
+                    .prof-name { font-weight: 700; color: #1a237e; font-size: 15px; }
+                    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+                    .meal { border: 1px solid #dbe3ef; border-radius: 10px; overflow: hidden; break-inside: avoid; background: #fff; }
+                    .meal h2 { margin: 0; padding: 10px 12px; background: #eef2ff; color: #1a237e; font-size: 17px; }
+                    .meal ul { margin: 0; padding: 10px 16px 12px 28px; }
+                    .meal li { margin: 6px 0; line-height: 1.35; font-size: 14px; }
+                    .empty { color: #94a3b8; font-style: italic; }
+                    .notes { margin-top: 14px; display: grid; gap: 10px; }
+                    .note { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; break-inside: avoid; }
+                    .note strong { color: #1a237e; display: block; margin-bottom: 6px; }
+                    .footer { margin-top: 18px; color: #64748b; font-size: 12px; text-align: center; }
+                    @media print { body { background: white; } .page { padding: 0; } }
+                </style>
+            </head>
+            <body>
+                <main class="page">
+                    <header class="header">
+                        <div class="brand">
+                            <h1>Plano Alimentar</h1>
+                            <p><strong>Paciente:</strong> ${this.escapeHtml(pacienteNome)}</p>
+                            <p><strong>Data:</strong> ${this.escapeHtml(dataFormatada)}</p>
+                        </div>
+                        <div class="prof">
+                            <div>
+                                <div class="prof-name">${this.escapeHtml(profissionalNome)}</div>
+                                <div>Profissional responsável</div>
+                            </div>
+                            ${fotoProfissional ? `<img src="${this.escapeHtml(fotoProfissional)}" alt="Foto do profissional">` : ''}
+                        </div>
+                    </header>
+
+                    <section class="grid">
+                        ${refeicoes.map((refeicao) => `
+                            <article class="meal">
+                                <h2>${refeicao.titulo}</h2>
+                                ${refeicao.linhas.length
+                                    ? `<ul>${refeicao.linhas.map((linha) => `<li>${this.escapeHtml(linha)}</li>`).join('')}</ul>`
+                                    : `<div class="empty" style="padding: 12px;">Sem alimentos cadastrados.</div>`}
+                            </article>
+                        `).join('')}
+                    </section>
+
+                    ${(plano.guidelines || plano.restrictions || plano.goals) ? `
+                        <section class="notes">
+                            ${plano.guidelines ? `<div class="note"><strong>Orientações Gerais</strong>${this.escapeHtml(plano.guidelines).replace(/\n/g, '<br>')}</div>` : ''}
+                            ${plano.restrictions ? `<div class="note"><strong>Restrições</strong>${this.escapeHtml(plano.restrictions).replace(/\n/g, '<br>')}</div>` : ''}
+                            ${plano.goals ? `<div class="note"><strong>Objetivos</strong>${this.escapeHtml(plano.goals).replace(/\n/g, '<br>')}</div>` : ''}
+                        </section>
+                    ` : ''}
+
+                    <div class="footer">Documento gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
+                </main>
+                <script>
+                    window.addEventListener('load', () => {
+                        setTimeout(() => window.print(), 300);
+                    });
+                </script>
+            </body>
+            </html>
+        `;
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Permita pop-ups para exportar o PDF.');
+            return;
+        }
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
     }
 
     normalizarLinhaPlanoImportado(row) {
