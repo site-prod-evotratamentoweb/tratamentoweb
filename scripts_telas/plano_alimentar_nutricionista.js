@@ -2807,7 +2807,7 @@ export class PlanoAlimentarNutricionista {
             return;
         }
 
-        this.exportarPlanoPdf(planoId);
+        await this.exportarPlanoPdf(planoId);
     }
 
     async exportarPlanoXlsx(planoId) {
@@ -2899,7 +2899,99 @@ export class PlanoAlimentarNutricionista {
         `;
     }
 
-    exportarPlanoPdf(planoId) {
+    normalizarDataGrafico(data) {
+        const valor = String(data || '');
+        if (!valor) return '';
+        const [ano, mes, dia] = valor.split('-');
+        return dia && mes ? `${dia}/${mes}` : valor;
+    }
+
+    renderGraficoLinhaPdf(titulo, subtitulo, dados, unidade, cor) {
+        const valores = dados.map((item) => Number(item.valor || 0)).filter((valor) => Number.isFinite(valor));
+        if (!dados.length || !valores.some((valor) => valor > 0)) {
+            return `
+                <article class="evolution-card">
+                    <h3>${this.escapeHtml(titulo)}</h3>
+                    <p class="chart-empty">Dados ainda não disponíveis.</p>
+                </article>
+            `;
+        }
+
+        const width = 520;
+        const height = 210;
+        const pad = 34;
+        const min = Math.min(...valores);
+        const max = Math.max(...valores);
+        const range = max - min || 1;
+        const points = dados.map((item, index) => {
+            const x = pad + (index * ((width - pad * 2) / Math.max(1, dados.length - 1)));
+            const y = height - pad - (((Number(item.valor || 0) - min) / range) * (height - pad * 2));
+            return { x, y, ...item };
+        });
+        const path = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
+        const areaPath = `${path} L ${points[points.length - 1].x.toFixed(1)} ${height - pad} L ${points[0].x.toFixed(1)} ${height - pad} Z`;
+
+        return `
+            <article class="evolution-card">
+                <h3>${this.escapeHtml(titulo)}</h3>
+                <p>${this.escapeHtml(subtitulo)}</p>
+                <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${this.escapeHtml(titulo)}">
+                    <line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="#cbd5e1" stroke-width="1" />
+                    <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}" stroke="#cbd5e1" stroke-width="1" />
+                    <path d="${areaPath}" fill="${cor}" opacity="0.10"></path>
+                    <path d="${path}" fill="none" stroke="${cor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                    ${points.map((point) => `
+                        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="5" fill="${cor}" stroke="white" stroke-width="2"></circle>
+                        <text x="${point.x.toFixed(1)}" y="${(point.y - 10).toFixed(1)}" text-anchor="middle" font-size="11" fill="#334155">${this.formatarNumero(point.valor, 1)}${unidade}</text>
+                        <text x="${point.x.toFixed(1)}" y="${height - 10}" text-anchor="middle" font-size="10" fill="#64748b">${this.escapeHtml(this.normalizarDataGrafico(point.label))}</text>
+                    `).join('')}
+                </svg>
+            </article>
+        `;
+    }
+
+    async montarGraficosEvolucaoPdf() {
+        if (!this.selectedPaciente?.login) return '';
+
+        let evaluations = [];
+        try {
+            evaluations = await this.funcoes.loadEvaluationsByPatient(this.selectedPaciente.login);
+        } catch (_error) {
+            evaluations = [];
+        }
+
+        const ordenadas = evaluations
+            .slice()
+            .sort((a, b) => String(a.data_avaliacao || '').localeCompare(String(b.data_avaliacao || '')))
+            .slice(-8);
+
+        const peso = ordenadas.map((item) => ({
+            label: item.data_avaliacao,
+            valor: item.dados_antropometricos?.peso || 0
+        }));
+        const imc = ordenadas.map((item) => ({
+            label: item.data_avaliacao,
+            valor: item.dados_antropometricos?.imc || 0
+        }));
+        const massa = ordenadas.map((item) => ({
+            label: item.data_avaliacao,
+            valor: item.bioimpedancia?.massa_muscular || 0
+        }));
+
+        return `
+            <section class="evolution-section page-break">
+                <h2 class="section-title">Evolução do paciente</h2>
+                <p class="patient-help">Estes gráficos mostram a evolução registrada nas avaliações nutricionais. O objetivo é acompanhar tendências ao longo do tempo, não avaliar um dia isolado.</p>
+                <div class="evolution-grid">
+                    ${this.renderGraficoLinhaPdf('Evolução do Peso', 'Peso corporal registrado em cada avaliação.', peso, 'kg', '#f97316')}
+                    ${this.renderGraficoLinhaPdf('Evolução do IMC', 'Indicador que relaciona peso e altura.', imc, '', '#3b82f6')}
+                    ${this.renderGraficoLinhaPdf('Evolução da Massa Muscular', 'Quando disponível, acompanha massa muscular em kg.', massa, 'kg', '#10b981')}
+                </div>
+            </section>
+        `;
+    }
+
+    async exportarPlanoPdf(planoId) {
         const plano = this.planosList.find(p => p.id === planoId);
         if (!plano) return;
 
@@ -2910,6 +3002,7 @@ export class PlanoAlimentarNutricionista {
         const refeicoes = this.montarRefeicoesPdfPlano(plano);
         const refeicoesDetalhadas = this.montarRefeicoesDetalhadasPdfPlano(plano);
         const resumoTotal = this.calcularTotaisPlanoSalvo(plano, this.getRefeicoesPlano());
+        const graficosEvolucao = await this.montarGraficosEvolucaoPdf();
 
         const html = `
             <!doctype html>
@@ -2934,7 +3027,9 @@ export class PlanoAlimentarNutricionista {
                     .meal ul { margin: 0; padding: 10px 16px 12px 28px; }
                     .meal li { margin: 6px 0; line-height: 1.35; font-size: 14px; }
                     .empty { color: #94a3b8; font-style: italic; }
+                    .page-break { break-before: page; page-break-before: always; }
                     .section-title { margin: 22px 0 10px; color: #1a237e; font-size: 22px; border-bottom: 2px solid #e0e7ff; padding-bottom: 6px; }
+                    .patient-help { color: #475569; font-size: 13px; line-height: 1.45; margin: 0 0 12px; }
                     .summary { border: 1px solid #c7d2fe; background: #eef2ff; border-radius: 10px; padding: 12px; margin-bottom: 12px; break-inside: avoid; }
                     .nutri-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: #334155; }
                     .detail-meal { border: 1px solid #dbe3ef; border-radius: 10px; margin-bottom: 12px; overflow: hidden; break-inside: avoid; }
@@ -2946,6 +3041,13 @@ export class PlanoAlimentarNutricionista {
                     .option-detail.selected { border-color: #1a237e; background: #eef2ff; }
                     .option-text { font-size: 13px; font-weight: 700; color: #1f2937; margin-bottom: 5px; }
                     .macro-line { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; font-size: 11px; color: #475569; }
+                    .evolution-section { break-inside: avoid; }
+                    .evolution-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+                    .evolution-card { border: 1px solid #dbe3ef; border-radius: 10px; padding: 12px; background: #fff; break-inside: avoid; }
+                    .evolution-card h3 { margin: 0 0 4px; color: #1a237e; font-size: 17px; }
+                    .evolution-card p { margin: 0 0 8px; color: #64748b; font-size: 12px; }
+                    .evolution-card svg { width: 100%; height: 210px; display: block; }
+                    .chart-empty { padding: 42px 0; text-align: center; background: #f8fafc; border-radius: 8px; }
                     .notes { margin-top: 14px; display: grid; gap: 10px; }
                     .note { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; break-inside: avoid; }
                     .note strong { color: #1a237e; display: block; margin-bottom: 6px; }
@@ -2981,7 +3083,7 @@ export class PlanoAlimentarNutricionista {
                         `).join('')}
                     </section>
 
-                    <h2 class="section-title">Resumo nutricional</h2>
+                    <h2 class="section-title page-break">Resumo nutricional</h2>
                     <section class="summary">
                         <strong>Total do plano</strong>
                         ${this.renderNutrientesPdf(resumoTotal)}
@@ -3022,6 +3124,8 @@ export class PlanoAlimentarNutricionista {
                             ${plano.goals ? `<div class="note"><strong>Objetivos</strong>${this.escapeHtml(plano.goals).replace(/\n/g, '<br>')}</div>` : ''}
                         </section>
                     ` : ''}
+
+                    ${graficosEvolucao}
 
                     <div class="footer">Documento gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
                 </main>
