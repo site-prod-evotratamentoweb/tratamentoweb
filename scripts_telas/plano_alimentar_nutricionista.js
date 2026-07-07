@@ -283,6 +283,16 @@ export class PlanoAlimentarNutricionista {
                     </div>
                 </div>
 
+                <div id="modalVisualizarPlano" class="modal-overlay" style="display: none;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: 98vw; max-width: 1600px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: 0 0 auto;">
+                            <strong id="modalVisualizarPlanoTitulo" style="font-size: 16px;">Plano alimentar</strong>
+                            <button id="btnFecharVisualizarPlano" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
+                        </div>
+                        <div data-visualizar-plano-form style="padding: 12px; overflow: auto; flex: 1; min-height: 0; background: #f8fafc;"></div>
+                    </div>
+                </div>
+
                 <div id="modalEditarOpcaoPlano" class="modal-overlay" style="display: none;">
                     <div class="modal-content" style="background: white; border-radius: 16px; width: min(94vw, 760px); max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
@@ -489,7 +499,6 @@ export class PlanoAlimentarNutricionista {
         });
 
         return planosOrdenados.map((plano, index) => {
-            const isExpanded = this.planoExpandido === plano.id;
             const dataFormatada = this.formatarDataExibicao(plano.id);
             
             return `
@@ -501,7 +510,7 @@ export class PlanoAlimentarNutricionista {
                     overflow: hidden;
                 ">
                     <!-- Cabeçalho do Card -->
-                    <div onclick="window.planoAlimentarInstance.toggleExpandirPlano('${plano.id}')" 
+                    <div onclick="window.planoAlimentarInstance.abrirModalVisualizarPlano('${plano.id}')" 
                          style="padding: 8px 10px; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <span style="
@@ -530,41 +539,29 @@ export class PlanoAlimentarNutricionista {
                             <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.editarPlano('${plano.id}')" title="Editar plano" aria-label="Editar plano" style="width: 28px; height: 28px; padding: 0; background: #fef3c7; color: #92400e; border: none; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">✎</button>
                             <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.exportarPlano('${plano.id}')" title="Exportar plano" aria-label="Exportar plano" style="width: 28px; height: 28px; padding: 0; background: #e0f2fe; color: #0369a1; border: none; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">⇩</button>
                             <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.excluirPlano('${plano.id}')" title="Excluir plano" aria-label="Excluir plano" style="width: 28px; height: 28px; padding: 0; background: #fee2e2; color: #b91c1c; border: none; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">X</button>
-                            <span title="${isExpanded ? 'Recolher' : 'Expandir'}" style="width: 28px; height: 28px; color: #64748b; font-size: 18px; transition: transform 0.3s; display: inline-flex; align-items: center; justify-content: center; ${isExpanded ? 'transform: rotate(180deg);' : ''}">
-                                ▼
+                            <span title="Abrir plano" style="width: 28px; height: 28px; color: #64748b; font-size: 18px; display: inline-flex; align-items: center; justify-content: center;">
+                                ▣
                             </span>
                         </div>
                     </div>
-                    
-                    <!-- Detalhes Expandidos -->
-                    ${isExpanded ? `
-                        <div class="plano-detalhes" style="border-top: 1px solid #e2e8f0; padding: 8px; background: #f8fafc;">
-                            <!-- Refeições -->
-                            ${this.renderRefeicoesPlanoSalvo(plano)}
-                            
-                            <!-- Informações Adicionais -->
-                            ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
-                            ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições', plano.restrictions) : ''}
-                            ${plano.goals ? this.renderInfoCard('🎯 Objetivos', plano.goals) : ''}
-                        </div>
-                    ` : ''}
                 </div>
             `;
         }).join('');
     }
 
-    renderRefeicaoCard(titulo, conteudo) {
+    renderRefeicaoCard(titulo, conteudo, modo = 'modal') {
         if (!conteudo || conteudo.trim() === '') return '';
+        const altura = modo === 'modal' ? 'minmax(190px, 1fr)' : 'clamp(150px, 23vh, 220px)';
         
         return `
-            <div style="background: white; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0; height: clamp(150px, 23vh, 220px); overflow: hidden; display: flex; flex-direction: column;">
+            <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; height: ${altura}; overflow: hidden; display: flex; flex-direction: column;">
                 <strong style="color: #1a237e; display: block; margin-bottom: 6px;">${titulo}</strong>
                 <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap; overflow-y: auto; flex: 1; padding-right: 4px;">${this.escapeHtml(conteudo)}</p>
             </div>
         `;
     }
 
-    renderRefeicoesPlanoSalvo(plano) {
+    renderRefeicoesPlanoSalvo(plano, modo = 'modal') {
         const refeicoes = [
             { id: 'breakfast', titulo: 'Café da Manhã', icone: '🌅' },
             { id: 'morningSnack', titulo: 'Lanche da Manhã', icone: '🍎' },
@@ -573,33 +570,41 @@ export class PlanoAlimentarNutricionista {
             { id: 'dinner', titulo: 'Jantar', icone: '🌙' },
             { id: 'supper', titulo: 'Ceia', icone: '⭐' }
         ];
+        const altura = modo === 'modal' ? 'minmax(190px, 1fr)' : 'clamp(150px, 23vh, 220px)';
+        const gap = modo === 'modal' ? '10px' : '8px';
         return `
-            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, clamp(150px, 23vh, 220px)); gap: 8px; margin-bottom: 8px; overflow: hidden;">
-                ${refeicoes.map((refeicao) => this.renderRefeicaoPlanoSalvo(plano, refeicao)).join('')}
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, ${altura}); gap: ${gap}; margin-bottom: 10px; min-height: 0;">
+                ${refeicoes.map((refeicao) => this.renderRefeicaoPlanoSalvo(plano, refeicao, modo)).join('')}
             </div>
         `;
     }
 
-    renderRefeicaoPlanoSalvo(plano, refeicao) {
+    renderRefeicaoPlanoSalvo(plano, refeicao, modo = 'modal') {
         const itens = Array.isArray(plano.itens_plano?.[refeicao.id])
             ? plano.itens_plano[refeicao.id].map((item) => this.normalizarItemPlano(item))
             : [];
+        const altura = modo === 'modal' ? '100%' : 'clamp(150px, 23vh, 220px)';
+        const headerPadding = modo === 'modal' ? '8px 10px' : '5px 8px';
+        const headerFont = modo === 'modal' ? '14px' : '12px';
+        const itemRows = modo === 'modal' ? 'minmax(46px, auto)' : 'minmax(34px, auto)';
+        const itemGap = modo === 'modal' ? '6px' : '4px';
+        const bodyPadding = modo === 'modal' ? '8px' : '6px';
 
         if (!itens.length) {
-            return this.renderRefeicaoCard(`${refeicao.icone} ${refeicao.titulo}`, plano[refeicao.id]);
+            return this.renderRefeicaoCard(`${refeicao.icone} ${refeicao.titulo}`, plano[refeicao.id], modo);
         }
 
         return `
-            <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; height: clamp(150px, 23vh, 220px); min-height: 0; display: flex; flex-direction: column;">
-                <div style="background: #f1f5f9; color: #1a237e; padding: 5px 8px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex: 0 0 auto; font-size: 12px; line-height: 1.1;">
+            <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; height: ${altura}; min-height: 0; display: flex; flex-direction: column;">
+                <div style="background: #f1f5f9; color: #1a237e; padding: ${headerPadding}; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex: 0 0 auto; font-size: ${headerFont}; line-height: 1.1;">
                     <span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0;">
                         <span>${refeicao.icone}</span>
                         <span>${refeicao.titulo}</span>
                     </span>
                     <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisRefeicaoSalva('${plano.id}', '${refeicao.id}')" aria-label="Ver detalhes nutricionais da refeição" title="Ver detalhes nutricionais da refeição" style="width: 24px; min-width: 24px; height: 24px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                 </div>
-                <div style="padding: 6px; display: grid; align-content: start; grid-auto-rows: minmax(34px, auto); gap: 4px; overflow-y: auto; flex: 1; min-height: 0;">
-                    ${itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item)).join('')}
+                <div style="padding: ${bodyPadding}; display: grid; align-content: start; grid-auto-rows: ${itemRows}; gap: ${itemGap}; overflow-y: auto; flex: 1; min-height: 0;">
+                    ${itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item, modo)).join('')}
                 </div>
             </section>
         `;
@@ -673,7 +678,7 @@ export class PlanoAlimentarNutricionista {
         `;
     }
 
-    renderItemPlanoSalvo(planoId, mealId, item) {
+    renderItemPlanoSalvo(planoId, mealId, item, modo = 'modal') {
         const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
             ? item.opcoes
             : [{ id: item.id, texto: item.texto, detalhes: item.detalhes }];
@@ -681,14 +686,21 @@ export class PlanoAlimentarNutricionista {
         const opcaoVisivel = opcoes[opcaoVisivelIndex];
         const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : opcaoVisivelIndex;
 
+        const itemMinHeight = modo === 'modal' ? '46px' : '34px';
+        const itemPadding = modo === 'modal' ? '7px' : '4px 5px';
+        const itemFont = modo === 'modal' ? '13px' : '11px';
+        const itemLineHeight = modo === 'modal' ? '1.3' : '1.18';
+        const itemTextMaxHeight = modo === 'modal' ? '36px' : '26px';
+        const optionWidth = modo === 'modal' ? '38px' : '34px';
+        const buttonSize = modo === 'modal' ? '30px' : '24px';
         return `
-            <div style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 7px; padding: 4px 5px; background: #f8fafc; min-height: 34px; overflow: hidden;">
+            <div style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 7px; padding: ${itemPadding}; background: #f8fafc; min-height: ${itemMinHeight}; overflow: hidden;">
                 <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 5px; align-items: start;">
-                    <div style="min-width: 0; color: #334155; font-size: 11px; line-height: 1.18; max-height: 26px; overflow: hidden;">
+                    <div style="min-width: 0; color: #334155; font-size: ${itemFont}; line-height: ${itemLineHeight}; max-height: ${itemTextMaxHeight}; overflow: hidden;">
                         ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
-                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.alternarOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: 34px; min-width: 34px; height: 24px; padding: 0; border: none; border-radius: 6px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
-                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalheOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Ver detalhes" title="Ver detalhes da opção atual" style="width: 24px; min-width: 24px; height: 24px; padding: 0; border: none; border-radius: 6px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.alternarOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: ${optionWidth}; min-width: ${optionWidth}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
+                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalheOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Ver detalhes" title="Ver detalhes da opção atual" style="width: ${buttonSize}; min-width: ${buttonSize}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                 </div>
             </div>
         `;
@@ -699,6 +711,23 @@ export class PlanoAlimentarNutricionista {
             <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px;">
                 <strong style="color: #1a237e; display: block; margin-bottom: 8px;">${titulo}</strong>
                 <p style="color: #475569; margin: 0; white-space: pre-wrap;">${this.escapeHtml(conteudo)}</p>
+            </div>
+        `;
+    }
+
+    renderPlanoVisualizacao(plano) {
+        return `
+            <div style="display: flex; flex-direction: column; gap: 10px; min-height: 100%;">
+                <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" onclick="window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${plano.id}')" title="Detalhes gerais" aria-label="Detalhes gerais do plano" style="width: 34px; height: 34px; padding: 0; background: #e0f2fe; color: #0369a1; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                    <button type="button" onclick="window.planoAlimentarInstance.editarPlano('${plano.id}')" title="Editar plano" aria-label="Editar plano" style="width: 34px; height: 34px; padding: 0; background: #fef3c7; color: #92400e; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✎</button>
+                    <button type="button" onclick="window.planoAlimentarInstance.exportarPlano('${plano.id}')" title="Exportar plano" aria-label="Exportar plano" style="width: 34px; height: 34px; padding: 0; background: #e0f2fe; color: #0369a1; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">⇩</button>
+                    <button type="button" onclick="window.planoAlimentarInstance.excluirPlano('${plano.id}')" title="Excluir plano" aria-label="Excluir plano" style="width: 34px; height: 34px; padding: 0; background: #fee2e2; color: #b91c1c; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">X</button>
+                </div>
+                ${this.renderRefeicoesPlanoSalvo(plano, 'modal')}
+                ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
+                ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições', plano.restrictions) : ''}
+                ${plano.goals ? this.renderInfoCard('🎯 Objetivos', plano.goals) : ''}
             </div>
         `;
     }
@@ -1585,6 +1614,15 @@ export class PlanoAlimentarNutricionista {
             });
         }
 
+        const modalVisualizarPlano = document.getElementById('modalVisualizarPlano');
+        if (modalVisualizarPlano) {
+            modalVisualizarPlano.addEventListener('click', (e) => {
+                if (e.target === modalVisualizarPlano) {
+                    this.fecharModalVisualizarPlano();
+                }
+            });
+        }
+
         const modalNovoAlimento = document.getElementById('modalNovoAlimento');
         if (modalNovoAlimento) {
             modalNovoAlimento.addEventListener('click', (e) => {
@@ -1620,6 +1658,7 @@ export class PlanoAlimentarNutricionista {
         document.getElementById('btnFecharNovoAlimento')?.addEventListener('click', () => this.fecharModalNovoAlimento());
         document.getElementById('btnFecharConfigAlimentos')?.addEventListener('click', () => this.fecharModalConfigAlimentos());
         document.getElementById('btnFecharEditarOpcaoPlano')?.addEventListener('click', () => this.fecharModalEditarOpcaoPlano());
+        document.getElementById('btnFecharVisualizarPlano')?.addEventListener('click', () => this.fecharModalVisualizarPlano());
 
         window.planoAlimentarInstance = this;
     }
@@ -2192,12 +2231,25 @@ export class PlanoAlimentarNutricionista {
     }
 
     toggleExpandirPlano(planoId) {
-        if (this.planoExpandido === planoId) {
-            this.planoExpandido = null;
-        } else {
-            this.planoExpandido = planoId;
-        }
-        this.render();
+        this.abrirModalVisualizarPlano(planoId);
+    }
+
+    abrirModalVisualizarPlano(planoId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        if (!plano) return;
+
+        this.planoExpandido = planoId;
+        const modal = document.getElementById('modalVisualizarPlano');
+        const titulo = document.getElementById('modalVisualizarPlanoTitulo');
+        const formWrapper = modal?.querySelector('[data-visualizar-plano-form]');
+        if (titulo) titulo.textContent = `Plano alimentar - ${this.formatarDataExibicao(plano.id)}`;
+        if (formWrapper) formWrapper.innerHTML = this.renderPlanoVisualizacao(plano);
+        if (modal) modal.style.display = 'flex';
+    }
+
+    fecharModalVisualizarPlano() {
+        const modal = document.getElementById('modalVisualizarPlano');
+        if (modal) modal.style.display = 'none';
     }
 
     encontrarItemPlanoSalvo(planoId, mealId, itemId) {
@@ -2211,7 +2263,12 @@ export class PlanoAlimentarNutricionista {
         if (!item || !Array.isArray(item.opcoes) || item.opcoes.length < 2) return;
 
         item.opcaoVisivelIndex = (Number(item.opcaoVisivelIndex || 0) + 1) % item.opcoes.length;
-        this.render();
+        const modalAberto = document.getElementById('modalVisualizarPlano')?.style.display === 'flex';
+        if (modalAberto) {
+            this.abrirModalVisualizarPlano(planoId);
+        } else {
+            this.renderizarPlanosContainer();
+        }
         this.abrirDetalheOpcaoPlanoSalvo(planoId, mealId, itemId);
     }
 
@@ -2273,6 +2330,7 @@ export class PlanoAlimentarNutricionista {
             this.planosList = this.planosList.filter((plano) => plano.id !== planoId);
             if (this.planoExpandido === planoId) {
                 this.planoExpandido = null;
+                this.fecharModalVisualizarPlano();
             }
             this.renderizarPlanosContainer();
         } catch (error) {
