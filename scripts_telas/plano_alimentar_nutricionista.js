@@ -557,7 +557,7 @@ export class PlanoAlimentarNutricionista {
         if (!conteudo || conteudo.trim() === '') return '';
         
         return `
-            <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; height: clamp(142px, 21vh, 190px); overflow: hidden; display: flex; flex-direction: column;">
+            <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; height: clamp(190px, 27vh, 260px); overflow: hidden; display: flex; flex-direction: column;">
                 <strong style="color: #1a237e; display: block; margin-bottom: 6px;">${titulo}</strong>
                 <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap; overflow-y: auto; flex: 1; padding-right: 4px;">${this.escapeHtml(conteudo)}</p>
             </div>
@@ -574,7 +574,7 @@ export class PlanoAlimentarNutricionista {
             { id: 'supper', titulo: 'Ceia', icone: '⭐' }
         ];
         return `
-            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, clamp(142px, 21vh, 190px)); gap: 10px; margin-bottom: 14px; overflow: hidden;">
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, clamp(190px, 27vh, 260px)); gap: 10px; margin-bottom: 14px; overflow: hidden;">
                 ${refeicoes.map((refeicao) => this.renderRefeicaoPlanoSalvo(plano, refeicao)).join('')}
             </div>
         `;
@@ -590,7 +590,7 @@ export class PlanoAlimentarNutricionista {
         }
 
         return `
-            <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; height: clamp(142px, 21vh, 190px); min-height: 0; display: flex; flex-direction: column;">
+            <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; height: clamp(190px, 27vh, 260px); min-height: 0; display: flex; flex-direction: column;">
                 <div style="background: #f1f5f9; color: #1a237e; padding: 8px 10px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: 0 0 auto;">
                     <span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0;">
                         <span>${refeicao.icone}</span>
@@ -598,7 +598,7 @@ export class PlanoAlimentarNutricionista {
                     </span>
                     <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisRefeicaoSalva('${plano.id}', '${refeicao.id}')" aria-label="Ver detalhes nutricionais da refeição" title="Ver detalhes nutricionais da refeição" style="width: 28px; min-width: 28px; height: 28px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                 </div>
-                <div style="padding: 8px; display: grid; align-content: start; gap: 7px; overflow-y: auto; flex: 1; min-height: 0;">
+                <div style="padding: 8px; display: grid; align-content: start; grid-auto-rows: minmax(44px, auto); gap: 6px; overflow-y: auto; flex: 1; min-height: 0;">
                     ${itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item)).join('')}
                 </div>
             </section>
@@ -682,9 +682,9 @@ export class PlanoAlimentarNutricionista {
         const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : opcaoVisivelIndex;
 
         return `
-            <div style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 7px; background: #f8fafc;">
+            <div style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 6px; background: #f8fafc; min-height: 44px; overflow: hidden;">
                 <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 7px; align-items: start;">
-                    <div style="min-width: 0; color: #334155; font-size: 13px; line-height: 1.3;">
+                    <div style="min-width: 0; color: #334155; font-size: 12px; line-height: 1.25;">
                         ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
                     <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.alternarOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: 38px; min-width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
@@ -1018,7 +1018,7 @@ export class PlanoAlimentarNutricionista {
                     <span>${refeicao.titulo}</span>
                     ${selecionada ? '<span style="font-size: 12px; font-weight: 500;">Selecionada</span>' : ''}
                 </div>
-                <div class="meal-items-scroll" data-meal-id="${refeicao.id}" style="padding: 10px; display: grid; align-content: start; gap: 8px; flex: 1; overflow-y: auto; min-height: 0;">
+                <div class="meal-items-scroll" data-meal-id="${refeicao.id}" style="padding: 8px; display: grid; align-content: start; grid-auto-rows: minmax(44px, auto); gap: 6px; flex: 1; overflow-y: auto; min-height: 0;">
                     ${itens.length ? itens.map((item) => this.renderItemRefeicao(refeicao.id, item)).join('') : '<div style="color: #94a3b8; font-size: 13px; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px;">Nenhum alimento nesta refeição.</div>'}
                 </div>
             </div>
@@ -1034,9 +1034,9 @@ export class PlanoAlimentarNutricionista {
         const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : opcaoVisivelIndex;
 
         return `
-            <div class="meal-item-row" draggable="true" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: hidden; border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 7px; background: #f8fafc; min-height: 58px;">
+            <div class="meal-item-row" draggable="true" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: hidden; border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 6px; background: #f8fafc; min-height: 44px;">
                 <div style="display: grid; grid-template-columns: 1fr 76px; gap: 7px; align-items: start;">
-                    <div style="min-width: 0; color: #334155; font-size: 13px; line-height: 1.3;">
+                    <div style="min-width: 0; color: #334155; font-size: 12px; line-height: 1.25;">
                         ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
                     <div style="display: grid; grid-template-columns: 38px 30px; grid-template-rows: repeat(2, 30px); gap: 6px;">
