@@ -2918,7 +2918,7 @@ export class PlanoAlimentarNutricionista {
         }
 
         const width = 520;
-        const height = 210;
+        const height = 176;
         const pad = 34;
         const min = Math.min(...valores);
         const max = Math.max(...valores);
@@ -3011,47 +3011,48 @@ export class PlanoAlimentarNutricionista {
                 <meta charset="utf-8">
                 <title>Plano alimentar - ${this.escapeHtml(pacienteNome)}</title>
                 <style>
-                    @page { size: A4; margin: 14mm; }
+                    @page { size: A4; margin: 10mm; }
                     * { box-sizing: border-box; }
                     body { font-family: Arial, sans-serif; color: #1f2937; margin: 0; background: #f8fafc; }
-                    .page { background: white; min-height: 100vh; padding: 22px; }
-                    .header { display: flex; justify-content: space-between; align-items: center; gap: 18px; border-bottom: 3px solid #1a237e; padding-bottom: 16px; margin-bottom: 18px; }
-                    .brand h1 { margin: 0 0 6px; color: #1a237e; font-size: 28px; }
+                    .page { background: white; padding: 14px; }
+                    .header { display: flex; justify-content: space-between; align-items: center; gap: 14px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; margin-bottom: 12px; }
+                    .brand h1 { margin: 0 0 4px; color: #1a237e; font-size: 25px; }
                     .brand p { margin: 3px 0; color: #475569; font-size: 14px; }
-                    .prof { display: flex; align-items: center; gap: 12px; text-align: right; }
-                    .prof img { width: 72px; height: 72px; object-fit: cover; border-radius: 50%; border: 3px solid #e0e7ff; }
+                    .prof { display: flex; align-items: center; gap: 10px; text-align: right; }
+                    .prof img { width: 62px; height: 62px; object-fit: cover; border-radius: 50%; border: 2px solid #e0e7ff; }
                     .prof-name { font-weight: 700; color: #1a237e; font-size: 15px; }
-                    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+                    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
                     .meal { border: 1px solid #dbe3ef; border-radius: 10px; overflow: hidden; break-inside: avoid; background: #fff; }
-                    .meal h2 { margin: 0; padding: 10px 12px; background: #eef2ff; color: #1a237e; font-size: 17px; }
-                    .meal ul { margin: 0; padding: 10px 16px 12px 28px; }
-                    .meal li { margin: 6px 0; line-height: 1.35; font-size: 14px; }
+                    .meal h2 { margin: 0; padding: 8px 10px; background: #eef2ff; color: #1a237e; font-size: 16px; }
+                    .meal ul { margin: 0; padding: 8px 14px 9px 24px; }
+                    .meal li { margin: 4px 0; line-height: 1.28; font-size: 13px; }
                     .empty { color: #94a3b8; font-style: italic; }
                     .page-break { break-before: page; page-break-before: always; }
-                    .section-title { margin: 22px 0 10px; color: #1a237e; font-size: 22px; border-bottom: 2px solid #e0e7ff; padding-bottom: 6px; }
-                    .patient-help { color: #475569; font-size: 13px; line-height: 1.45; margin: 0 0 12px; }
-                    .summary { border: 1px solid #c7d2fe; background: #eef2ff; border-radius: 10px; padding: 12px; margin-bottom: 12px; break-inside: avoid; }
-                    .nutri-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: #334155; }
-                    .detail-meal { border: 1px solid #dbe3ef; border-radius: 10px; margin-bottom: 12px; overflow: hidden; break-inside: avoid; }
-                    .detail-meal h3 { margin: 0; padding: 9px 12px; background: #f1f5f9; color: #1a237e; font-size: 16px; display: flex; justify-content: space-between; gap: 12px; }
-                    .detail-body { padding: 10px 12px; display: grid; gap: 10px; }
-                    .substitution { border-left: 3px solid #1a237e; padding-left: 10px; }
-                    .substitution-title { font-weight: 700; color: #334155; margin-bottom: 6px; }
-                    .option-detail { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; margin: 6px 0; }
+                    .section-title { margin: 14px 0 8px; color: #1a237e; font-size: 20px; border-bottom: 2px solid #e0e7ff; padding-bottom: 5px; }
+                    .section-title.page-break, .evolution-section .section-title { margin-top: 0; }
+                    .patient-help { color: #475569; font-size: 12px; line-height: 1.35; margin: 0 0 8px; }
+                    .summary { border: 1px solid #c7d2fe; background: #eef2ff; border-radius: 10px; padding: 9px; margin-bottom: 8px; break-inside: avoid; }
+                    .nutri-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; font-size: 11px; color: #334155; }
+                    .detail-meal { border: 1px solid #dbe3ef; border-radius: 9px; margin-bottom: 8px; overflow: hidden; break-inside: avoid; }
+                    .detail-meal h3 { margin: 0; padding: 7px 10px; background: #f1f5f9; color: #1a237e; font-size: 14px; display: flex; justify-content: space-between; gap: 10px; }
+                    .detail-body { padding: 8px 10px; display: grid; gap: 7px; }
+                    .substitution { border-left: 3px solid #1a237e; padding-left: 8px; }
+                    .substitution-title { font-weight: 700; color: #334155; margin-bottom: 4px; font-size: 12px; }
+                    .option-detail { border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px; margin: 4px 0; }
                     .option-detail.selected { border-color: #1a237e; background: #eef2ff; }
-                    .option-text { font-size: 13px; font-weight: 700; color: #1f2937; margin-bottom: 5px; }
-                    .macro-line { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; font-size: 11px; color: #475569; }
-                    .evolution-section { break-inside: avoid; }
-                    .evolution-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-                    .evolution-card { border: 1px solid #dbe3ef; border-radius: 10px; padding: 12px; background: #fff; break-inside: avoid; }
-                    .evolution-card h3 { margin: 0 0 4px; color: #1a237e; font-size: 17px; }
-                    .evolution-card p { margin: 0 0 8px; color: #64748b; font-size: 12px; }
-                    .evolution-card svg { width: 100%; height: 210px; display: block; }
-                    .chart-empty { padding: 42px 0; text-align: center; background: #f8fafc; border-radius: 8px; }
-                    .notes { margin-top: 14px; display: grid; gap: 10px; }
-                    .note { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; break-inside: avoid; }
-                    .note strong { color: #1a237e; display: block; margin-bottom: 6px; }
-                    .footer { margin-top: 18px; color: #64748b; font-size: 12px; text-align: center; }
+                    .option-text { font-size: 12px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+                    .macro-line { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; font-size: 10px; color: #475569; }
+                    .evolution-section { break-inside: auto; }
+                    .evolution-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+                    .evolution-card { border: 1px solid #dbe3ef; border-radius: 9px; padding: 8px; background: #fff; break-inside: avoid; }
+                    .evolution-card h3 { margin: 0 0 3px; color: #1a237e; font-size: 15px; }
+                    .evolution-card p { margin: 0 0 5px; color: #64748b; font-size: 11px; }
+                    .evolution-card svg { width: 100%; height: 176px; display: block; }
+                    .chart-empty { padding: 26px 0; text-align: center; background: #f8fafc; border-radius: 8px; }
+                    .notes { margin-top: 8px; display: grid; gap: 7px; }
+                    .note { border: 1px solid #e2e8f0; border-radius: 9px; padding: 9px; break-inside: avoid; font-size: 12px; line-height: 1.35; }
+                    .note strong { color: #1a237e; display: block; margin-bottom: 4px; }
+                    .footer { margin: 8px 0 0; color: #64748b; font-size: 11px; text-align: center; }
                     @media print { body { background: white; } .page { padding: 0; } }
                 </style>
             </head>
@@ -3125,9 +3126,9 @@ export class PlanoAlimentarNutricionista {
                         </section>
                     ` : ''}
 
-                    ${graficosEvolucao}
-
                     <div class="footer">Documento gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
+
+                    ${graficosEvolucao}
                 </main>
                 <script>
                     window.addEventListener('load', () => {
