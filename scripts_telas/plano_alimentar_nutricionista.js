@@ -206,7 +206,7 @@ export class PlanoAlimentarNutricionista {
                         <span class="fab-text">Lista de Alimentos</span>
                     </button>
                     ${this.selectedPaciente ? `
-                    <button id="btnImportarPlano" class="fab-button fab-button-green" title="Importar Plano Alimentar XLSX">
+                    <button id="btnImportarPlano" class="fab-button" title="Importar Plano Alimentar XLSX">
                         <span class="fab-icon">⇧</span>
                         <span class="fab-text">Importar Plano</span>
                     </button>
@@ -568,7 +568,7 @@ export class PlanoAlimentarNutricionista {
         if (!conteudo || conteudo.trim() === '') return '';
         
         return `
-            <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; height: 232px; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; height: clamp(142px, 21vh, 190px); overflow: hidden; display: flex; flex-direction: column;">
                 <strong style="color: #1a237e; display: block; margin-bottom: 6px;">${titulo}</strong>
                 <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap; overflow-y: auto; flex: 1; padding-right: 4px;">${this.escapeHtml(conteudo)}</p>
             </div>
@@ -586,7 +586,7 @@ export class PlanoAlimentarNutricionista {
         ];
 
         return `
-            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, 232px); gap: 12px; margin-bottom: 16px; overflow: hidden;">
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, clamp(142px, 21vh, 190px)); gap: 10px; margin-bottom: 14px; overflow: hidden;">
                 ${refeicoes.map((refeicao) => this.renderRefeicaoPlanoSalvo(plano, refeicao)).join('')}
             </div>
         `;
@@ -602,12 +602,12 @@ export class PlanoAlimentarNutricionista {
         }
 
         return `
-            <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; height: 232px; min-height: 0; display: flex; flex-direction: column;">
-                <div style="background: #f1f5f9; color: #1a237e; padding: 10px 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
+            <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; height: clamp(142px, 21vh, 190px); min-height: 0; display: flex; flex-direction: column;">
+                <div style="background: #f1f5f9; color: #1a237e; padding: 8px 10px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
                     <span>${refeicao.icone}</span>
                     <span>${refeicao.titulo}</span>
                 </div>
-                <div style="padding: 10px; display: grid; align-content: start; gap: 8px; overflow-y: auto; flex: 1; min-height: 0;">
+                <div style="padding: 8px; display: grid; align-content: start; gap: 7px; overflow-y: auto; flex: 1; min-height: 0;">
                     ${itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item)).join('')}
                 </div>
             </section>
