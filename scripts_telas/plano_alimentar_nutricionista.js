@@ -129,6 +129,8 @@ export class PlanoAlimentarNutricionista {
         this.alimentoEditandoId = null;
         this.refeicaoSelecionada = 'breakfast';
         this.opcaoDestinoPlano = null;
+        this.itemOpcaoEditando = null;
+        this.dragItemPlano = null;
         this.criandoPlanoBiaSantos = false;
         this.itensPlano = this.criarEstadoItensPlano();
         this.detalhesBuscaAlimentos = {};
@@ -204,12 +206,11 @@ export class PlanoAlimentarNutricionista {
                         <span class="fab-text">Lista de Alimentos</span>
                     </button>
                     ${this.selectedPaciente ? `
-                    ${this.podeCriarPlanoModeloBiaSantos() ? `
-                    <button id="btnCriarPlanoBiaSantos" class="fab-button fab-button-green" title="Criar Plano Bia Santos">
-                        <span class="fab-icon">+</span>
-                        <span class="fab-text">Plano Bia Santos</span>
+                    <button id="btnImportarPlano" class="fab-button fab-button-green" title="Importar Plano Alimentar XLSX">
+                        <span class="fab-icon">⇧</span>
+                        <span class="fab-text">Importar Plano</span>
                     </button>
-                    ` : ''}
+                    <input id="inputImportarPlano" type="file" accept=".xlsx,.xls" style="display: none;">
                     <button id="btnNovoPlano" class="fab-button" title="Novo Plano Alimentar">
                         <span class="fab-icon">+</span>
                         <span class="fab-text">Novo Plano Alimentar</span>
@@ -279,6 +280,16 @@ export class PlanoAlimentarNutricionista {
                             <button id="btnFecharDetalheAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">✕</button>
                         </div>
                         <div data-detalhe-alimento-form style="padding: 16px; overflow: auto; font-size: 14px; color: #334155;"></div>
+                    </div>
+                </div>
+
+                <div id="modalEditarOpcaoPlano" class="modal-overlay" style="display: none;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(94vw, 760px); max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <strong id="modalEditarOpcaoPlanoTitulo" style="font-size: 15px;">Editar opção</strong>
+                            <button id="btnFecharEditarOpcaoPlano" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
+                        </div>
+                        <div data-editar-opcao-plano-form style="padding: 16px; overflow: auto;"></div>
                     </div>
                 </div>
     
@@ -949,7 +960,7 @@ export class PlanoAlimentarNutricionista {
 
     renderRefeicoesPlano() {
         return `
-            <div id="mealItemsGrid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 12px; height: 100%; min-height: 0; overflow: hidden;">
+            <div id="mealItemsGrid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 12px; height: 100%; min-height: 0; overflow: hidden;">
                 ${this.getRefeicoesPlano().map((refeicao) => this.renderRefeicaoEditor(refeicao)).join('')}
             </div>
         `;
@@ -960,12 +971,12 @@ export class PlanoAlimentarNutricionista {
         const selecionada = this.refeicaoSelecionada === refeicao.id;
 
         return `
-            <div class="meal-editor-card" data-meal-id="${refeicao.id}" style="background: white; border: 2px solid ${selecionada ? '#1a237e' : '#e2e8f0'}; border-radius: 10px; overflow: visible; height: 100%; min-height: 0; cursor: pointer; display: flex; flex-direction: column;">
+            <div class="meal-editor-card" data-meal-id="${refeicao.id}" style="background: white; border: 2px solid ${selecionada ? '#1a237e' : '#e2e8f0'}; border-radius: 10px; overflow: hidden; height: 100%; min-height: 0; cursor: pointer; display: flex; flex-direction: column;">
                 <div style="background: ${selecionada ? '#1a237e' : '#f1f5f9'}; color: ${selecionada ? 'white' : '#1a237e'}; padding: 10px 14px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px;">
                     <span>${refeicao.titulo}</span>
                     ${selecionada ? '<span style="font-size: 12px; font-weight: 500;">Selecionada</span>' : ''}
                 </div>
-                <div style="padding: 10px; display: grid; gap: 8px; flex: 1; overflow-y: auto; min-height: 0;">
+                <div class="meal-items-scroll" data-meal-id="${refeicao.id}" style="padding: 10px; display: grid; align-content: start; gap: 8px; flex: 1; overflow-y: auto; min-height: 0;">
                     ${itens.length ? itens.map((item) => this.renderItemRefeicao(refeicao.id, item)).join('') : '<div style="color: #94a3b8; font-size: 13px; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px;">Nenhum alimento nesta refeição.</div>'}
                 </div>
             </div>
@@ -973,7 +984,6 @@ export class PlanoAlimentarNutricionista {
     }
 
     renderItemRefeicao(mealId, item) {
-        const ativoParaOpcao = this.opcaoDestinoPlano?.mealId === mealId && this.opcaoDestinoPlano?.itemId === item.id;
         const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
             ? item.opcoes
             : [{ id: item.id, texto: item.texto, detalhes: item.detalhes }];
@@ -982,8 +992,8 @@ export class PlanoAlimentarNutricionista {
         const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : 0;
 
         return `
-            <div class="meal-item-row" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: visible; border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 9px; background: #f8fafc;">
-                <div style="display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: start;">
+            <div class="meal-item-row" draggable="true" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: hidden; border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 8px; background: #f8fafc; min-height: 72px;">
+                <div style="display: grid; grid-template-columns: 1fr 68px; gap: 8px; align-items: start;">
                     <div style="display: grid; gap: 5px; min-width: 0;">
                         <div style="display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: start; color: #334155; font-size: 13px; line-height: 1.35;">
                             <span style="color: #1a237e; font-weight: 700; white-space: nowrap;">Opção ${opcaoVisivelIndex + 1}</span>
@@ -991,12 +1001,13 @@ export class PlanoAlimentarNutricionista {
                         </div>
                         ${opcoes.length > 1 ? `<div style="font-size: 11px; color: #64748b;">${opcoes.length} opções cadastradas para este alimento</div>` : ''}
                     </div>
-                    <button type="button" class="btnAdicionarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Adicionar opção" title="Adicionar opção neste alimento" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: ${ativoParaOpcao ? '#1a237e' : '#dcfce7'}; color: ${ativoParaOpcao ? 'white' : '#166534'}; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700;">+</button>
-                    ${opcoes.length > 1 ? `<button type="button" class="btnAlternarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Ver opção ${proximaOpcaoIndex + 1}" title="Ver opção ${proximaOpcaoIndex + 1}" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">${proximaOpcaoIndex + 1}</button>` : `<button type="button" aria-hidden="true" tabindex="-1" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; background: transparent;"></button>`}
-                    <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" title="Ver detalhes da opção atual" style="width: 30px; min-width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
-                    <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" style="padding: 6px 9px; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer;">X</button>
+                    <div style="display: grid; grid-template-columns: repeat(2, 30px); grid-template-rows: repeat(2, 30px); gap: 6px;">
+                        <button type="button" class="btnAlternarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Ver próxima opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1}` : 'Sem outras opções'}" ${opcoes.length > 1 ? '' : 'disabled'} style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: ${opcoes.length > 1 ? '#fef3c7' : '#e2e8f0'}; color: ${opcoes.length > 1 ? '#92400e' : '#94a3b8'}; cursor: ${opcoes.length > 1 ? 'pointer' : 'not-allowed'}; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">${opcoes.length > 1 ? proximaOpcaoIndex + 1 : '1'}</button>
+                        <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" title="Ver detalhes da opção atual" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                        <button type="button" class="btnEditarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Editar opção" title="Editar opção atual" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #ede9fe; color: #6d28d9; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✎</button>
+                        <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" title="Excluir alimento" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">X</button>
+                    </div>
                 </div>
-                ${ativoParaOpcao ? '<div style="margin-top: 7px; font-size: 12px; color: #1a237e; font-weight: 600;">Selecione um alimento acima para adicionar como próxima opção.</div>' : ''}
             </div>
         `;
     }
@@ -1498,9 +1509,9 @@ export class PlanoAlimentarNutricionista {
             });
         }
 
-        document.getElementById('btnCriarPlanoBiaSantos')?.addEventListener('click', () => this.criarPlanoModeloBiaSantos());
-
         document.getElementById('btnListaAlimentos')?.addEventListener('click', () => this.abrirModalListaAlimentos());
+        document.getElementById('btnImportarPlano')?.addEventListener('click', () => document.getElementById('inputImportarPlano')?.click());
+        document.getElementById('inputImportarPlano')?.addEventListener('change', (event) => this.importarPlanoXlsx(event));
 
         const btnSalvarPlano = document.getElementById('btnSalvarPlano');
         if (btnSalvarPlano) {
@@ -1554,6 +1565,15 @@ export class PlanoAlimentarNutricionista {
             });
         }
 
+        const modalEditarOpcaoPlano = document.getElementById('modalEditarOpcaoPlano');
+        if (modalEditarOpcaoPlano) {
+            modalEditarOpcaoPlano.addEventListener('click', (e) => {
+                if (e.target === modalEditarOpcaoPlano) {
+                    this.fecharModalEditarOpcaoPlano();
+                }
+            });
+        }
+
         document.getElementById('btnFecharDetalheAlimento')?.addEventListener('click', () => {
             const modal = document.getElementById('modalDetalheAlimento');
             if (modal) modal.style.display = 'none';
@@ -1561,6 +1581,7 @@ export class PlanoAlimentarNutricionista {
 
         document.getElementById('btnFecharNovoAlimento')?.addEventListener('click', () => this.fecharModalNovoAlimento());
         document.getElementById('btnFecharConfigAlimentos')?.addEventListener('click', () => this.fecharModalConfigAlimentos());
+        document.getElementById('btnFecharEditarOpcaoPlano')?.addEventListener('click', () => this.fecharModalEditarOpcaoPlano());
 
         window.planoAlimentarInstance = this;
     }
@@ -1594,11 +1615,20 @@ export class PlanoAlimentarNutricionista {
         document.querySelectorAll('.btnDetalhesItemPlano').forEach((button) => {
             button.addEventListener('click', () => this.alternarDetalhesItemPlano(button.dataset.mealId, button.dataset.itemId));
         });
-        document.querySelectorAll('.btnAdicionarOpcaoItemPlano').forEach((button) => {
-            button.addEventListener('click', () => this.prepararAdicionarOpcaoItemPlano(button.dataset.mealId, button.dataset.itemId));
+        document.querySelectorAll('.btnEditarOpcaoItemPlano').forEach((button) => {
+            button.addEventListener('click', () => this.abrirModalEditarOpcaoPlano(button.dataset.mealId, button.dataset.itemId));
         });
         document.querySelectorAll('.btnAlternarOpcaoItemPlano').forEach((button) => {
             button.addEventListener('click', () => this.alternarOpcaoVisivelItemPlano(button.dataset.mealId, button.dataset.itemId));
+        });
+        document.querySelectorAll('.meal-item-row').forEach((row) => {
+            row.addEventListener('dragstart', (event) => this.iniciarArrasteItemPlano(event, row.dataset.mealId, row.dataset.itemId));
+            row.addEventListener('dragover', (event) => event.preventDefault());
+            row.addEventListener('drop', (event) => this.soltarItemPlano(event, row.dataset.mealId, row.dataset.itemId));
+            row.addEventListener('dragend', () => {
+                this.dragItemPlano = null;
+                row.style.opacity = '';
+            });
         });
     }
 
@@ -1680,21 +1710,199 @@ export class PlanoAlimentarNutricionista {
     }
 
     excluirItemPlano(mealId, itemId) {
-        this.itensPlano[mealId] = (this.itensPlano[mealId] || []).filter((item) => item.id !== itemId);
-        if (this.opcaoDestinoPlano?.mealId === mealId && this.opcaoDestinoPlano?.itemId === itemId) {
-            this.opcaoDestinoPlano = null;
+        const item = (this.itensPlano[mealId] || []).find((registro) => registro.id === itemId);
+        const opcoes = Array.isArray(item?.opcoes) && item.opcoes.length ? item.opcoes : [];
+        const opcaoIndex = Math.max(0, Math.min(opcoes.length - 1, Number(item?.opcaoVisivelIndex || 0)));
+        const opcaoNome = opcoes[opcaoIndex]?.texto || item?.texto || 'este alimento';
+        if (!confirm(`Deseja excluir a opção em questão?\n\n${opcaoNome}`)) return;
+
+        if (item && opcoes.length > 1) {
+            item.opcoes.splice(opcaoIndex, 1);
+            item.opcaoVisivelIndex = Math.max(0, Math.min(item.opcoes.length - 1, opcaoIndex));
+            item.texto = this.formatarTextoItemPlano(item);
+            item.detalhes = item.opcoes[0]?.detalhes || null;
+        } else {
+            this.itensPlano[mealId] = (this.itensPlano[mealId] || []).filter((itemPlano) => itemPlano.id !== itemId);
+            if (this.opcaoDestinoPlano?.mealId === mealId && this.opcaoDestinoPlano?.itemId === itemId) {
+                this.opcaoDestinoPlano = null;
+            }
         }
         this.renderizarRefeicoesPlano();
     }
 
-    prepararAdicionarOpcaoItemPlano(mealId, itemId) {
-        if (this.opcaoDestinoPlano?.mealId === mealId && this.opcaoDestinoPlano?.itemId === itemId) {
-            this.opcaoDestinoPlano = null;
-        } else {
-            this.opcaoDestinoPlano = { mealId, itemId };
-            this.refeicaoSelecionada = mealId;
-        }
+    iniciarArrasteItemPlano(event, mealId, itemId) {
+        this.dragItemPlano = { mealId, itemId };
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', `${mealId}:${itemId}`);
+        event.currentTarget.style.opacity = '0.55';
+    }
+
+    soltarItemPlano(event, mealIdDestino, itemIdDestino) {
+        event.preventDefault();
+        const origem = this.dragItemPlano;
+        if (!origem || origem.mealId !== mealIdDestino || origem.itemId === itemIdDestino) return;
+
+        const itens = this.itensPlano[mealIdDestino] || [];
+        const origemIndex = itens.findIndex((item) => item.id === origem.itemId);
+        const destinoIndex = itens.findIndex((item) => item.id === itemIdDestino);
+        if (origemIndex < 0 || destinoIndex < 0) return;
+
+        const [itemMovido] = itens.splice(origemIndex, 1);
+        itens.splice(destinoIndex, 0, itemMovido);
         this.renderizarRefeicoesPlano();
+    }
+
+    obterQuantidadeOpcao(opcao) {
+        const valor = String(opcao?.detalhes?.quantidadeTexto || '').match(/[\d.,]+/);
+        if (!valor) return 1;
+        return Math.max(1, Number(valor[0].replace(',', '.')) || 1);
+    }
+
+    encontrarAlimentoDaOpcao(opcao) {
+        const nome = this.normalizarBusca(opcao?.detalhes?.nome || String(opcao?.texto || '').split(' - ')[0]);
+        return this.alimentosBase.find((alimento) => this.normalizarBusca(alimento.nome) === nome) || null;
+    }
+
+    renderLinhaEditarOpcaoPlano(opcao = {}, index = 0) {
+        const alimentoAtual = this.encontrarAlimentoDaOpcao(opcao);
+        const quantidade = this.obterQuantidadeOpcao(opcao);
+        const options = this.alimentosBase
+            .slice()
+            .sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'))
+            .map((alimento) => `
+                <option value="${this.escapeHtml(alimento.id)}" ${alimento.id === alimentoAtual?.id ? 'selected' : ''}>
+                    ${this.escapeHtml(alimento.nome)}
+                </option>
+            `).join('');
+
+        return `
+            <div class="editar-opcao-plano-row" data-opcao-index="${index}" style="display: grid; grid-template-columns: 1fr 96px 34px; gap: 8px; align-items: end; padding: 10px; border: 1px solid #dbe3ef; border-radius: 10px; background: #f8fafc;">
+                <label style="font-size: 12px; color: #475569; font-weight: 600;">Opção ${index + 1}
+                    <select class="editarOpcaoPlanoAlimento" style="width: 100%; margin-top: 5px; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                        <option value="">Selecione um alimento</option>
+                        ${options}
+                    </select>
+                </label>
+                <label style="font-size: 12px; color: #475569; font-weight: 600;">Qtd.
+                    <input class="editarOpcaoPlanoQuantidade" type="number" min="1" max="9999" step="1" value="${this.escapeHtml(quantidade)}" style="width: 100%; margin-top: 5px; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                </label>
+                <button type="button" class="btnRemoverOpcaoPlanoModal" title="Remover esta opção" aria-label="Remover opção" style="width: 34px; height: 34px; border: none; border-radius: 8px; background: #fee2e2; color: #b91c1c; cursor: pointer;">X</button>
+            </div>
+        `;
+    }
+
+    renderFormularioEditarOpcaoPlano(opcoes) {
+        return `
+            <div style="display: grid; gap: 12px;">
+                <div style="font-size: 13px; color: #475569;">Altere o alimento ou a quantidade da opção atual. Use "Adicionar outra opção" para criar uma nova alternativa para este mesmo alimento.</div>
+                <div id="editarOpcaoPlanoRows" style="display: grid; gap: 10px;">
+                    ${opcoes.map((opcao, index) => this.renderLinhaEditarOpcaoPlano(opcao, index)).join('')}
+                </div>
+                <div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                    <button id="btnAdicionarOpcaoPlanoModal" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Adicionar outra opção</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btnCancelarEditarOpcaoPlano" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
+                        <button id="btnSalvarEditarOpcaoPlano" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer; font-weight: 600;">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    coletarOpcoesEditadasPlano(permitirVazio = false) {
+        const rows = [...document.querySelectorAll('.editar-opcao-plano-row')];
+        return rows.map((row) => {
+            const foodId = row.querySelector('.editarOpcaoPlanoAlimento')?.value || '';
+            const quantidade = Math.max(1, Number(row.querySelector('.editarOpcaoPlanoQuantidade')?.value || 1));
+            if (!foodId) return permitirVazio ? { foodId: '', quantidade } : null;
+            const alimento = this.alimentosBase.find((item) => item.id === foodId);
+            return alimento ? { foodId, quantidade, opcao: this.criarOpcaoItemPlano(alimento, quantidade) } : null;
+        }).filter((item) => permitirVazio || item?.opcao);
+    }
+
+    anexarEventosModalEditarOpcaoPlano() {
+        document.getElementById('btnCancelarEditarOpcaoPlano')?.addEventListener('click', () => this.fecharModalEditarOpcaoPlano());
+        document.getElementById('btnSalvarEditarOpcaoPlano')?.addEventListener('click', () => this.salvarEdicaoOpcaoPlano());
+        document.getElementById('btnAdicionarOpcaoPlanoModal')?.addEventListener('click', () => {
+            const opcoesAtuais = this.coletarOpcoesEditadasPlano(true).map((item) => item?.opcao || {});
+            opcoesAtuais.push({});
+            const formWrapper = document.querySelector('[data-editar-opcao-plano-form]');
+            if (formWrapper) {
+                formWrapper.innerHTML = this.renderFormularioEditarOpcaoPlano(opcoesAtuais);
+                this.anexarEventosModalEditarOpcaoPlano();
+            }
+        });
+        document.querySelectorAll('.btnRemoverOpcaoPlanoModal').forEach((button) => {
+            button.addEventListener('click', () => {
+                const rows = [...document.querySelectorAll('.editar-opcao-plano-row')];
+                if (rows.length <= 1) {
+                    alert('Mantenha pelo menos uma opção.');
+                    return;
+                }
+                button.closest('.editar-opcao-plano-row')?.remove();
+                [...document.querySelectorAll('.editar-opcao-plano-row')].forEach((row, index) => {
+                    const label = row.querySelector('label');
+                    if (label?.firstChild) label.firstChild.textContent = `Opção ${index + 1}`;
+                });
+            });
+        });
+    }
+
+    async abrirModalEditarOpcaoPlano(mealId, itemId) {
+        try {
+            await this.carregarBaseAlimentos();
+        } catch (error) {
+            alert('Nao foi possivel carregar a base de alimentos para editar.');
+            return;
+        }
+
+        const item = (this.itensPlano[mealId] || []).find((registro) => registro.id === itemId);
+        if (!item) return;
+
+        const opcaoAtualIndex = Math.max(0, Math.min(
+            (Array.isArray(item.opcoes) && item.opcoes.length ? item.opcoes.length : 1) - 1,
+            Number(item.opcaoVisivelIndex || 0)
+        ));
+        this.itemOpcaoEditando = { mealId, itemId, opcaoIndex: opcaoAtualIndex };
+        const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
+            ? item.opcoes
+            : [{ id: item.id, texto: item.texto, detalhes: item.detalhes }];
+
+        const modal = document.getElementById('modalEditarOpcaoPlano');
+        const titulo = document.getElementById('modalEditarOpcaoPlanoTitulo');
+        const formWrapper = modal?.querySelector('[data-editar-opcao-plano-form]');
+        if (titulo) titulo.textContent = `Editar opção ${opcaoAtualIndex + 1}`;
+        if (formWrapper) {
+            formWrapper.innerHTML = this.renderFormularioEditarOpcaoPlano(opcoes);
+            this.anexarEventosModalEditarOpcaoPlano();
+        }
+        if (modal) modal.style.display = 'flex';
+    }
+
+    salvarEdicaoOpcaoPlano() {
+        if (!this.itemOpcaoEditando) return;
+        const { mealId, itemId, opcaoIndex } = this.itemOpcaoEditando;
+        const item = (this.itensPlano[mealId] || []).find((registro) => registro.id === itemId);
+        if (!item) return;
+
+        const opcoesEditadas = this.coletarOpcoesEditadasPlano(false).map((itemEditado) => itemEditado.opcao);
+        if (!opcoesEditadas.length) {
+            alert('Selecione pelo menos um alimento.');
+            return;
+        }
+
+        item.opcoes = opcoesEditadas;
+        item.opcaoVisivelIndex = Math.max(0, Math.min(opcoesEditadas.length - 1, Number(opcaoIndex || 0)));
+        item.texto = this.formatarTextoItemPlano(item);
+        item.detalhes = opcoesEditadas[0]?.detalhes || null;
+        this.fecharModalEditarOpcaoPlano();
+        this.renderizarRefeicoesPlano();
+    }
+
+    fecharModalEditarOpcaoPlano() {
+        const modal = document.getElementById('modalEditarOpcaoPlano');
+        if (modal) modal.style.display = 'none';
+        this.itemOpcaoEditando = null;
     }
 
     alternarOpcaoVisivelItemPlano(mealId, itemId) {
@@ -1903,7 +2111,6 @@ export class PlanoAlimentarNutricionista {
                 this.planosList.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            await this.garantirPlanoModeloBiaSantos();
             this.renderizarPlanosContainer();
             
         } catch (error) {
@@ -2146,44 +2353,194 @@ export class PlanoAlimentarNutricionista {
         }
     }
 
-    exportarPlano(planoId) {
+    montarLinhasExportacaoPlano(plano) {
+        const linhas = [];
+        this.getRefeicoesPlano().forEach((refeicao) => {
+            const itens = Array.isArray(plano.itens_plano?.[refeicao.id])
+                ? plano.itens_plano[refeicao.id].map((item) => this.normalizarItemPlano(item))
+                : [];
+
+            if (!itens.length && plano[refeicao.id]) {
+                String(plano[refeicao.id]).split('\n').filter(Boolean).forEach((texto, index) => {
+                    linhas.push({
+                        RefeicaoId: refeicao.id,
+                        Refeicao: refeicao.titulo,
+                        Ordem: index + 1,
+                        Opcao: 1,
+                        Alimento: '',
+                        Quantidade: '',
+                        Texto: texto
+                    });
+                });
+                return;
+            }
+
+            itens.forEach((item, itemIndex) => {
+                const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
+                    ? item.opcoes
+                    : [{ texto: item.texto, detalhes: item.detalhes }];
+                opcoes.forEach((opcao, opcaoIndex) => {
+                    linhas.push({
+                        RefeicaoId: refeicao.id,
+                        Refeicao: refeicao.titulo,
+                        Ordem: itemIndex + 1,
+                        Opcao: opcaoIndex + 1,
+                        Alimento: opcao.detalhes?.nome || String(opcao.texto || '').split(' - ')[0],
+                        Quantidade: this.obterQuantidadeOpcao(opcao),
+                        Texto: opcao.texto || ''
+                    });
+                });
+            });
+        });
+        return linhas;
+    }
+
+    async exportarPlano(planoId) {
         const plano = this.planosList.find(p => p.id === planoId);
         if (!plano) return;
 
-        const dataFormatada = this.formatarDataExibicao(planoId);
-
-        let conteudo = `PLANO ALIMENTAR\n`;
-        conteudo += `${'='.repeat(50)}\n\n`;
-        conteudo += `👤 Paciente: ${this.selectedPaciente.nome}\n`;
-        conteudo += `👨‍⚕️ Profissional: ${plano.profissional_nome || 'Não informado'}\n`;
-        conteudo += `📅 Data: ${dataFormatada}\n`;
-        conteudo += `\n${'='.repeat(50)}\n\n`;
-        
-        conteudo += `🍽️ REFEIÇÕES\n${'-'.repeat(50)}\n\n`;
-        if (plano.breakfast) conteudo += `🌅 Café da Manhã:\n${plano.breakfast}\n\n`;
-        if (plano.morningSnack) conteudo += `🍎 Lanche da Manhã:\n${plano.morningSnack}\n\n`;
-        if (plano.lunch) conteudo += `🍽️ Almoço:\n${plano.lunch}\n\n`;
-        if (plano.afternoonSnack) conteudo += `🍌 Lanche da Tarde:\n${plano.afternoonSnack}\n\n`;
-        if (plano.dinner) conteudo += `🌙 Jantar:\n${plano.dinner}\n\n`;
-        if (plano.supper) conteudo += `⭐ Ceia:\n${plano.supper}\n\n`;
-        
-        if (plano.guidelines || plano.restrictions || plano.goals) {
-            conteudo += `📋 INFORMAÇÕES ADICIONAIS\n${'-'.repeat(50)}\n\n`;
-            if (plano.guidelines) conteudo += `📌 Orientações Gerais:\n${plano.guidelines}\n\n`;
-            if (plano.restrictions) conteudo += `⚠️ Restrições Alimentares:\n${plano.restrictions}\n\n`;
-            if (plano.goals) conteudo += `🎯 Objetivos:\n${plano.goals}\n\n`;
+        try {
+            const XLSX = await this.carregarXlsxLib();
+            const dataFormatada = this.formatarDataExibicao(planoId);
+            const workbook = XLSX.utils.book_new();
+            const metadados = [
+                { Campo: 'Paciente', Valor: this.selectedPaciente?.nome || '' },
+                { Campo: 'Paciente Login', Valor: this.selectedPaciente?.login || '' },
+                { Campo: 'Profissional', Valor: plano.profissional_nome || '' },
+                { Campo: 'Data', Valor: dataFormatada },
+                { Campo: 'Modelo', Valor: plano.modelo_plano || 'base_nutricional_linhas_v2' }
+            ];
+            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(metadados), 'Metadados');
+            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(this.montarLinhasExportacaoPlano(plano)), 'Plano');
+            XLSX.writeFile(workbook, `plano_alimentar_${dataFormatada.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}.xlsx`);
+        } catch (error) {
+            alert('Nao foi possivel exportar o plano em XLSX.');
         }
-        
-        conteudo += `${'='.repeat(50)}\n`;
-        conteudo += `Exportado em: ${new Date().toLocaleDateString('pt-BR')}\n`;
+    }
 
-        const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `plano_alimentar_${dataFormatada.replace(/\//g, '-').replace(/ /g, '_')}.txt`;
-        link.click();
-        URL.revokeObjectURL(url);
+    normalizarLinhaPlanoImportado(row) {
+        const get = (...keys) => keys.map((key) => row[key]).find((value) => value !== undefined && value !== null && String(value).trim() !== '');
+        const mealId = String(get('RefeicaoId', 'RefeiçãoId', 'refeicaoId') || '').trim();
+        if (!this.getRefeicoesPlano().some((refeicao) => refeicao.id === mealId)) return null;
+
+        return {
+            mealId,
+            ordem: Number(get('Ordem', 'ordem') || 1),
+            opcaoIndex: Number(get('Opcao', 'Opção', 'opcao') || 1),
+            alimentoNome: String(get('Alimento', 'alimento') || '').trim(),
+            quantidade: Math.max(1, Number(get('Quantidade', 'quantidade') || 1)),
+            texto: String(get('Texto', 'texto') || '').trim()
+        };
+    }
+
+    criarOpcaoImportada(linha) {
+        const alimento = this.alimentosBase.find((item) => this.normalizarBusca(item.nome) === this.normalizarBusca(linha.alimentoNome));
+        if (alimento) {
+            return this.criarOpcaoItemPlano(alimento, linha.quantidade);
+        }
+
+        const texto = linha.texto || [linha.alimentoNome, linha.quantidade ? `${linha.quantidade}` : ''].filter(Boolean).join(' - ');
+        return {
+            id: this.gerarIdItemPlano(),
+            texto,
+            detalhes: linha.alimentoNome ? {
+                nome: linha.alimentoNome,
+                quantidadeTexto: String(linha.quantidade || ''),
+                gramas: 0,
+                kcal: 0,
+                carboidratos: 0,
+                proteinas: 0,
+                gorduras: 0
+            } : null
+        };
+    }
+
+    montarPlanoImportadoDeLinhas(linhas) {
+        const itensPlano = this.criarEstadoItensPlano();
+        const grupos = new Map();
+        linhas.forEach((linha) => {
+            const chave = `${linha.mealId}:${linha.ordem}`;
+            if (!grupos.has(chave)) grupos.set(chave, []);
+            grupos.get(chave).push(linha);
+        });
+
+        [...grupos.entries()]
+            .sort((a, b) => {
+                const [mealA, ordemA] = a[0].split(':');
+                const [mealB, ordemB] = b[0].split(':');
+                if (mealA !== mealB) return mealA.localeCompare(mealB);
+                return Number(ordemA) - Number(ordemB);
+            })
+            .forEach(([chave, linhasGrupo]) => {
+                const [mealId] = chave.split(':');
+                const opcoes = linhasGrupo
+                    .sort((a, b) => a.opcaoIndex - b.opcaoIndex)
+                    .map((linha) => this.criarOpcaoImportada(linha))
+                    .filter((opcao) => opcao.texto);
+                if (!opcoes.length) return;
+
+                itensPlano[mealId].push({
+                    id: this.gerarIdItemPlano(),
+                    texto: this.formatarTextoItemPlano({ opcoes }),
+                    detalhes: opcoes[0]?.detalhes || null,
+                    opcoes,
+                    opcaoVisivelIndex: 0,
+                    detalhesAberto: false
+                });
+            });
+
+        return itensPlano;
+    }
+
+    async importarPlanoXlsx(event) {
+        const input = event.target;
+        const file = input?.files?.[0];
+        if (!file || !this.selectedPaciente) return;
+
+        try {
+            await this.carregarBaseAlimentos();
+            const XLSX = await this.carregarXlsxLib();
+            const buffer = await file.arrayBuffer();
+            const workbook = XLSX.read(buffer, { type: 'array' });
+            const sheet = workbook.Sheets.Plano || workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+            const linhas = rows.map((row) => this.normalizarLinhaPlanoImportado(row)).filter(Boolean);
+            if (!linhas.length) {
+                alert('A planilha nao possui linhas validas de plano alimentar.');
+                return;
+            }
+
+            const itensPlano = this.montarPlanoImportadoDeLinhas(linhas);
+            const agora = new Date();
+            const mealPlanData = {
+                breakfast: this.obterTextoRefeicaoImportada(itensPlano, 'breakfast'),
+                morningSnack: this.obterTextoRefeicaoImportada(itensPlano, 'morningSnack'),
+                lunch: this.obterTextoRefeicaoImportada(itensPlano, 'lunch'),
+                afternoonSnack: this.obterTextoRefeicaoImportada(itensPlano, 'afternoonSnack'),
+                dinner: this.obterTextoRefeicaoImportada(itensPlano, 'dinner'),
+                supper: this.obterTextoRefeicaoImportada(itensPlano, 'supper'),
+                itens_plano: itensPlano,
+                profissional_nome: this.userInfo.nome,
+                modelo_plano: 'base_nutricional_linhas_v2',
+                origem_importacao: file.name,
+                data_importacao: agora.toISOString()
+            };
+
+            await addDoc(collection(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login), mealPlanData);
+            alert('Plano alimentar importado com sucesso.');
+            await this.loadPlanos();
+            await this.render();
+        } catch (error) {
+            alert('Nao foi possivel importar o plano alimentar.');
+        } finally {
+            input.value = '';
+        }
+    }
+
+    obterTextoRefeicaoImportada(itensPlano, mealId) {
+        return (itensPlano[mealId] || [])
+            .map((item) => this.formatarTextoItemPlano(item))
+            .join('\n');
     }
 
     gerarIdDocumento(data) {
