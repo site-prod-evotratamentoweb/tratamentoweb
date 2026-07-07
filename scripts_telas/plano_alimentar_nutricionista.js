@@ -502,7 +502,7 @@ export class PlanoAlimentarNutricionista {
                 ">
                     <!-- Cabeçalho do Card -->
                     <div onclick="window.planoAlimentarInstance.toggleExpandirPlano('${plano.id}')" 
-                         style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                         style="padding: 16px 18px; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                             <span style="
                                 background: ${index === 0 ? '#22c55e' : '#64748b'}; 
@@ -520,13 +520,16 @@ export class PlanoAlimentarNutricionista {
                             </span>
                         </div>
                         
-                        <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
                             ${plano.goals ? `
                                 <span style="color: #475569; font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                     🎯 ${this.escapeHtml(plano.goals)}
                                 </span>
                             ` : ''}
-                            <span style="color: #64748b; font-size: 20px; transition: transform 0.3s; ${isExpanded ? 'transform: rotate(180deg);' : ''}">
+                            <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.editarPlano('${plano.id}')" title="Editar plano" aria-label="Editar plano" style="width: 34px; height: 34px; padding: 0; background: #fef3c7; color: #92400e; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 15px;">✎</button>
+                            <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.exportarPlano('${plano.id}')" title="Exportar plano" aria-label="Exportar plano" style="width: 34px; height: 34px; padding: 0; background: #e0f2fe; color: #0369a1; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 15px;">⇩</button>
+                            <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.excluirPlano('${plano.id}')" title="Excluir plano" aria-label="Excluir plano" style="width: 34px; height: 34px; padding: 0; background: #fee2e2; color: #b91c1c; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 15px;">X</button>
+                            <span title="${isExpanded ? 'Recolher' : 'Expandir'}" style="width: 34px; height: 34px; color: #64748b; font-size: 20px; transition: transform 0.3s; display: inline-flex; align-items: center; justify-content: center; ${isExpanded ? 'transform: rotate(180deg);' : ''}">
                                 ▼
                             </span>
                         </div>
@@ -554,22 +557,6 @@ export class PlanoAlimentarNutricionista {
                             ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
                             ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições', plano.restrictions) : ''}
                             ${plano.goals ? this.renderInfoCard('🎯 Objetivos', plano.goals) : ''}
-                            
-                            <!-- Botões de Ação -->
-                            <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                                <button onclick="window.planoAlimentarInstance.editarPlano('${plano.id}')" 
-                                        style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                    ✏️ Editar
-                                </button>
-                                <button onclick="window.planoAlimentarInstance.exportarPlano('${plano.id}')" 
-                                        style="padding: 10px 20px; background: #0ea5e9; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                    📥 Exportar
-                                </button>
-                                <button onclick="window.planoAlimentarInstance.clonarPlano('${plano.id}')" 
-                                        style="padding: 10px 20px; background: #8b5cf6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                    📋 Clonar
-                                </button>
-                            </div>
                         </div>
                     ` : ''}
                 </div>
@@ -581,9 +568,9 @@ export class PlanoAlimentarNutricionista {
         if (!conteudo || conteudo.trim() === '') return '';
         
         return `
-            <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; height: 232px; overflow: hidden; display: flex; flex-direction: column;">
                 <strong style="color: #1a237e; display: block; margin-bottom: 6px;">${titulo}</strong>
-                <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap;">${this.escapeHtml(conteudo)}</p>
+                <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap; overflow-y: auto; flex: 1; padding-right: 4px;">${this.escapeHtml(conteudo)}</p>
             </div>
         `;
     }
@@ -599,7 +586,7 @@ export class PlanoAlimentarNutricionista {
         ];
 
         return `
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-bottom: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, 232px); gap: 12px; margin-bottom: 16px; overflow: hidden;">
                 ${refeicoes.map((refeicao) => this.renderRefeicaoPlanoSalvo(plano, refeicao)).join('')}
             </div>
         `;
@@ -615,12 +602,12 @@ export class PlanoAlimentarNutricionista {
         }
 
         return `
-            <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden;">
-                <div style="background: #f1f5f9; color: #1a237e; padding: 10px 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; height: 232px; min-height: 0; display: flex; flex-direction: column;">
+                <div style="background: #f1f5f9; color: #1a237e; padding: 10px 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
                     <span>${refeicao.icone}</span>
                     <span>${refeicao.titulo}</span>
                 </div>
-                <div style="padding: 10px; display: grid; gap: 8px;">
+                <div style="padding: 10px; display: grid; align-content: start; gap: 8px; overflow-y: auto; flex: 1; min-height: 0;">
                     ${itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item)).join('')}
                 </div>
             </section>
@@ -2192,6 +2179,25 @@ export class PlanoAlimentarNutricionista {
             delete this.planoEditando.id;
             this.planoExpandido = null;
             this.abrirModal();
+        }
+    }
+
+    async excluirPlano(planoId) {
+        if (!this.selectedPaciente) return;
+
+        const dataFormatada = this.formatarDataExibicao(planoId);
+        const confirmado = confirm(`Excluir definitivamente este plano alimentar?\n\nPlano: ${dataFormatada}\n\nEsta ação não pode ser revertida.`);
+        if (!confirmado) return;
+
+        try {
+            await deleteDoc(doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, planoId));
+            this.planosList = this.planosList.filter((plano) => plano.id !== planoId);
+            if (this.planoExpandido === planoId) {
+                this.planoExpandido = null;
+            }
+            this.renderizarPlanosContainer();
+        } catch (error) {
+            alert('Nao foi possivel excluir o plano alimentar.');
         }
     }
 
