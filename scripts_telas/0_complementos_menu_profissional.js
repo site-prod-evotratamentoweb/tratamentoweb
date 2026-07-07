@@ -24,7 +24,7 @@ export class MenuProfissional {
                 </div>
                 <div class="top-bar-actions">
                     <div class="user-greeting">
-                        <button id="btnFotoPerfilProfissional" type="button" title="Inserir ou trocar foto" aria-label="Inserir ou trocar foto" style="width: 38px; height: 38px; padding: 0; border: 2px solid #e2e8f0; border-radius: 50%; overflow: hidden; background: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                        <button id="btnFotoPerfilProfissional" type="button" title="Inserir ou trocar foto" aria-label="Inserir ou trocar foto" style="width: 50px; height: 50px; padding: 0; border: 2px solid #e2e8f0; border-radius: 50%; overflow: hidden; background: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
                             ${fotoPerfil ? `<img src="${fotoPerfil}" alt="Foto de ${this.userInfo.nome}" style="width: 100%; height: 100%; object-fit: cover;">` : '<span style="font-size: 18px;">📷</span>'}
                         </button>
                         <input id="inputFotoPerfilProfissional" type="file" accept="image/jpeg,image/png,image/webp" style="display: none;">
