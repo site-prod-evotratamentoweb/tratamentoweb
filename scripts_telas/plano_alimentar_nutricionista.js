@@ -131,6 +131,9 @@ export class PlanoAlimentarNutricionista {
         this.opcaoDestinoPlano = null;
         this.itemOpcaoEditando = null;
         this.dragItemPlano = null;
+        this.visualizacaoPlanoEditando = false;
+        this.visualizacaoMealSelecionada = 'breakfast';
+        this.visualizacaoOpcaoDestino = null;
         this.criandoPlanoBiaSantos = false;
         this.itensPlano = this.criarEstadoItensPlano();
         this.detalhesBuscaAlimentos = {};
@@ -538,10 +541,6 @@ export class PlanoAlimentarNutricionista {
                                     🎯 ${this.escapeHtml(plano.goals)}
                                 </span>
                             ` : ''}
-                            <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${plano.id}')" title="Detalhes gerais" aria-label="Detalhes gerais do plano" style="width: 28px; height: 28px; padding: 0; background: #e0f2fe; color: #0369a1; border: none; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">&#128065;</button>
-                            <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.editarPlano('${plano.id}')" title="Editar plano" aria-label="Editar plano" style="width: 28px; height: 28px; padding: 0; background: #fef3c7; color: #92400e; border: none; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">✎</button>
-                            <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.exportarPlano('${plano.id}')" title="Exportar plano" aria-label="Exportar plano" style="width: 28px; height: 28px; padding: 0; background: #e0f2fe; color: #0369a1; border: none; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">⇩</button>
-                            <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.excluirPlano('${plano.id}')" title="Excluir plano" aria-label="Excluir plano" style="width: 28px; height: 28px; padding: 0; background: #fee2e2; color: #b91c1c; border: none; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">X</button>
                             <span title="Abrir plano" style="width: 28px; height: 28px; color: #64748b; font-size: 18px; display: inline-flex; align-items: center; justify-content: center;">
                                 ▣
                             </span>
@@ -573,7 +572,9 @@ export class PlanoAlimentarNutricionista {
             { id: 'dinner', titulo: 'Jantar', icone: '🌙' },
             { id: 'supper', titulo: 'Ceia', icone: '⭐' }
         ];
-        const altura = modo === 'modal' ? 'minmax(0, 1fr)' : 'clamp(150px, 23vh, 220px)';
+        const emEdicao = modo === 'modal-edit';
+        const emModal = modo === 'modal' || emEdicao;
+        const altura = emModal ? 'minmax(0, 1fr)' : 'clamp(150px, 23vh, 220px)';
         const gap = modo === 'modal' ? '10px' : '8px';
         return `
             <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, ${altura}); gap: ${gap}; min-height: 0; height: 100%; overflow: hidden;">
@@ -586,12 +587,14 @@ export class PlanoAlimentarNutricionista {
         const itens = Array.isArray(plano.itens_plano?.[refeicao.id])
             ? plano.itens_plano[refeicao.id].map((item) => this.normalizarItemPlano(item))
             : [];
-        const altura = modo === 'modal' ? '100%' : 'clamp(150px, 23vh, 220px)';
-        const headerPadding = modo === 'modal' ? '8px 10px' : '5px 8px';
-        const headerFont = modo === 'modal' ? '14px' : '12px';
-        const itemRows = modo === 'modal' ? 'minmax(42px, auto)' : 'minmax(34px, auto)';
-        const itemGap = modo === 'modal' ? '5px' : '4px';
-        const bodyPadding = modo === 'modal' ? '7px' : '6px';
+        const emEdicao = modo === 'modal-edit';
+        const emModal = modo === 'modal' || emEdicao;
+        const altura = emModal ? '100%' : 'clamp(150px, 23vh, 220px)';
+        const headerPadding = emModal ? '8px 10px' : '5px 8px';
+        const headerFont = emModal ? '15px' : '12px';
+        const itemRows = emModal ? '48px' : 'minmax(34px, auto)';
+        const itemGap = emModal ? '5px' : '4px';
+        const bodyPadding = emModal ? '7px' : '6px';
 
         if (!itens.length) {
             return this.renderRefeicaoCard(`${refeicao.icone} ${refeicao.titulo}`, plano[refeicao.id], modo);
@@ -606,7 +609,7 @@ export class PlanoAlimentarNutricionista {
                     </span>
                     <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisRefeicaoSalva('${plano.id}', '${refeicao.id}')" aria-label="Ver detalhes nutricionais da refeição" title="Ver detalhes nutricionais da refeição" style="width: 24px; min-width: 24px; height: 24px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                 </div>
-                <div style="padding: ${bodyPadding}; display: grid; align-content: start; grid-auto-rows: ${itemRows}; gap: ${itemGap}; overflow-y: auto; flex: 1; min-height: 0;">
+                <div style="padding: ${bodyPadding}; display: grid; align-content: start; grid-auto-rows: ${itemRows}; gap: ${itemGap}; overflow-y: auto; flex: 1; min-height: 0; ${emModal ? 'max-height: 219px;' : ''}">
                     ${itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item, modo)).join('')}
                 </div>
             </section>
@@ -689,21 +692,28 @@ export class PlanoAlimentarNutricionista {
         const opcaoVisivel = opcoes[opcaoVisivelIndex];
         const proximaOpcaoIndex = opcoes.length > 1 ? (opcaoVisivelIndex + 1) % opcoes.length : opcaoVisivelIndex;
 
-        const itemMinHeight = modo === 'modal' ? '42px' : '34px';
-        const itemPadding = modo === 'modal' ? '6px' : '4px 5px';
-        const itemFont = modo === 'modal' ? '13px' : '11px';
-        const itemLineHeight = modo === 'modal' ? '1.3' : '1.18';
-        const itemTextMaxHeight = modo === 'modal' ? '32px' : '26px';
-        const optionWidth = modo === 'modal' ? '38px' : '34px';
-        const buttonSize = modo === 'modal' ? '30px' : '24px';
+        const emEdicao = modo === 'modal-edit';
+        const emModal = modo === 'modal' || emEdicao;
+        const itemMinHeight = emModal ? '48px' : '34px';
+        const itemPadding = emModal ? '7px' : '4px 5px';
+        const itemFont = emModal ? '14px' : '11px';
+        const itemLineHeight = emModal ? '1.25' : '1.18';
+        const itemTextMaxHeight = emModal ? '36px' : '26px';
+        const optionWidth = emModal ? '42px' : '34px';
+        const buttonSize = emModal ? '32px' : '24px';
+        const dragAttrs = emEdicao
+            ? `draggable="true" ondragstart="event.dataTransfer.setData('text/plain', '${planoId}|${mealId}|${item.id}')" ondragover="event.preventDefault()" ondrop="window.planoAlimentarInstance.moverItemPlanoVisualizado(event, '${planoId}', '${mealId}', '${item.id}')"`
+            : '';
         return `
-            <div style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 7px; padding: ${itemPadding}; background: #f8fafc; min-height: ${itemMinHeight}; overflow: hidden;">
-                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 5px; align-items: start;">
+            <div ${dragAttrs} style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 7px; padding: ${itemPadding}; background: #f8fafc; min-height: ${itemMinHeight}; overflow: hidden; cursor: ${emEdicao ? 'grab' : 'default'};">
+                <div style="display: grid; grid-template-columns: 1fr auto auto ${emEdicao ? 'auto auto' : ''}; gap: 5px; align-items: start;">
                     <div style="min-width: 0; color: #334155; font-size: ${itemFont}; line-height: ${itemLineHeight}; max-height: ${itemTextMaxHeight}; overflow: hidden;">
                         ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
                     <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.alternarOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: ${optionWidth}; min-width: ${optionWidth}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
                     <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalheOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Ver detalhes" title="Ver detalhes da opção atual" style="width: ${buttonSize}; min-width: ${buttonSize}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                    ${emEdicao ? `<button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.prepararAdicionarOpcaoPlanoVisualizado('${planoId}', '${mealId}', '${item.id}')" aria-label="Adicionar opção" title="Adicionar opção neste alimento" style="width: ${buttonSize}; min-width: ${buttonSize}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #dcfce7; color: #166534; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 800;">+</button>` : ''}
+                    ${emEdicao ? `<button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.excluirOpcaoOuItemPlanoVisualizado('${planoId}', '${mealId}', '${item.id}')" aria-label="Remover" title="Remover opção atual" style="width: ${buttonSize}; min-width: ${buttonSize}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #fee2e2; color: #b91c1c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">X</button>` : ''}
                 </div>
             </div>
         `;
@@ -720,18 +730,54 @@ export class PlanoAlimentarNutricionista {
 
     renderPlanoVisualizacao(plano) {
         return `
-            <div style="height: 100%; min-height: 0; overflow: hidden;">
-                ${this.renderRefeicoesPlanoSalvo(plano, 'modal')}
+            <div style="height: 100%; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 8px;">
+                ${this.visualizacaoPlanoEditando ? this.renderBarraEdicaoPlanoVisualizado(plano) : ''}
+                <div style="flex: 1; min-height: 0; overflow: hidden;">
+                    ${this.renderRefeicoesPlanoSalvo(plano, this.visualizacaoPlanoEditando ? 'modal-edit' : 'modal')}
+                </div>
+            </div>
+        `;
+    }
+
+    renderBarraEdicaoPlanoVisualizado(plano) {
+        const termo = document.getElementById('visualFoodSearch')?.value || '';
+        const alimentos = this.filtrarAlimentos(termo);
+        const destino = this.visualizacaoOpcaoDestino;
+        return `
+            <div style="background: white; border: 1px solid #dbe3ef; border-radius: 10px; padding: 8px; flex: 0 0 auto; display: grid; grid-template-columns: 190px minmax(180px, 260px) 1fr; gap: 8px; align-items: start;">
+                <label style="font-size: 12px; color: #475569; font-weight: 700;">Refeição
+                    <select id="visualMealSelect" onchange="window.planoAlimentarInstance.visualizacaoMealSelecionada = this.value" style="width: 100%; margin-top: 4px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        ${this.getRefeicoesPlano().map((refeicao) => `<option value="${refeicao.id}" ${this.visualizacaoMealSelecionada === refeicao.id ? 'selected' : ''}>${refeicao.titulo}</option>`).join('')}
+                    </select>
+                </label>
+                <label style="font-size: 12px; color: #475569; font-weight: 700;">Pesquisar alimento
+                    <input id="visualFoodSearch" autocomplete="off" value="${this.escapeHtml(termo)}" oninput="window.planoAlimentarInstance.atualizarModalVisualizarPlano()" style="width: 100%; margin-top: 4px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                </label>
+                <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; min-height: 58px;">
+                    ${destino ? `<div style="flex: 0 0 auto; align-self: center; font-size: 12px; color: #1a237e; font-weight: 700;">Adicionando opção</div>` : ''}
+                    ${alimentos.map((alimento) => `
+                        <div style="flex: 0 0 260px; display: grid; grid-template-columns: 1fr 54px 34px; gap: 6px; align-items: end; border-left: 2px solid #cbd5e1; padding-left: 8px;">
+                            <div style="font-size: 13px; color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
+                            <input id="visualQtd_${this.escapeHtml(alimento.id)}" type="number" min="1" max="9999" step="1" value="1" style="width: 54px; padding: 7px 5px; border: 1px solid #cbd5e1; border-radius: 7px;">
+                            <button type="button" onclick="window.planoAlimentarInstance.adicionarAlimentoPlanoVisualizado('${plano.id}', '${this.escapeHtml(alimento.id)}')" title="Adicionar" aria-label="Adicionar" style="width: 34px; height: 34px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer;">+</button>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         `;
     }
 
     renderAcoesPlanoVisualizacao(planoId) {
         return `
-            <button type="button" onclick="window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${planoId}')" title="Detalhes gerais" aria-label="Detalhes gerais do plano" style="width: 34px; height: 34px; padding: 0; background: rgba(224,242,254,0.95); color: #0369a1; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
-            <button type="button" onclick="window.planoAlimentarInstance.editarPlano('${planoId}')" title="Editar plano" aria-label="Editar plano" style="width: 34px; height: 34px; padding: 0; background: #fef3c7; color: #92400e; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✎</button>
-            <button type="button" onclick="window.planoAlimentarInstance.exportarPlano('${planoId}')" title="Exportar plano" aria-label="Exportar plano" style="width: 34px; height: 34px; padding: 0; background: rgba(224,242,254,0.95); color: #0369a1; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">⇩</button>
-            <button type="button" onclick="window.planoAlimentarInstance.excluirPlano('${planoId}')" title="Excluir plano" aria-label="Excluir plano" style="width: 34px; height: 34px; padding: 0; background: #fee2e2; color: #b91c1c; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">X</button>
+            <div style="position: relative;">
+                <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.toggleMenuAcoesPlano()" title="Menu do plano" aria-label="Menu do plano" style="height: 34px; padding: 0 12px; background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 18px;">☰</button>
+                <div id="menuAcoesPlano" style="display: none; position: absolute; right: 0; top: 40px; width: 190px; background: white; color: #334155; border: 1px solid #dbe3ef; border-radius: 8px; box-shadow: 0 12px 28px rgba(15,23,42,0.18); overflow: hidden; z-index: 10000;">
+                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Detalhes do Plano</button>
+                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.alternarEdicaoPlanoVisualizado('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">${this.visualizacaoPlanoEditando ? 'Concluir Edição' : 'Editar Plano'}</button>
+                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.exportarPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Exportar</button>
+                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.excluirPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #b91c1c; text-align: left; cursor: pointer; font-size: 14px;">Excluir Plano</button>
+                </div>
+            </div>
         `;
     }
 
@@ -2257,6 +2303,148 @@ export class PlanoAlimentarNutricionista {
         if (modal) modal.style.display = 'none';
         const actionsWrapper = modal?.querySelector('[data-visualizar-plano-actions]');
         if (actionsWrapper) actionsWrapper.innerHTML = '';
+        this.visualizacaoPlanoEditando = false;
+        this.visualizacaoOpcaoDestino = null;
+    }
+
+    toggleMenuAcoesPlano(forcarEstado = null) {
+        const menu = document.getElementById('menuAcoesPlano');
+        if (!menu) return;
+        const abrir = forcarEstado === null ? menu.style.display !== 'block' : Boolean(forcarEstado);
+        menu.style.display = abrir ? 'block' : 'none';
+    }
+
+    async alternarEdicaoPlanoVisualizado(planoId) {
+        this.visualizacaoPlanoEditando = !this.visualizacaoPlanoEditando;
+        this.visualizacaoOpcaoDestino = null;
+        if (this.visualizacaoPlanoEditando) {
+            try {
+                await this.carregarBaseAlimentos();
+            } catch (error) {
+                this.visualizacaoPlanoEditando = false;
+                alert('Nao foi possivel carregar a base de alimentos para editar.');
+                return;
+            }
+        }
+        this.abrirModalVisualizarPlano(planoId);
+    }
+
+    atualizarModalVisualizarPlano() {
+        if (!this.planoExpandido) return;
+        this.abrirModalVisualizarPlano(this.planoExpandido);
+        const input = document.getElementById('visualFoodSearch');
+        if (input) input.focus();
+    }
+
+    async salvarPlanoVisualizado(planoId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        if (!plano || !this.selectedPaciente) return;
+
+        const payload = {
+            breakfast: this.obterTextoRefeicaoImportada(plano.itens_plano, 'breakfast'),
+            morningSnack: this.obterTextoRefeicaoImportada(plano.itens_plano, 'morningSnack'),
+            lunch: this.obterTextoRefeicaoImportada(plano.itens_plano, 'lunch'),
+            afternoonSnack: this.obterTextoRefeicaoImportada(plano.itens_plano, 'afternoonSnack'),
+            dinner: this.obterTextoRefeicaoImportada(plano.itens_plano, 'dinner'),
+            supper: this.obterTextoRefeicaoImportada(plano.itens_plano, 'supper'),
+            itens_plano: plano.itens_plano,
+            data_atualizacao: new Date().toISOString()
+        };
+
+        await updateDoc(doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, planoId), payload);
+        Object.assign(plano, payload);
+    }
+
+    async adicionarAlimentoPlanoVisualizado(planoId, foodId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        const alimento = this.alimentosBase.find((item) => item.id === foodId);
+        if (!plano || !alimento) return;
+
+        const quantidade = Math.max(1, Number(document.getElementById(`visualQtd_${foodId}`)?.value || 1));
+        const opcao = this.criarOpcaoItemPlano(alimento, quantidade);
+        plano.itens_plano = this.criarEstadoItensPlano(plano);
+
+        if (this.visualizacaoOpcaoDestino) {
+            const itemDestino = (plano.itens_plano[this.visualizacaoOpcaoDestino.mealId] || [])
+                .find((item) => item.id === this.visualizacaoOpcaoDestino.itemId);
+            if (itemDestino) {
+                itemDestino.opcoes = Array.isArray(itemDestino.opcoes) && itemDestino.opcoes.length
+                    ? itemDestino.opcoes
+                    : [{ id: itemDestino.id, texto: itemDestino.texto, detalhes: itemDestino.detalhes || null }];
+                itemDestino.opcoes.push(opcao);
+                itemDestino.opcaoVisivelIndex = itemDestino.opcoes.length - 1;
+                itemDestino.texto = this.formatarTextoItemPlano(itemDestino);
+                itemDestino.detalhes = itemDestino.opcoes[0]?.detalhes || null;
+                this.visualizacaoMealSelecionada = this.visualizacaoOpcaoDestino.mealId;
+                this.visualizacaoOpcaoDestino = null;
+            }
+        } else {
+            const mealId = this.visualizacaoMealSelecionada || 'breakfast';
+            plano.itens_plano[mealId] = plano.itens_plano[mealId] || [];
+            plano.itens_plano[mealId].push({
+                id: this.gerarIdItemPlano(),
+                texto: opcao.texto,
+                detalhes: opcao.detalhes,
+                opcoes: [opcao],
+                opcaoVisivelIndex: 0,
+                detalhesAberto: false
+            });
+        }
+
+        await this.salvarPlanoVisualizado(planoId);
+        this.abrirModalVisualizarPlano(planoId);
+        this.renderizarPlanosContainer();
+    }
+
+    prepararAdicionarOpcaoPlanoVisualizado(planoId, mealId, itemId) {
+        this.visualizacaoOpcaoDestino = { mealId, itemId };
+        this.visualizacaoMealSelecionada = mealId;
+        this.abrirModalVisualizarPlano(planoId);
+        setTimeout(() => document.getElementById('visualFoodSearch')?.focus(), 50);
+    }
+
+    async excluirOpcaoOuItemPlanoVisualizado(planoId, mealId, itemId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        const item = plano?.itens_plano?.[mealId]?.find((registro) => registro.id === itemId);
+        if (!plano || !item) return;
+
+        const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
+            ? item.opcoes
+            : [{ id: item.id, texto: item.texto, detalhes: item.detalhes }];
+        const opcaoIndex = Math.max(0, Math.min(opcoes.length - 1, Number(item.opcaoVisivelIndex || 0)));
+        const opcaoNome = opcoes[opcaoIndex]?.texto || item.texto || 'este alimento';
+        if (!confirm(`Remover a opção atual?\n\n${opcaoNome}`)) return;
+
+        if (opcoes.length > 1) {
+            item.opcoes.splice(opcaoIndex, 1);
+            item.opcaoVisivelIndex = Math.max(0, Math.min(item.opcoes.length - 1, opcaoIndex));
+            item.texto = this.formatarTextoItemPlano(item);
+            item.detalhes = item.opcoes[0]?.detalhes || null;
+        } else {
+            plano.itens_plano[mealId] = (plano.itens_plano[mealId] || []).filter((registro) => registro.id !== itemId);
+        }
+
+        await this.salvarPlanoVisualizado(planoId);
+        this.abrirModalVisualizarPlano(planoId);
+        this.renderizarPlanosContainer();
+    }
+
+    async moverItemPlanoVisualizado(event, planoId, mealIdDestino, itemIdDestino) {
+        event.preventDefault();
+        const [planoOrigemId, mealIdOrigem, itemIdOrigem] = String(event.dataTransfer.getData('text/plain') || '').split('|');
+        if (planoOrigemId !== planoId || mealIdOrigem !== mealIdDestino || itemIdOrigem === itemIdDestino) return;
+
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        const itens = plano?.itens_plano?.[mealIdDestino] || [];
+        const origemIndex = itens.findIndex((item) => item.id === itemIdOrigem);
+        const destinoIndex = itens.findIndex((item) => item.id === itemIdDestino);
+        if (!plano || origemIndex < 0 || destinoIndex < 0) return;
+
+        const [itemMovido] = itens.splice(origemIndex, 1);
+        itens.splice(destinoIndex, 0, itemMovido);
+        await this.salvarPlanoVisualizado(planoId);
+        this.abrirModalVisualizarPlano(planoId);
+        this.renderizarPlanosContainer();
     }
 
     encontrarItemPlanoSalvo(planoId, mealId, itemId) {
@@ -2265,18 +2453,18 @@ export class PlanoAlimentarNutricionista {
         return { plano, item };
     }
 
-    alternarOpcaoPlanoSalvo(planoId, mealId, itemId) {
+    async alternarOpcaoPlanoSalvo(planoId, mealId, itemId) {
         const { item } = this.encontrarItemPlanoSalvo(planoId, mealId, itemId);
         if (!item || !Array.isArray(item.opcoes) || item.opcoes.length < 2) return;
 
         item.opcaoVisivelIndex = (Number(item.opcaoVisivelIndex || 0) + 1) % item.opcoes.length;
+        await this.salvarPlanoVisualizado(planoId);
         const modalAberto = document.getElementById('modalVisualizarPlano')?.style.display === 'flex';
         if (modalAberto) {
             this.abrirModalVisualizarPlano(planoId);
         } else {
             this.renderizarPlanosContainer();
         }
-        this.abrirDetalheOpcaoPlanoSalvo(planoId, mealId, itemId);
     }
 
     abrirDetalheOpcaoPlanoSalvo(planoId, mealId, itemId) {
