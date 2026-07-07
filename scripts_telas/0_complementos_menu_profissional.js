@@ -186,8 +186,17 @@ export class MenuProfissional {
         const file = input?.files?.[0];
         if (!file) return;
 
+        const btnFotoPerfil = document.getElementById('btnFotoPerfilProfissional');
+        const previewUrl = URL.createObjectURL(file);
+
         try {
-            const dataUrl = await this.lerArquivoComoDataUrl(file);
+            if (btnFotoPerfil) {
+                btnFotoPerfil.disabled = true;
+                btnFotoPerfil.innerHTML = `<img src="${previewUrl}" alt="Prévia da foto" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.72;">`;
+                btnFotoPerfil.title = 'Enviando foto...';
+            }
+
+            const dataUrl = await this.redimensionarImagemPerfil(file);
             const uploadResult = await uploadParaImgbb(dataUrl);
             if (!uploadResult?.success || !uploadResult.url) {
                 throw new Error('Upload da foto falhou.');
@@ -201,28 +210,60 @@ export class MenuProfissional {
             };
 
             await updateDoc(doc(db, 'logins', this.userInfo.login), payload);
-            await this.atualizarFotoPerfilCentral(uploadResult);
+            try {
+                await this.atualizarFotoPerfilCentral(uploadResult);
+            } catch (centralError) {
+                console.warn('Foto salva na organizacao, mas nao foi possivel atualizar o login central.', centralError);
+            }
 
             Object.assign(this.userInfo, payload);
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             localStorage.setItem('currentUser', JSON.stringify({ ...currentUser, ...payload }));
 
-            const btnFotoPerfil = document.getElementById('btnFotoPerfilProfissional');
             if (btnFotoPerfil) {
                 btnFotoPerfil.innerHTML = `<img src="${uploadResult.url}" alt="Foto de ${this.userInfo.nome}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                btnFotoPerfil.title = 'Inserir ou trocar foto';
             }
             alert('Foto atualizada com sucesso.');
         } catch (error) {
+            if (btnFotoPerfil) {
+                const fotoPerfil = this.userInfo.foto_perfil_url || this.userInfo.fotoPerfilUrl || this.userInfo.foto || '';
+                btnFotoPerfil.innerHTML = fotoPerfil
+                    ? `<img src="${fotoPerfil}" alt="Foto de ${this.userInfo.nome}" style="width: 100%; height: 100%; object-fit: cover;">`
+                    : '<span style="font-size: 18px;">📷</span>';
+                btnFotoPerfil.title = 'Inserir ou trocar foto';
+            }
             alert(error.message || 'Nao foi possivel atualizar a foto.');
         } finally {
+            URL.revokeObjectURL(previewUrl);
+            if (btnFotoPerfil) btnFotoPerfil.disabled = false;
             if (input) input.value = '';
         }
     }
 
-    lerArquivoComoDataUrl(file) {
+    redimensionarImagemPerfil(file) {
         return new Promise((resolve, reject) => {
+            if (!file.type.startsWith('image/')) {
+                reject(new Error('Selecione um arquivo de imagem.'));
+                return;
+            }
+
             const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const maxSize = 1024;
+                    const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round(img.width * scale));
+                    canvas.height = Math.max(1, Math.round(img.height * scale));
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.86));
+                };
+                img.onerror = () => reject(new Error('Nao foi possivel processar a imagem.'));
+                img.src = reader.result;
+            };
             reader.onerror = () => reject(new Error('Nao foi possivel ler a imagem.'));
             reader.readAsDataURL(file);
         });
