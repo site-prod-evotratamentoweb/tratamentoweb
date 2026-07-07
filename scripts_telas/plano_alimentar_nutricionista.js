@@ -134,6 +134,7 @@ export class PlanoAlimentarNutricionista {
         this.visualizacaoPlanoEditando = false;
         this.visualizacaoMealSelecionada = 'breakfast';
         this.visualizacaoOpcaoDestino = null;
+        this.planoExportandoId = null;
         this.criandoPlanoBiaSantos = false;
         this.itensPlano = this.criarEstadoItensPlano();
         this.detalhesBuscaAlimentos = {};
@@ -307,6 +308,31 @@ export class PlanoAlimentarNutricionista {
                             <button id="btnFecharEditarOpcaoPlano" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
                         </div>
                         <div data-editar-opcao-plano-form style="padding: 16px; overflow: auto;"></div>
+                    </div>
+                </div>
+
+                <div id="modalExportarPlano" class="modal-overlay" style="display: none; z-index: 3100;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(92vw, 420px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="font-size: 15px;">Exportar Plano</strong>
+                            <button id="btnFecharExportarPlano" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
+                        </div>
+                        <div style="padding: 16px; display: grid; gap: 14px;">
+                            <div style="display: grid; gap: 8px; color: #334155;">
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #dbe3ef; border-radius: 8px; cursor: pointer;">
+                                    <input type="radio" name="formatoExportarPlano" value="pdf" checked>
+                                    <span>PDF</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #dbe3ef; border-radius: 8px; cursor: pointer;">
+                                    <input type="radio" name="formatoExportarPlano" value="xlsx">
+                                    <span>XLSX</span>
+                                </label>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                <button id="btnCancelarExportarPlano" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
+                                <button id="btnConfirmarExportarPlano" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer; font-weight: 700;">OK</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
     
@@ -1670,6 +1696,13 @@ export class PlanoAlimentarNutricionista {
             });
         }
 
+        const modalExportarPlano = document.getElementById('modalExportarPlano');
+        if (modalExportarPlano) {
+            modalExportarPlano.addEventListener('click', (e) => {
+                if (e.target === modalExportarPlano) this.fecharModalExportarPlano();
+            });
+        }
+
         const modalNovoAlimento = document.getElementById('modalNovoAlimento');
         if (modalNovoAlimento) {
             modalNovoAlimento.addEventListener('click', (e) => {
@@ -1709,6 +1742,9 @@ export class PlanoAlimentarNutricionista {
         document.getElementById('btnConcluirEdicaoPlanoVisualizado')?.addEventListener('click', () => {
             if (this.planoExpandido) this.alternarEdicaoPlanoVisualizado(this.planoExpandido);
         });
+        document.getElementById('btnFecharExportarPlano')?.addEventListener('click', () => this.fecharModalExportarPlano());
+        document.getElementById('btnCancelarExportarPlano')?.addEventListener('click', () => this.fecharModalExportarPlano());
+        document.getElementById('btnConfirmarExportarPlano')?.addEventListener('click', () => this.confirmarExportarPlano());
 
         window.planoAlimentarInstance = this;
     }
@@ -2744,20 +2780,34 @@ export class PlanoAlimentarNutricionista {
     }
 
     async exportarPlano(planoId) {
-        const formato = prompt('Exportar plano em qual formato?\n\nDigite PDF ou XLSX:', 'PDF');
-        if (!formato) return;
-
-        const escolha = this.normalizarBusca(formato);
-        if (escolha === 'pdf') {
-            this.exportarPlanoPdf(planoId);
-            return;
+        this.planoExportandoId = planoId;
+        const modal = document.getElementById('modalExportarPlano');
+        if (modal) {
+            const pdfOption = modal.querySelector('input[name="formatoExportarPlano"][value="pdf"]');
+            if (pdfOption) pdfOption.checked = true;
+            modal.style.display = 'flex';
         }
-        if (escolha === 'xlsx' || escolha === 'excel') {
+    }
+
+    fecharModalExportarPlano() {
+        const modal = document.getElementById('modalExportarPlano');
+        if (modal) modal.style.display = 'none';
+        this.planoExportandoId = null;
+    }
+
+    async confirmarExportarPlano() {
+        const planoId = this.planoExportandoId;
+        if (!planoId) return;
+
+        const formato = document.querySelector('input[name="formatoExportarPlano"]:checked')?.value || 'pdf';
+        this.fecharModalExportarPlano();
+
+        if (formato === 'xlsx') {
             await this.exportarPlanoXlsx(planoId);
             return;
         }
 
-        alert('Formato invalido. Digite PDF ou XLSX.');
+        this.exportarPlanoPdf(planoId);
     }
 
     async exportarPlanoXlsx(planoId) {
@@ -2796,6 +2846,59 @@ export class PlanoAlimentarNutricionista {
         });
     }
 
+    montarRefeicoesDetalhadasPdfPlano(plano) {
+        return this.getRefeicoesPlano().map((refeicao) => {
+            const itens = Array.isArray(plano.itens_plano?.[refeicao.id])
+                ? plano.itens_plano[refeicao.id].map((item) => this.normalizarItemPlano(item))
+                : [];
+            const resumo = this.calcularTotaisItensPlanoSalvo(itens);
+            return {
+                ...refeicao,
+                itens,
+                resumo,
+                substituicoes: itens.map((item, itemIndex) => {
+                    const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
+                        ? item.opcoes
+                        : [{ texto: item.texto, detalhes: item.detalhes }];
+                    const opcaoVisivelIndex = Math.max(0, Math.min(opcoes.length - 1, Number(item.opcaoVisivelIndex || 0)));
+                    return {
+                        itemIndex,
+                        opcaoVisivelIndex,
+                        opcoes
+                    };
+                })
+            };
+        });
+    }
+
+    renderNutrientesPdf(resumo) {
+        return `
+            <div class="nutri-row">
+                <span><strong>${this.formatarNumero(resumo.kcal || 0, 0)}</strong> kcal</span>
+                <span><strong>${this.formatarNumero(resumo.gramas || 0, 0)}</strong> g</span>
+                <span><strong>${this.formatarNumero(resumo.carboidratos || 0)}</strong> g carb.</span>
+                <span><strong>${this.formatarNumero(resumo.proteinas || 0)}</strong> g prot.</span>
+                <span><strong>${this.formatarNumero(resumo.gorduras || 0)}</strong> g gord.</span>
+                <span><strong>${this.formatarNumero(resumo.fibras || 0)}</strong> g fibras</span>
+            </div>
+        `;
+    }
+
+    renderDetalhesOpcaoPdf(opcao) {
+        const detalhes = opcao?.detalhes || {};
+        return `
+            <div class="option-text">${this.escapeHtml(opcao?.texto || '')}</div>
+            <div class="macro-line">
+                <span>${this.escapeHtml(detalhes.quantidadeTexto || 'Quantidade nao informada')}</span>
+                <span>${this.formatarNumero(detalhes.gramas || 0, 0)} g</span>
+                <span>${this.formatarNumero(detalhes.kcal || 0, 0)} kcal</span>
+                <span>${this.formatarNumero(detalhes.carboidratos || 0)} g carb.</span>
+                <span>${this.formatarNumero(detalhes.proteinas || 0)} g prot.</span>
+                <span>${this.formatarNumero(detalhes.gorduras || 0)} g gord.</span>
+            </div>
+        `;
+    }
+
     exportarPlanoPdf(planoId) {
         const plano = this.planosList.find(p => p.id === planoId);
         if (!plano) return;
@@ -2805,6 +2908,8 @@ export class PlanoAlimentarNutricionista {
         const profissionalNome = plano.profissional_nome || this.userInfo.nome || 'Profissional';
         const pacienteNome = this.selectedPaciente?.nome || plano.paciente_nome || 'Paciente';
         const refeicoes = this.montarRefeicoesPdfPlano(plano);
+        const refeicoesDetalhadas = this.montarRefeicoesDetalhadasPdfPlano(plano);
+        const resumoTotal = this.calcularTotaisPlanoSalvo(plano, this.getRefeicoesPlano());
 
         const html = `
             <!doctype html>
@@ -2829,6 +2934,18 @@ export class PlanoAlimentarNutricionista {
                     .meal ul { margin: 0; padding: 10px 16px 12px 28px; }
                     .meal li { margin: 6px 0; line-height: 1.35; font-size: 14px; }
                     .empty { color: #94a3b8; font-style: italic; }
+                    .section-title { margin: 22px 0 10px; color: #1a237e; font-size: 22px; border-bottom: 2px solid #e0e7ff; padding-bottom: 6px; }
+                    .summary { border: 1px solid #c7d2fe; background: #eef2ff; border-radius: 10px; padding: 12px; margin-bottom: 12px; break-inside: avoid; }
+                    .nutri-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: #334155; }
+                    .detail-meal { border: 1px solid #dbe3ef; border-radius: 10px; margin-bottom: 12px; overflow: hidden; break-inside: avoid; }
+                    .detail-meal h3 { margin: 0; padding: 9px 12px; background: #f1f5f9; color: #1a237e; font-size: 16px; display: flex; justify-content: space-between; gap: 12px; }
+                    .detail-body { padding: 10px 12px; display: grid; gap: 10px; }
+                    .substitution { border-left: 3px solid #1a237e; padding-left: 10px; }
+                    .substitution-title { font-weight: 700; color: #334155; margin-bottom: 6px; }
+                    .option-detail { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; margin: 6px 0; }
+                    .option-detail.selected { border-color: #1a237e; background: #eef2ff; }
+                    .option-text { font-size: 13px; font-weight: 700; color: #1f2937; margin-bottom: 5px; }
+                    .macro-line { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; font-size: 11px; color: #475569; }
                     .notes { margin-top: 14px; display: grid; gap: 10px; }
                     .note { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; break-inside: avoid; }
                     .note strong { color: #1a237e; display: block; margin-bottom: 6px; }
@@ -2863,6 +2980,40 @@ export class PlanoAlimentarNutricionista {
                             </article>
                         `).join('')}
                     </section>
+
+                    <h2 class="section-title">Resumo nutricional</h2>
+                    <section class="summary">
+                        <strong>Total do plano</strong>
+                        ${this.renderNutrientesPdf(resumoTotal)}
+                    </section>
+                    ${refeicoesDetalhadas.map((refeicao) => `
+                        <section class="detail-meal">
+                            <h3><span>${refeicao.titulo}</span></h3>
+                            <div class="detail-body">
+                                ${this.renderNutrientesPdf(refeicao.resumo)}
+                            </div>
+                        </section>
+                    `).join('')}
+
+                    <h2 class="section-title">Substituições e detalhes dos alimentos</h2>
+                    ${refeicoesDetalhadas.map((refeicao) => `
+                        <section class="detail-meal">
+                            <h3><span>${refeicao.titulo}</span></h3>
+                            <div class="detail-body">
+                                ${refeicao.substituicoes.length ? refeicao.substituicoes.map((grupo) => `
+                                    <div class="substitution">
+                                        <div class="substitution-title">Alimento ${grupo.itemIndex + 1}</div>
+                                        ${grupo.opcoes.map((opcao, index) => `
+                                            <div class="option-detail ${index === grupo.opcaoVisivelIndex ? 'selected' : ''}">
+                                                <div style="font-size: 11px; color: #1a237e; font-weight: 700; margin-bottom: 4px;">${index === grupo.opcaoVisivelIndex ? 'Selecionado' : 'Substituição'} ${index + 1}/${grupo.opcoes.length}</div>
+                                                ${this.renderDetalhesOpcaoPdf(opcao)}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                `).join('') : '<div class="empty">Sem alimentos cadastrados.</div>'}
+                            </div>
+                        </section>
+                    `).join('')}
 
                     ${(plano.guidelines || plano.restrictions || plano.goals) ? `
                         <section class="notes">

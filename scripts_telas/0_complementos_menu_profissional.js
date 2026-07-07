@@ -53,6 +53,21 @@ export class MenuProfissional {
                 </nav>
             </div>
             <div class="menu-overlay" id="menuOverlay"></div>
+            <div id="modalFotoPerfilProfissional" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.62); z-index: 4000; align-items: center; justify-content: center; padding: 20px;">
+                <div style="background: white; border-radius: 16px; width: min(92vw, 560px); max-height: calc(100vh - 32px); overflow: hidden; display: flex; flex-direction: column;">
+                    <div style="background: #1a237e; color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+                        <strong>Foto do perfil</strong>
+                        <button id="btnFecharModalFotoPerfil" type="button" style="width: 34px; height: 34px; border: none; border-radius: 8px; background: rgba(255,255,255,0.18); color: white; cursor: pointer; font-size: 18px;">X</button>
+                    </div>
+                    <div style="padding: 18px; display: grid; gap: 14px; justify-items: center;">
+                        <div style="width: min(72vw, 360px); aspect-ratio: 1; border-radius: 18px; overflow: hidden; border: 1px solid #dbe3ef; background: #f8fafc; display: flex; align-items: center; justify-content: center;">
+                            <img id="imgFotoPerfilGrande" src="${fotoPerfil}" alt="Foto de ${this.userInfo.nome}" style="${fotoPerfil ? '' : 'display:none;'} width: 100%; height: 100%; object-fit: cover;">
+                            <span id="fotoPerfilSemImagem" style="${fotoPerfil ? 'display:none;' : ''} color: #64748b;">Sem imagem</span>
+                        </div>
+                        <button id="btnAlterarFotoPerfilModal" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer; font-weight: 700;">Alterar Imagem</button>
+                    </div>
+                </div>
+            </div>
         `;
     }
 
@@ -163,9 +178,14 @@ export class MenuProfissional {
         const btnFotoPerfil = document.getElementById('btnFotoPerfilProfissional');
         const inputFotoPerfil = document.getElementById('inputFotoPerfilProfissional');
         if (btnFotoPerfil && inputFotoPerfil) {
-            btnFotoPerfil.addEventListener('click', () => inputFotoPerfil.click());
+            btnFotoPerfil.addEventListener('click', () => this.abrirModalFotoPerfil());
             inputFotoPerfil.addEventListener('change', (event) => this.atualizarFotoPerfil(event));
         }
+        document.getElementById('btnAlterarFotoPerfilModal')?.addEventListener('click', () => inputFotoPerfil?.click());
+        document.getElementById('btnFecharModalFotoPerfil')?.addEventListener('click', () => this.fecharModalFotoPerfil());
+        document.getElementById('modalFotoPerfilProfissional')?.addEventListener('click', (event) => {
+            if (event.target.id === 'modalFotoPerfilProfissional') this.fecharModalFotoPerfil();
+        });
 
         document.querySelectorAll('.menu-item[data-module]').forEach(item => {
             item.addEventListener('click', async (e) => {
@@ -179,6 +199,16 @@ export class MenuProfissional {
                 if (this.onNavigate) this.onNavigate(module);
             });
         });
+    }
+
+    abrirModalFotoPerfil() {
+        const modal = document.getElementById('modalFotoPerfilProfissional');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    fecharModalFotoPerfil() {
+        const modal = document.getElementById('modalFotoPerfilProfissional');
+        if (modal) modal.style.display = 'none';
     }
 
     async atualizarFotoPerfil(event) {
@@ -224,6 +254,13 @@ export class MenuProfissional {
                 btnFotoPerfil.innerHTML = `<img src="${uploadResult.url}" alt="Foto de ${this.userInfo.nome}" style="width: 100%; height: 100%; object-fit: cover;">`;
                 btnFotoPerfil.title = 'Inserir ou trocar foto';
             }
+            const imgGrande = document.getElementById('imgFotoPerfilGrande');
+            const semImagem = document.getElementById('fotoPerfilSemImagem');
+            if (imgGrande) {
+                imgGrande.src = uploadResult.url;
+                imgGrande.style.display = 'block';
+            }
+            if (semImagem) semImagem.style.display = 'none';
             alert('Foto atualizada com sucesso.');
         } catch (error) {
             if (btnFotoPerfil) {
