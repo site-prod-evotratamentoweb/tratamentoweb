@@ -251,12 +251,12 @@ export class PlanoAlimentarNutricionista {
                 </div>
 
                 <div id="modalConfigAlimentos" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(94vw, 860px); max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(98vw, 1380px); height: min(94vh, 860px); max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
                             <strong style="font-size: 15px;">Configurações</strong>
                             <button id="btnFecharConfigAlimentos" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
                         </div>
-                        <div data-config-alimentos-form style="padding: 16px; overflow: auto;">
+                        <div data-config-alimentos-form style="padding: 16px; overflow: hidden; flex: 1; min-height: 0; display: flex; flex-direction: column;">
                             ${this.renderConfiguracoesAlimentos()}
                         </div>
                     </div>
@@ -915,38 +915,36 @@ export class PlanoAlimentarNutricionista {
         const termo = document.getElementById('configFoodSearch')?.value || '';
         const alimentos = this.filtrarAlimentosConfiguracao(termo);
         return `
-            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
-                <div style="display: grid; gap: 10px;">
+            <div style="display: grid; grid-template-columns: minmax(220px, 0.85fr) minmax(220px, 0.85fr) minmax(0, 2.3fr); grid-template-rows: minmax(0, 1fr) auto; gap: 14px; height: 100%; min-height: 0;">
+                <div style="display: flex; flex-direction: column; gap: 8px; min-height: 0;">
                     <label style="font-size: 12px; color: #475569; font-weight: 600;">Categorias existentes
-                        <textarea id="configCategoriasAlimentos" rows="12" style="width: 100%; resize: vertical; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">${this.escapeHtml(this.categoriasAlimentos.join('\n'))}</textarea>
+                        <textarea id="configCategoriasAlimentos" style="width: 100%; flex: 1; min-height: 0; resize: none; margin-top: 6px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">${this.escapeHtml(this.categoriasAlimentos.join('\n'))}</textarea>
                     </label>
                 </div>
-                <div style="display: grid; gap: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 8px; min-height: 0;">
                     <label style="font-size: 12px; color: #475569; font-weight: 600;">Unidades existentes
-                        <textarea id="configUnidadesAlimentos" rows="12" style="width: 100%; resize: vertical; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">${this.escapeHtml(this.unidadesAlimentos.join('\n'))}</textarea>
+                        <textarea id="configUnidadesAlimentos" style="width: 100%; flex: 1; min-height: 0; resize: none; margin-top: 6px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">${this.escapeHtml(this.unidadesAlimentos.join('\n'))}</textarea>
                     </label>
                 </div>
-                <div style="grid-column: 1 / -1; display: grid; gap: 10px; min-height: 0;">
-                    <div style="display: grid; grid-template-columns: minmax(240px, 1fr) auto; gap: 8px; align-items: end;">
+                <div style="display: flex; flex-direction: column; gap: 10px; min-height: 0;">
+                    <div style="display: grid; grid-template-columns: minmax(240px, 1fr); gap: 8px; align-items: end; flex: 0 0 auto;">
                         <label style="font-size: 12px; color: #475569; font-weight: 600;">Unidade e gramatura por alimento
                             <input id="configFoodSearch" autocomplete="off" placeholder="Pesquisar alimento" value="${this.escapeHtml(termo)}" style="width: 100%; margin-top: 5px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
                         </label>
-                        <div style="font-size: 12px; color: #64748b; padding-bottom: 10px;">Edite a unidade padrão e a gramatura consumida por unidade.</div>
                     </div>
-                    <div style="border: 1px solid #dbe3ef; border-radius: 10px; overflow: hidden;">
-                        <div style="display: grid; grid-template-columns: minmax(220px, 1.4fr) 170px 110px 110px; gap: 8px; background: #f1f5f9; color: #334155; font-size: 12px; font-weight: 700; padding: 8px 10px;">
+                    <div style="border: 1px solid #dbe3ef; border-radius: 10px; overflow: hidden; flex: 1; min-height: 0; display: flex; flex-direction: column;">
+                        <div style="display: grid; grid-template-columns: minmax(260px, 1.5fr) minmax(150px, 0.75fr) minmax(96px, 0.45fr) minmax(96px, 0.45fr); gap: 10px; background: #f1f5f9; color: #334155; font-size: 12px; font-weight: 700; padding: 9px 12px; flex: 0 0 auto;">
                             <span>Alimento</span>
                             <span>Unidade</span>
                             <span>g/unid</span>
                             <span>Estimativa</span>
                         </div>
-                        <div id="configFoodRows" style="max-height: 300px; overflow-y: auto;">
+                        <div id="configFoodRows" style="flex: 1; min-height: 0; overflow-y: auto;">
                             ${this.renderLinhasConfiguracaoGramatura(alimentos)}
                         </div>
                     </div>
                 </div>
-                <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px;">
-                    <button id="btnCancelarConfigAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
+                <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; padding-top: 10px; border-top: 1px solid #e2e8f0; flex: 0 0 auto;">
                     <button id="btnSalvarConfigAlimentos" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Salvar Configurações</button>
                 </div>
             </div>
@@ -971,7 +969,7 @@ export class PlanoAlimentarNutricionista {
             const unidadeDireta = this.unidadeIndicaGramatura(unidade);
             const gramasEfetivas = unidadeDireta ? 1 : this.obterGramasPorUnidadeEstimado(alimento);
             return `
-                <div class="configFoodRow" data-food-id="${this.escapeHtml(alimento.id)}" style="display: grid; grid-template-columns: minmax(220px, 1.4fr) 170px 110px 110px; gap: 8px; align-items: center; padding: 8px 10px; border-top: 1px solid #e2e8f0; background: white;">
+                <div class="configFoodRow" data-food-id="${this.escapeHtml(alimento.id)}" style="display: grid; grid-template-columns: minmax(260px, 1.5fr) minmax(150px, 0.75fr) minmax(96px, 0.45fr) minmax(96px, 0.45fr); gap: 10px; align-items: center; padding: 9px 12px; border-top: 1px solid #e2e8f0; background: white;">
                     <div style="min-width: 0;">
                         <strong style="display: block; color: #1a237e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</strong>
                         <span style="font-size: 11px; color: #64748b;">${this.escapeHtml(alimento.categoria || 'Sem categoria')}</span>
@@ -1780,7 +1778,6 @@ export class PlanoAlimentarNutricionista {
         };
 
         search?.addEventListener('input', refreshRows);
-        document.getElementById('btnCancelarConfigAlimentos')?.addEventListener('click', () => this.fecharModalConfigAlimentos());
         document.getElementById('btnSalvarConfigAlimentos')?.addEventListener('click', () => this.salvarConfiguracoesAlimentos());
         this.attachConfigFoodRowEvents();
     }
