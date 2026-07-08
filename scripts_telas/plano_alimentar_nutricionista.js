@@ -250,8 +250,8 @@ export class PlanoAlimentarNutricionista {
                     </div>
                 </div>
 
-                <div id="modalConfigAlimentos" class="modal-overlay" style="display: none; padding: 8px;">
-                    <div style="background: white; border-radius: 16px; width: calc(100vw - 16px); max-width: none; height: calc(100vh - 16px); max-height: calc(100vh - 16px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box;">
+                <div id="modalConfigAlimentos" class="modal-overlay" style="display: none; padding: 18px;">
+                    <div style="background: white; border-radius: 16px; width: min(92vw, 1240px); max-width: none; height: min(90vh, 820px); max-height: calc(100vh - 36px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box;">
                         <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
                             <strong style="font-size: 15px;">Configurações</strong>
                             <button id="btnFecharConfigAlimentos" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
@@ -915,18 +915,18 @@ export class PlanoAlimentarNutricionista {
         const termo = document.getElementById('configFoodSearch')?.value || '';
         const alimentos = this.filtrarAlimentosConfiguracao(termo);
         return `
-            <div style="display: grid; grid-template-rows: 190px minmax(0, 1fr) 52px; gap: 12px; height: 100%; min-height: 0;">
-                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; min-height: 0;">
-                    <label style="font-size: 12px; color: #475569; font-weight: 600; display: flex; flex-direction: column; min-height: 0;">Categorias existentes
+            <div style="display: grid; grid-template-columns: minmax(360px, 0.92fr) minmax(520px, 1.35fr); grid-template-rows: minmax(0, 1fr) 52px; gap: 12px; height: 100%; min-height: 0;">
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; min-height: 0; grid-row: 1 / 2;">
+                    <label style="font-size: 12px; color: #475569; font-weight: 600; display: flex; flex-direction: column; min-height: 0;">Categorias Existentes
                         <textarea id="configCategoriasAlimentos" style="width: 100%; flex: 1; min-height: 0; resize: none; margin-top: 6px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; line-height: 1.35;">${this.escapeHtml(this.categoriasAlimentos.join('\n'))}</textarea>
                     </label>
-                    <label style="font-size: 12px; color: #475569; font-weight: 600; display: flex; flex-direction: column; min-height: 0;">Unidades existentes
+                    <label style="font-size: 12px; color: #475569; font-weight: 600; display: flex; flex-direction: column; min-height: 0;">Unidades Existentes
                         <textarea id="configUnidadesAlimentos" style="width: 100%; flex: 1; min-height: 0; resize: none; margin-top: 6px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; line-height: 1.35;">${this.escapeHtml(this.unidadesAlimentos.join('\n'))}</textarea>
                     </label>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 8px; min-height: 0;">
+                <div style="display: flex; flex-direction: column; gap: 8px; min-height: 0; grid-row: 1 / 2;">
                     <div style="display: grid; grid-template-columns: minmax(240px, 1fr); gap: 8px; align-items: end; flex: 0 0 auto;">
-                        <label style="font-size: 12px; color: #475569; font-weight: 600;">Unidade e gramatura por alimento
+                        <label style="font-size: 12px; color: #475569; font-weight: 600;">Unidade e Gramatura por Alimento
                             <input id="configFoodSearch" autocomplete="off" placeholder="Pesquisar alimento" value="${this.escapeHtml(termo)}" style="width: 100%; margin-top: 5px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
                         </label>
                     </div>
@@ -942,7 +942,7 @@ export class PlanoAlimentarNutricionista {
                         </div>
                     </div>
                 </div>
-                <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; padding-top: 10px; border-top: 1px solid #e2e8f0; flex: 0 0 auto;">
+                <div style="grid-column: 1 / -1; grid-row: 2 / 3; display: flex; justify-content: flex-end; gap: 8px; padding-top: 10px; border-top: 1px solid #e2e8f0; flex: 0 0 auto;">
                     <button id="btnSalvarConfigAlimentos" type="button" style="height: 40px; padding: 0 16px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Salvar Configurações</button>
                 </div>
             </div>
