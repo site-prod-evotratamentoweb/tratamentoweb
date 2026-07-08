@@ -212,12 +212,6 @@ export class PlanoAlimentarNutricionista {
                         <span class="fab-text">Importar Plano</span>
                     </button>
                     <input id="inputImportarPlano" type="file" accept=".xlsx,.xls" style="display: none;">
-                    ${this.podeAdicionarPlanoCertoTemporario() ? `
-                    <button id="btnAdicionarPlanoCerto" class="fab-button fab-button-gray" title="Adicionar Plano Certo">
-                        <span class="fab-icon">✓</span>
-                        <span class="fab-text">Adicionar Plano Certo</span>
-                    </button>
-                    ` : ''}
                     <button id="btnNovoPlano" class="fab-button" title="Novo Plano Alimentar">
                         <span class="fab-icon">+</span>
                         <span class="fab-text">Novo Plano Alimentar</span>
@@ -383,17 +377,6 @@ export class PlanoAlimentarNutricionista {
                         width: 240px;
                         background: #115e59;
                         box-shadow: 0 6px 20px rgba(15, 118, 110, 0.4);
-                    }
-
-                    .fab-button-gray {
-                        background: #64748b;
-                        box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
-                    }
-
-                    .fab-button-gray:hover {
-                        width: 260px;
-                        background: #475569;
-                        box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
                     }
 
                     .modal-save-button {
@@ -1395,50 +1378,6 @@ export class PlanoAlimentarNutricionista {
         return plano?.atual === true;
     }
 
-    podeAdicionarPlanoCertoTemporario() {
-        return this.userInfo?.login === 'grazielle.carvalho'
-            && this.selectedPaciente?.login === 'bia.santos';
-    }
-
-    async adicionarPlanoCertoTemporario() {
-        if (!this.podeAdicionarPlanoCertoTemporario()) return;
-
-        const origemId = '08-07-2026_11:49h';
-        const destinoId = '30-06-2026_14:04h';
-        if (!confirm(`Adicionar o plano certo?\n\nOrigem: ${origemId}\nNovo documento: ${destinoId}\n\nO documento original sera preservado.`)) return;
-
-        try {
-            const origemRef = doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, origemId);
-            const destinoRef = doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, destinoId);
-            const origemSnap = await getDoc(origemRef);
-
-            if (!origemSnap.exists()) {
-                alert(`Documento de origem nao encontrado: ${origemId}`);
-                return;
-            }
-
-            const destinoSnap = await getDoc(destinoRef);
-            if (destinoSnap.exists() && !confirm(`O documento ${destinoId} ja existe. Deseja substituir os dados dele?`)) {
-                return;
-            }
-
-            const agoraIso = new Date().toISOString();
-            await setDoc(destinoRef, {
-                ...origemSnap.data(),
-                id_documento_original: origemId,
-                id_documento_corrigido_em: agoraIso,
-                data_atualizacao: agoraIso,
-                atualizado_por: this.userInfo.login
-            }, { merge: false });
-
-            alert(`Plano certo criado com sucesso:\n${destinoId}`);
-            await this.loadPlanos();
-            await this.render();
-        } catch (error) {
-            alert('Nao foi possivel adicionar o plano certo: ' + error.message);
-        }
-    }
-
     async definirPlanoAtual(planoId) {
         if (!this.selectedPaciente || !planoId) return;
 
@@ -1924,7 +1863,6 @@ export class PlanoAlimentarNutricionista {
         document.getElementById('btnListaAlimentos')?.addEventListener('click', () => this.abrirModalListaAlimentos());
         document.getElementById('btnImportarPlano')?.addEventListener('click', () => document.getElementById('inputImportarPlano')?.click());
         document.getElementById('inputImportarPlano')?.addEventListener('change', (event) => this.importarPlanoXlsx(event));
-        document.getElementById('btnAdicionarPlanoCerto')?.addEventListener('click', () => this.adicionarPlanoCertoTemporario());
 
         const btnSalvarPlano = document.getElementById('btnSalvarPlano');
         if (btnSalvarPlano) {
