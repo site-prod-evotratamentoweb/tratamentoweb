@@ -134,6 +134,7 @@ export class PlanoAlimentarNutricionista {
         this.planoExportandoId = null;
         this.modalSelecaoAlimentosMealId = null;
         this.selecoesAlimentosModal = {};
+        this.modalObservacaoContext = null;
         this.itensPlano = this.criarEstadoItensPlano();
         this.observacoesRefeicoes = this.criarEstadoObservacoesRefeicoes();
         this.detalhesBuscaAlimentos = {};
@@ -351,6 +352,25 @@ export class PlanoAlimentarNutricionista {
                         <div style="padding: 0 12px 12px; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
                             <div id="foodSelectResults" style="flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px;">
                                 ${this.renderListaSelecaoModalAlimentos(this.listarAlimentosSelecao(termoLista))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="modalObservacaoRefeicao" class="modal-overlay" style="display: none; z-index: 3200; padding: 14px;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(92vw, 720px); max-width: calc(100vw - 12px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                                <strong id="obsModalTitulo" style="font-size: 15px;">Observações da refeição</strong>
+                                <span id="obsModalSubtitulo" style="font-size: 12px; opacity: 0.9;">Digite a observação</span>
+                            </div>
+                            <button id="btnFecharObservacaoRefeicao" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
+                        </div>
+                        <div style="padding: 16px; display: grid; gap: 12px;">
+                            <textarea id="obsModalTexto" rows="6" style="width: 100%; min-height: 140px; resize: vertical; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; line-height: 1.5;"></textarea>
+                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                <button id="btnCancelarObservacaoRefeicao" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
+                                <button id="btnSalvarObservacaoRefeicao" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 700;">Salvar</button>
                             </div>
                         </div>
                     </div>
@@ -1377,7 +1397,7 @@ export class PlanoAlimentarNutricionista {
 
     renderRefeicoesPlano() {
         return `
-            <div id="mealItemsGrid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 12px; height: 100%; min-height: 0; overflow: hidden;">
+            <div id="mealItemsGrid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; height: 100%; min-height: 0; overflow: hidden;">
                 ${this.getRefeicoesPlano().map((refeicao) => this.renderRefeicaoEditor(refeicao)).join('')}
             </div>
         `;
@@ -1393,7 +1413,7 @@ export class PlanoAlimentarNutricionista {
                 <div style="background: ${selecionada ? '#1a237e' : '#f1f5f9'}; color: ${selecionada ? 'white' : '#1a237e'}; padding: 10px 14px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px;">
                     <span>${refeicao.titulo}</span>
                     <span style="display: inline-flex; align-items: center; gap: 6px;">
-                        <button type="button" class="btnObservacaoRefeicao" data-meal-id="${refeicao.id}" title="Observações da refeição" aria-label="Observações da refeição" style="height: 24px; min-width: 24px; padding: 0 7px; border: none; border-radius: 7px; background: ${temObservacao ? '#fed7aa' : (selecionada ? 'rgba(255,255,255,0.18)' : '#e2e8f0')}; color: ${temObservacao ? '#9a3412' : (selecionada ? 'white' : '#334155')}; cursor: pointer; font-size: 12px; font-weight: 800;">Obs</button>
+                        <button type="button" class="btnObservacaoRefeicao" data-meal-id="${refeicao.id}" title="Observações da refeição" aria-label="Observações da refeição" style="height: 24px; min-width: 24px; padding: 0 7px; border: none; border-radius: 7px; background: #fed7aa; color: #9a3412; cursor: pointer; font-size: 12px; font-weight: 800;">Obs</button>
                         ${selecionada ? '<span style="font-size: 12px; font-weight: 500;">Selecionada</span>' : ''}
                     </span>
                 </div>
@@ -1435,7 +1455,7 @@ export class PlanoAlimentarNutricionista {
         const alimentos = this.filtrarAlimentos(termo);
         const alimentosLista = this.listarAlimentosSelecao(termoLista);
         return `
-                <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: visible; height: 72px; box-sizing: border-box; position: relative; z-index: 20;">
+            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 4px 8px; margin-bottom: 6px; flex: 0 0 auto; overflow: visible; height: 66px; box-sizing: border-box; position: relative; z-index: 20;">
                 <div style="display: grid; grid-template-columns: minmax(132px, 0.68fr) minmax(0, 4.32fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
                     <label style="display: grid; grid-template-rows: 16px 30px; gap: 4px; min-width: 0; align-items: start;">
                         <span style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Pesquisar Alimento</span>
@@ -1701,9 +1721,10 @@ export class PlanoAlimentarNutricionista {
 
     renderFormularioPlano() {
         return `
-            <div style="display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0; overflow: hidden;">
+            <div style="display: flex; flex-direction: column; gap: 8px; height: 100%; min-height: 0; overflow: hidden;">
+                <div style="font-size: 16px; font-weight: 700; color: #1a237e; padding: 0 2px 2px;">Novo Plano Alimentar</div>
                 ${this.renderBaseNutricional()}
-                <div style="flex: 1; min-height: 0; overflow: hidden; padding-right: 4px;">
+                <div style="flex: 1; min-height: 0; overflow: hidden; padding-right: 2px; padding-bottom: 2px;">
                     ${this.renderRefeicoesPlano()}
                 </div>
             </div>
@@ -2388,6 +2409,15 @@ export class PlanoAlimentarNutricionista {
                 this.fecharModalSelecaoAlimentos();
             }
         });
+
+        document.getElementById('btnFecharObservacaoRefeicao')?.addEventListener('click', () => this.fecharModalObservacaoRefeicao());
+        document.getElementById('btnCancelarObservacaoRefeicao')?.addEventListener('click', () => this.fecharModalObservacaoRefeicao());
+        document.getElementById('btnSalvarObservacaoRefeicao')?.addEventListener('click', () => this.salvarModalObservacaoRefeicao());
+        document.getElementById('modalObservacaoRefeicao')?.addEventListener('click', (event) => {
+            if (event.target.id === 'modalObservacaoRefeicao') {
+                this.fecharModalObservacaoRefeicao();
+            }
+        });
     }
 
     attachMealEditorEvents() {
@@ -2595,14 +2625,7 @@ export class PlanoAlimentarNutricionista {
     }
 
     editarObservacaoRefeicao(mealId) {
-        if (!this.getRefeicoesPlano().some((refeicao) => refeicao.id === mealId)) return;
-        const refeicao = this.getRefeicoesPlano().find((item) => item.id === mealId);
-        const atual = this.observacoesRefeicoes?.[mealId] || '';
-        const novaObservacao = prompt(`Observações para ${refeicao.titulo}:`, atual);
-        if (novaObservacao === null) return;
-
-        this.observacoesRefeicoes[mealId] = String(novaObservacao || '').trim();
-        this.renderizarRefeicoesPlano();
+        this.abrirModalObservacaoRefeicao({ mealId });
     }
 
     alternarDetalhesBuscaAlimento(foodId) {
@@ -3262,28 +3285,67 @@ export class PlanoAlimentarNutricionista {
     }
 
     async editarObservacaoPlanoSalvo(planoId, mealId) {
-        const plano = this.planosList.find((registro) => registro.id === planoId);
-        const refeicao = this.getRefeicoesPlano().find((item) => item.id === mealId);
-        if (!plano || !refeicao) return;
-
-        const observacoes = { ...(plano.observacoes_refeicoes || {}) };
-        const novaObservacao = prompt(`Observações para ${refeicao.titulo}:`, observacoes[mealId] || '');
-        if (novaObservacao === null) return;
-
-        observacoes[mealId] = String(novaObservacao || '').trim();
-        plano.observacoes_refeicoes = observacoes;
-        await this.salvarPlanoVisualizado(planoId);
-        this.abrirModalVisualizarPlano(planoId);
-        this.renderizarPlanosContainer();
+        this.abrirModalObservacaoRefeicao({ planoId, mealId, salvarEmPlano: true });
     }
 
     visualizarObservacaoPlanoSalvo(planoId, mealId) {
-        const plano = this.planosList.find((registro) => registro.id === planoId);
-        const refeicao = this.getRefeicoesPlano().find((item) => item.id === mealId);
-        const observacao = String(plano?.observacoes_refeicoes?.[mealId] || '').trim();
-        if (!plano || !refeicao || !observacao) return;
+        this.abrirModalObservacaoRefeicao({ planoId, mealId, salvarEmPlano: true });
+    }
 
-        alert(`Observações - ${refeicao.titulo}\n\n${observacao}`);
+    abrirModalObservacaoRefeicao({ mealId, planoId = null, salvarEmPlano = false } = {}) {
+        const refeicoes = this.getRefeicoesPlano();
+        const refeicao = refeicoes.find((item) => item.id === mealId);
+        if (!refeicao) return;
+
+        this.modalObservacaoContext = {
+            mealId,
+            planoId,
+            salvarEmPlano: Boolean(salvarEmPlano)
+        };
+
+        const modal = document.getElementById('modalObservacaoRefeicao');
+        const titulo = document.getElementById('obsModalTitulo');
+        const subtitulo = document.getElementById('obsModalSubtitulo');
+        const textarea = document.getElementById('obsModalTexto');
+        const observacaoAtual = planoId
+            ? String(this.planosList.find((registro) => registro.id === planoId)?.observacoes_refeicoes?.[mealId] || '').trim()
+            : String(this.observacoesRefeicoes?.[mealId] || '').trim();
+
+        if (titulo) titulo.textContent = 'Observações da refeição';
+        if (subtitulo) subtitulo.textContent = refeicao.titulo || '';
+        if (textarea) textarea.value = observacaoAtual;
+        if (modal) modal.style.display = 'flex';
+        setTimeout(() => textarea?.focus(), 50);
+    }
+
+    fecharModalObservacaoRefeicao() {
+        const modal = document.getElementById('modalObservacaoRefeicao');
+        if (modal) modal.style.display = 'none';
+        this.modalObservacaoContext = null;
+    }
+
+    async salvarModalObservacaoRefeicao() {
+        const contexto = this.modalObservacaoContext;
+        const textarea = document.getElementById('obsModalTexto');
+        if (!contexto) return;
+
+        const observacao = String(textarea?.value || '').trim();
+        const { mealId, planoId, salvarEmPlano } = contexto;
+
+        if (salvarEmPlano && planoId) {
+            const plano = this.planosList.find((registro) => registro.id === planoId);
+            if (!plano) return;
+
+            plano.observacoes_refeicoes = { ...(plano.observacoes_refeicoes || {}), [mealId]: observacao };
+            await this.salvarPlanoVisualizado(planoId);
+            this.abrirModalVisualizarPlano(planoId);
+            this.renderizarPlanosContainer();
+        } else {
+            this.observacoesRefeicoes[mealId] = observacao;
+            this.renderizarRefeicoesPlano();
+        }
+
+        this.fecharModalObservacaoRefeicao();
     }
 
     async adicionarAlimentoPlanoVisualizado(planoId, foodId) {
