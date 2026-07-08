@@ -326,7 +326,7 @@ export class PlanoAlimentarNutricionista {
                         <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: 0 0 auto;">
                             <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
                                 <strong style="font-size: 15px;">Selecionar alimentos</strong>
-                                <span style="font-size: 15px; opacity: 1; font-weight: 800; line-height: 1.1;">Refeição: <strong id="foodSelectMealLabel">${this.escapeHtml(this.getRefeicoesPlano().find((item) => item.id === this.obterRefeicaoSelecionada())?.titulo || 'Café da Manhã')}</strong></span>
+                                <span style="font-size: 15px; opacity: 1; font-weight: 400; line-height: 1.1;">Refeição: <strong id="foodSelectMealLabel" style="font-weight: 400;">${this.escapeHtml(this.getRefeicoesPlano().find((item) => item.id === this.obterRefeicaoSelecionada())?.titulo || 'Café da Manhã')}</strong></span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
                                 <button id="btnFecharSelecaoAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
@@ -494,16 +494,13 @@ export class PlanoAlimentarNutricionista {
                     }
 
                     .modal-save-text {
-                        opacity: 0;
-                        transform: translateX(-8px);
-                        transition: all 0.3s ease;
+                        display: none;
                         font-size: 16px;
                         font-weight: 600;
                     }
 
                     .modal-save-button:hover .modal-save-text {
-                        opacity: 1;
-                        transform: translateX(0);
+                        display: inline-block;
                     }
                     
                     .fab-icon {
@@ -2456,7 +2453,12 @@ export class PlanoAlimentarNutricionista {
         });
         document.querySelectorAll('[data-food-quantity]').forEach((input) => {
             input.addEventListener('click', (event) => event.stopPropagation());
-            input.addEventListener('input', () => this.atualizarQuantidadeSelecaoAlimentoModal(input.dataset.foodQuantity, input.value, input.dataset.allowDecimal === '1'));
+            input.addEventListener('input', () => {
+                const permiteDecimal = input.dataset.allowDecimal === '1';
+                const valor = this.normalizarQuantidadeSelecaoAlimento(input.value, permiteDecimal);
+                input.value = valor;
+                this.atualizarQuantidadeSelecaoAlimentoModal(input.dataset.foodQuantity, valor, permiteDecimal);
+            });
         });
     }
 
@@ -2506,15 +2508,18 @@ export class PlanoAlimentarNutricionista {
 
     normalizarQuantidadeSelecaoAlimento(valor, permiteDecimal = false) {
         const bruto = String(valor ?? '').replace(/[^\d,]/g, '');
+        if (!bruto) {
+            return '';
+        }
         if (permiteDecimal) {
             const [inteiroBruto = '', decimalBruto = ''] = bruto.split(',');
             const inteiro = inteiroBruto.slice(0, 4);
             const decimal = decimalBruto.slice(0, 2);
-            return decimal ? `${inteiro},${decimal}` : (inteiro || '1');
+            return decimal ? `${inteiro},${decimal}` : inteiro;
         }
 
         const inteiro = bruto.split(',')[0].slice(0, 4);
-        return inteiro || '1';
+        return inteiro;
     }
 
     atualizarQuantidadeSelecaoAlimentoModal(foodId, valor, permiteDecimal = false) {
@@ -2524,7 +2529,6 @@ export class PlanoAlimentarNutricionista {
             quantidade,
             ...(this.selecoesAlimentosModal[foodId] || {})
         };
-        this.renderizarModalSelecaoAlimentos();
     }
 
     limparSelecaoAlimentosModal() {
