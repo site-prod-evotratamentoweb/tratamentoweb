@@ -322,28 +322,30 @@ export class PlanoAlimentarNutricionista {
                 </div>
 
                 <div id="foodSelectDropdown" class="modal-overlay" style="display: none; z-index: 3100; padding: 14px;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(99vw, calc(100vw - 12px)); max-width: calc(100vw - 12px); height: min(92vh, 860px); max-height: calc(100vh - 28px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(94vw, 1320px); max-width: calc(100vw - 12px); height: min(92vh, 860px); max-height: calc(100vh - 28px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: 0 0 auto;">
                             <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
                                 <strong style="font-size: 15px;">Selecionar alimentos</strong>
-                                <span style="font-size: 12px; opacity: 0.9;">Selecione um ou mais alimentos e confirme para adicionar na refeição atual.</span>
+                                <span style="font-size: 12px; opacity: 0.95; font-weight: 700;">Refeição: <strong id="foodSelectMealLabel">${this.escapeHtml(this.getRefeicoesPlano().find((item) => item.id === this.obterRefeicaoSelecionada())?.titulo || 'Café da Manhã')}</strong></span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
                                 <button id="btnFecharSelecaoAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
                             </div>
                         </div>
                         <div style="padding: 14px 12px 10px; display: grid; gap: 10px; flex: 0 0 auto;">
-                            <div style="display: grid; grid-template-columns: minmax(240px, 1fr) auto; gap: 10px; align-items: end;">
+                            <div style="display: grid; grid-template-columns: minmax(240px, 1fr) auto auto; gap: 10px; align-items: end;">
                                 <label style="font-size: 12px; color: #475569; font-weight: 600; display: flex; flex-direction: column;">Pesquisar na lista
                                     <input id="foodSelectSearch" autocomplete="off" placeholder="Pesquisar alimento" value="${this.escapeHtml(termoLista)}" style="width: 100%; margin-top: 6px; height: 36px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
                                 </label>
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <button id="btnConfirmarSelecaoAlimento" type="button" style="height: 36px; padding: 0 16px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; font-weight: 700;">Confirmar Seleção</button>
                                 </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button id="btnLimparSelecaoAlimento" type="button" style="height: 36px; padding: 0 16px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer; font-weight: 700;">Limpar Seleção</button>
+                                </div>
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; color: #64748b;">
                                 <span id="foodSelectCount">0 selecionado(s)</span>
-                                <span>Refeição atual: <strong id="foodSelectMealLabel">${this.escapeHtml(this.getRefeicoesPlano().find((item) => item.id === this.obterRefeicaoSelecionada())?.titulo || 'Café da Manhã')}</strong></span>
                             </div>
                         </div>
                         <div style="padding: 0 12px 12px; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
@@ -1481,22 +1483,20 @@ export class PlanoAlimentarNutricionista {
         const selecionado = Boolean(this.selecoesAlimentosModal?.[alimento.id]);
         const quantidade = this.selecoesAlimentosModal?.[alimento.id]?.quantidade || 1;
         const unidade = alimento.unidadePadrao || '';
+        const permiteDecimal = this.permiteQuantidadeDecimal(unidade);
+        const quantidadeTexto = permiteDecimal
+            ? String(quantidade).replace('.', ',')
+            : String(Math.trunc(Number(quantidade) || 1));
         return `
-            <div class="btnCardSelecaoAlimento" data-food-id="${this.escapeHtml(alimento.id)}" role="button" tabindex="0" style="display: flex; flex-direction: column; gap: 8px; text-align: left; border: 2px solid ${selecionado ? '#ea580c' : '#dbe3ef'}; background: ${selecionado ? '#fff7ed' : 'white'}; color: #334155; border-radius: 12px; padding: 10px; cursor: pointer; min-height: 126px; box-shadow: ${selecionado ? '0 0 0 1px rgba(234,88,12,0.12)' : 'none'};">
-                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
-                    <div style="min-width: 0;">
-                        <strong style="display: block; font-size: 13px; color: #1a237e; line-height: 1.3; white-space: normal;">${this.escapeHtml(alimento.nome)}</strong>
-                        <span style="display: block; margin-top: 4px; font-size: 11px; color: #64748b;">${this.escapeHtml(alimento.categoria || 'Sem categoria')}</span>
-                    </div>
-                    <span style="flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; border: 2px solid ${selecionado ? '#ea580c' : '#cbd5e1'}; background: ${selecionado ? '#ea580c' : 'white'}; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${selecionado ? '✓' : ''}</span>
-                </div>
-                <label style="font-size: 11px; color: #475569; font-weight: 700; display: flex; flex-direction: column; gap: 4px;">
-                    Quantidade
-                    <input data-food-quantity="${this.escapeHtml(alimento.id)}" type="number" min="1" step="1" required value="${this.escapeHtml(quantidade)}" style="width: 100%; height: 32px; padding: 5px 8px; border: 1px solid ${selecionado ? '#fdba74' : '#cbd5e1'}; border-radius: 8px; font-size: 13px; background: white;">
+            <div class="btnCardSelecaoAlimento" data-food-id="${this.escapeHtml(alimento.id)}" role="button" tabindex="0" style="display: grid; grid-template-columns: minmax(0, 1fr) 92px 100px; gap: 8px; align-items: center; text-align: left; border: 2px solid ${selecionado ? '#ea580c' : '#dbe3ef'}; background: ${selecionado ? '#fff7ed' : 'white'}; color: #334155; border-radius: 12px; padding: 10px; cursor: pointer; min-height: 72px; box-shadow: ${selecionado ? '0 0 0 1px rgba(234,88,12,0.12)' : 'none'};">
+                <strong title="${this.escapeHtml(alimento.nome)}" style="display: block; font-size: 13px; color: #1a237e; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(alimento.nome)}</strong>
+                <label style="font-size: 11px; color: #475569; font-weight: 700; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                    Qtd.
+                    <input data-food-quantity="${this.escapeHtml(alimento.id)}" data-allow-decimal="${permiteDecimal ? '1' : '0'}" type="text" inputmode="${permiteDecimal ? 'decimal' : 'numeric'}" maxlength="${permiteDecimal ? 7 : 4}" value="${this.escapeHtml(quantidadeTexto)}" placeholder="${permiteDecimal ? '9999,99' : '9999'}" style="width: 100%; height: 32px; padding: 5px 8px; border: 1px solid ${selecionado ? '#fdba74' : '#cbd5e1'}; border-radius: 8px; font-size: 13px; background: white;">
                 </label>
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; font-size: 12px; color: #64748b;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #64748b; min-width: 0;">
                     <span>Unidade</span>
-                    <strong style="color: #334155;">${this.escapeHtml(unidade || 'porção')}</strong>
+                    <strong title="${this.escapeHtml(unidade || 'porção')}" style="color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">${this.escapeHtml(unidade || 'porção')}</strong>
                 </div>
             </div>
         `;
@@ -2459,7 +2459,7 @@ export class PlanoAlimentarNutricionista {
         });
         document.querySelectorAll('[data-food-quantity]').forEach((input) => {
             input.addEventListener('click', (event) => event.stopPropagation());
-            input.addEventListener('input', () => this.atualizarQuantidadeSelecaoAlimentoModal(input.dataset.foodQuantity, input.value));
+            input.addEventListener('input', () => this.atualizarQuantidadeSelecaoAlimentoModal(input.dataset.foodQuantity, input.value, input.dataset.allowDecimal === '1'));
         });
     }
 
@@ -2499,11 +2499,17 @@ export class PlanoAlimentarNutricionista {
 
     atualizarQuantidadeSelecaoAlimentoModal(foodId, valor) {
         if (!foodId) return;
-        const quantidade = Math.max(1, Math.floor(Number(valor || 1)));
+        const permiteDecimal = arguments.length > 2 ? Boolean(arguments[2]) : this.permiteQuantidadeDecimal(this.alimentosBase.find((item) => item.id === foodId)?.unidadePadrao || '');
+        const quantidade = this.normalizarQuantidadeSelecaoAlimento(valor, permiteDecimal);
         this.selecoesAlimentosModal[foodId] = {
             quantidade,
             ...(this.selecoesAlimentosModal[foodId] || {})
         };
+        this.renderizarModalSelecaoAlimentos();
+    }
+
+    limparSelecaoAlimentosModal() {
+        this.selecoesAlimentosModal = {};
         this.renderizarModalSelecaoAlimentos();
     }
 
