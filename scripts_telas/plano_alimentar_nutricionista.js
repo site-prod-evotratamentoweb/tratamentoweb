@@ -1471,7 +1471,6 @@ export class PlanoAlimentarNutricionista {
             }));
 
             this.renderizarPlanosContainer();
-            if (this.planoExpandido) this.abrirModalVisualizarPlano(this.planoExpandido);
         } catch (error) {
             alert('Nao foi possivel definir o plano atual.');
         }
