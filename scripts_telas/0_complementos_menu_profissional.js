@@ -28,7 +28,7 @@ export class MenuProfissional {
                             ${fotoPerfil ? `<img src="${fotoPerfil}" alt="Foto de ${this.userInfo.nome}" style="width: 100%; height: 100%; object-fit: cover;">` : '<span style="font-size: 18px;">📷</span>'}
                         </button>
                         <input id="inputFotoPerfilProfissional" type="file" accept="image/jpeg,image/png,image/webp" style="display: none;">
-                        <span>👋 ${this.userInfo.nome}</span>
+                        <span>${this.userInfo.nome}</span>
                         <span class="role-badge perfil-supervisor">${cargoFormatado}</span>
                         <span class="role-badge" style="background: #475569; color: white;">${perfil}</span>
                     </div>
