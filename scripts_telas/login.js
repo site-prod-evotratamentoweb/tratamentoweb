@@ -232,6 +232,30 @@ export class LoginManager {
         this.showError('Sessao expirada. Entre novamente.');
     }
 
+    async validarUsuarioOrganizacaoEmBackground(userRef, sessionUser) {
+        try {
+            const userDoc = await getDoc(userRef);
+            if (!userDoc.exists()) {
+                throw new Error('Dados do usuario nao encontrados no banco da organizacao.');
+            }
+
+            const userData = userDoc.data();
+            if (userData.status_ativo === false || !this.isCargoValido(userData.cargo)) {
+                throw new Error('Conta desativada. Contate o administrador.');
+            }
+
+            const currentUser = this.montarUsuarioSessao(userData, sessionUser);
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            void updateDoc(userRef, { ultimo_login: serverTimestamp() }).catch(() => {});
+        } catch (error) {
+            await this.signOutAll().catch(() => {});
+            this.clearSessionState();
+            this.renderLoginScreen();
+            this.setupEventListeners();
+            this.showError(error.message || 'Nao foi possivel validar a conta.');
+        }
+    }
+
     isCargoValido(cargo) {
         return CARGOS_VALIDOS.includes(cargo);
     }
@@ -247,6 +271,13 @@ export class LoginManager {
         delete sanitized.reset_token;
         delete sanitized.reset_token_expiracao;
         return sanitized;
+    }
+
+    montarUsuarioSessao(baseData, extras = {}) {
+        return this.sanitizeSessionUser({
+            ...baseData,
+            ...extras
+        });
     }
 
     normalizeOrganizacao(organizacao) {
@@ -302,6 +333,35 @@ export class LoginManager {
             await signInWithEmailAndPassword(auth, emailMontado, password);
 
             const userRef = doc(db, 'logins', login);
+            const loginGeral = result.loginGeral || {};
+            const cargoLoginGeral = loginGeral.cargo || '';
+
+            if (cargoLoginGeral && cargoLoginGeral !== 'paciente') {
+                const sessionExpiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
+                const sessionUser = this.montarUsuarioSessao(loginGeral, {
+                    login,
+                    email: emailMontado,
+                    organizacao,
+                    authToken: result.token?.idToken || '',
+                    sessionCreatedAt: new Date().toISOString(),
+                    sessionExpiresAt,
+                    activeModule: 'home'
+                });
+
+                this.saveRememberedCredentials(rememberCheckbox?.checked, organizacao, login);
+                localStorage.setItem('currentUser', JSON.stringify(sessionUser));
+                localStorage.setItem('sessionCreatedAt', sessionUser.sessionCreatedAt);
+                localStorage.setItem('sessionExpiresAt', sessionUser.sessionExpiresAt);
+                this.iniciarTimerSessao(sessionExpiresAt);
+                void this.validarUsuarioOrganizacaoEmBackground(userRef, sessionUser);
+                void this.showHome(sessionUser).catch(() => {
+                    this.clearSessionState();
+                    this.renderLoginScreen();
+                    this.setupEventListeners();
+                });
+                return;
+            }
+
             let userDoc;
 
             try {
@@ -356,6 +416,7 @@ export class LoginManager {
                     nome: userData.nome,
                     cargo: userData.cargo,
                     perfil: userData.perfil,
+                    userData,
                     authToken: result.token?.idToken || '',
                     userRef,
                     rememberLogin: rememberCheckbox?.checked
@@ -365,13 +426,10 @@ export class LoginManager {
                 return;
             }
 
-            try {
-                await updateDoc(userRef, { ultimo_login: serverTimestamp() });
-            } catch (_error) {}
+            void updateDoc(userRef, { ultimo_login: serverTimestamp() }).catch(() => {});
 
             const sessionExpiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
-            const sessionUser = this.sanitizeSessionUser({
-                ...userData,
+            const sessionUser = this.montarUsuarioSessao(userData, {
                 login,
                 email: emailMontado,
                 organizacao,
@@ -514,27 +572,35 @@ export class LoginManager {
 
             try {
                 await createUserWithEmailAndPassword(auth, this.tempData.email, newPassword.value);
-                await updateDoc(this.tempData.userRef, {
+                void updateDoc(this.tempData.userRef, {
                     ultimo_login: serverTimestamp(),
                     codigo_temporario: deleteField(),
                     codigo_expiracao: deleteField(),
                     email: this.tempData.email
-                });
+                }).catch(() => {});
 
-                const updatedDoc = await getDoc(this.tempData.userRef);
-                const userData = updatedDoc.data();
-                const sessionUser = this.sanitizeSessionUser({
-                    ...userData,
+                const userData = this.tempData.userData || {};
+                const sessionUser = this.montarUsuarioSessao(userData, {
                     login: this.tempData.login,
                     email: this.tempData.email,
                     organizacao: this.tempData.organizacao,
                     authToken: this.tempData.authToken || '',
-                    perfil: userData.perfil || 'operador'
+                    perfil: userData.perfil || 'operador',
+                    sessionCreatedAt: new Date().toISOString(),
+                    sessionExpiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString(),
+                    activeModule: 'home'
                 });
 
                 this.saveRememberedCredentials(this.tempData.rememberLogin, this.tempData.organizacao, this.tempData.login);
                 localStorage.setItem('currentUser', JSON.stringify(sessionUser));
-                this.showHome(sessionUser);
+                localStorage.setItem('sessionCreatedAt', sessionUser.sessionCreatedAt);
+                localStorage.setItem('sessionExpiresAt', sessionUser.sessionExpiresAt);
+                this.iniciarTimerSessao(sessionUser.sessionExpiresAt);
+                void this.showHome(sessionUser).catch(() => {
+                    this.clearSessionState();
+                    this.renderLoginScreen();
+                    this.setupEventListeners();
+                });
             } catch (error) {
 
                 if (error.code === 'auth/email-already-in-use') {
