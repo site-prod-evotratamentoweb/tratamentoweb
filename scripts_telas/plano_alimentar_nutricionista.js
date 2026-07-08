@@ -250,13 +250,13 @@ export class PlanoAlimentarNutricionista {
                     </div>
                 </div>
 
-                <div id="modalConfigAlimentos" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(98vw, 1380px); height: min(94vh, 860px); max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
+                <div id="modalConfigAlimentos" class="modal-overlay" style="display: none; padding: 8px;">
+                    <div style="background: white; border-radius: 16px; width: calc(100vw - 16px); max-width: none; height: calc(100vh - 16px); max-height: calc(100vh - 16px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box;">
                         <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
                             <strong style="font-size: 15px;">Configurações</strong>
                             <button id="btnFecharConfigAlimentos" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
                         </div>
-                        <div data-config-alimentos-form style="padding: 14px; overflow: hidden; flex: 1; min-height: 0;">
+                        <div data-config-alimentos-form style="padding: 14px; overflow: hidden; flex: 1; min-height: 0; box-sizing: border-box;">
                             ${this.renderConfiguracoesAlimentos()}
                         </div>
                     </div>
@@ -1658,7 +1658,9 @@ export class PlanoAlimentarNutricionista {
                         ${this.renderSelectOptions(this.unidadesAlimentos)}
                     </select>
                 </label>
-                <label style="font-size: 12px; color: #475569;">g/unid<input id="foodGramasUnidade" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
+                <label style="font-size: 12px; color: #475569;">Gramatura por unidade
+                    <input id="foodGramasUnidade" type="number" min="0.1" step="0.1" placeholder="Ex: 60" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                </label>
                 <label style="font-size: 12px; color: #475569;">kcal<input id="foodKcal" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
                 <label style="font-size: 12px; color: #475569;">Carb<input id="foodCarboidratos" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
                 <label style="font-size: 12px; color: #475569;">Prot<input id="foodProteinas" type="number" step="0.1" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;"></label>
@@ -1721,6 +1723,29 @@ export class PlanoAlimentarNutricionista {
         if (formWrapper) {
             formWrapper.innerHTML = this.renderModalListaAlimentos();
             this.attachListaAlimentosEvents();
+        }
+    }
+
+    renderizarConfigAlimentosModal() {
+        const modal = document.getElementById('modalConfigAlimentos');
+        if (!modal || modal.style.display === 'none') return;
+
+        const formWrapper = modal.querySelector('[data-config-alimentos-form]');
+        if (formWrapper) {
+            formWrapper.innerHTML = this.renderConfiguracoesAlimentos();
+            this.attachConfigAlimentosEvents();
+        }
+    }
+
+    sincronizarModaisAlimentos({ lista = true, configuracoes = true, formulario = true } = {}) {
+        if (lista) {
+            this.renderizarListaAlimentosModal();
+        }
+        if (configuracoes) {
+            this.renderizarConfigAlimentosModal();
+        }
+        if (formulario) {
+            this.renderizarFormularioAlimentoModal(this.coletarDadosFormularioAlimento());
         }
     }
 
@@ -1844,7 +1869,7 @@ export class PlanoAlimentarNutricionista {
         this.unidadesAlimentos = unidades;
         this.configAlimentosCarregada = true;
         this.fecharModalConfigAlimentos();
-        this.renderizarListaAlimentosModal();
+        this.sincronizarModaisAlimentos({ configuracoes: false });
 
         if (alimentosAlterados.length && (this.pacientesList || []).length) {
             const recalcular = confirm('Unidades/gramaturas alteradas. Deseja recalcular os planos alimentares existentes de todos os pacientes vinculados agora?');
@@ -1897,7 +1922,7 @@ export class PlanoAlimentarNutricionista {
         await deleteDoc(doc(db, 'base_alimentos_nutricionais', foodId));
         this.alimentosCarregados = false;
         await this.carregarBaseAlimentos();
-        this.renderizarListaAlimentosModal();
+        this.sincronizarModaisAlimentos();
     }
 
     async carregarXlsxLib() {
@@ -1970,7 +1995,7 @@ export class PlanoAlimentarNutricionista {
         this.categoriasAlimentos = this.obterCategoriasDerivadas();
         this.unidadesAlimentos = this.obterUnidadesDerivadas();
         await this.salvarConfiguracoesAlimentosSilencioso();
-        this.renderizarListaAlimentosModal();
+        this.sincronizarModaisAlimentos();
     }
 
     async salvarConfiguracoesAlimentosSilencioso() {
@@ -2061,19 +2086,40 @@ export class PlanoAlimentarNutricionista {
         const title = document.getElementById('modalNovoAlimentoTitulo');
         if (title) title.textContent = foodId ? 'Editar Alimento' : 'Novo Alimento';
 
-        const formWrapper = modal.querySelector('[data-novo-alimento-form]');
-        if (formWrapper) formWrapper.innerHTML = this.renderFormularioAlimento();
-
+        this.renderizarFormularioAlimentoModal();
         modal.style.display = 'flex';
         if (foodId) {
             this.preencherFormularioAlimento(foodId);
         } else {
             this.limparFormularioAlimento();
         }
+        setTimeout(() => document.getElementById('foodNome')?.focus(), 80);
+    }
 
+    renderizarFormularioAlimentoModal(dados = null) {
+        const modal = document.getElementById('modalNovoAlimento');
+        if (!modal) return;
+
+        const formWrapper = modal.querySelector('[data-novo-alimento-form]');
+        if (formWrapper) {
+            formWrapper.innerHTML = this.renderFormularioAlimento();
+        }
+
+        if (dados) {
+            this.preencherFormularioAlimentoComDados(dados);
+        } else if (this.alimentoEditandoId) {
+            this.preencherFormularioAlimento(this.alimentoEditandoId);
+        } else {
+            this.limparFormularioAlimento();
+        }
+
+        this.attachFormularioAlimentoEvents();
+    }
+
+    attachFormularioAlimentoEvents() {
+        document.getElementById('foodUnidade')?.addEventListener('change', () => this.atualizarCampoGramaturaAlimento());
         document.getElementById('btnSalvarAlimento')?.addEventListener('click', () => this.salvarAlimentoBase());
         document.getElementById('btnCancelarAlimento')?.addEventListener('click', () => this.fecharModalNovoAlimento());
-        setTimeout(() => document.getElementById('foodNome')?.focus(), 80);
     }
 
     fecharModalNovoAlimento() {
@@ -2658,12 +2704,46 @@ export class PlanoAlimentarNutricionista {
             .join('\n');
     }
 
+    coletarDadosFormularioAlimento() {
+        const modal = document.getElementById('modalNovoAlimento');
+        if (!modal || modal.style.display === 'none') return null;
+
+        return {
+            nome: document.getElementById('foodNome')?.value || '',
+            categoria: document.getElementById('foodCategoria')?.value || '',
+            unidadePadrao: document.getElementById('foodUnidade')?.value || '',
+            gramasPorUnidade: document.getElementById('foodGramasUnidade')?.value || '',
+            kcal: document.getElementById('foodKcal')?.value || '',
+            carboidratos: document.getElementById('foodCarboidratos')?.value || '',
+            proteinas: document.getElementById('foodProteinas')?.value || '',
+            gorduras: document.getElementById('foodGorduras')?.value || ''
+        };
+    }
+
+    preencherFormularioAlimentoComDados(dados = {}) {
+        const setValue = (id, valor = '') => {
+            const input = document.getElementById(id);
+            if (input) input.value = valor;
+        };
+
+        setValue('foodNome', dados.nome);
+        setValue('foodCategoria', dados.categoria);
+        setValue('foodUnidade', dados.unidadePadrao);
+        setValue('foodGramasUnidade', dados.gramasPorUnidade);
+        setValue('foodKcal', dados.kcal);
+        setValue('foodCarboidratos', dados.carboidratos);
+        setValue('foodProteinas', dados.proteinas);
+        setValue('foodGorduras', dados.gorduras);
+        this.atualizarCampoGramaturaAlimento();
+    }
+
     limparFormularioAlimento() {
         this.alimentoEditandoId = null;
         ['foodNome', 'foodCategoria', 'foodUnidade', 'foodGramasUnidade', 'foodKcal', 'foodCarboidratos', 'foodProteinas', 'foodGorduras'].forEach((id) => {
             const input = document.getElementById(id);
             if (input) input.value = '';
         });
+        this.atualizarCampoGramaturaAlimento();
     }
 
     preencherFormularioAlimento(foodId) {
@@ -2679,6 +2759,26 @@ export class PlanoAlimentarNutricionista {
         document.getElementById('foodCarboidratos').value = alimento.carboidratos || '';
         document.getElementById('foodProteinas').value = alimento.proteinas || '';
         document.getElementById('foodGorduras').value = alimento.gorduras || '';
+        this.atualizarCampoGramaturaAlimento();
+    }
+
+    atualizarCampoGramaturaAlimento() {
+        const unidade = document.getElementById('foodUnidade')?.value || '';
+        const gramasInput = document.getElementById('foodGramasUnidade');
+        if (!gramasInput) return;
+
+        const unidadeDireta = this.unidadeIndicaGramatura(unidade);
+        gramasInput.disabled = unidadeDireta;
+        gramasInput.required = Boolean(unidade && !unidadeDireta);
+        gramasInput.placeholder = unidadeDireta ? 'Medida direta' : 'Ex: 60';
+        gramasInput.style.background = unidadeDireta ? '#f1f5f9' : 'white';
+        gramasInput.title = unidadeDireta
+            ? 'Esta unidade ja informa a quantidade em gramas ou volume.'
+            : 'Informe quantos gramas tem 1 unidade selecionada deste alimento.';
+
+        if (unidadeDireta) {
+            gramasInput.value = '1';
+        }
     }
 
     async salvarAlimentoBase(onSaved) {
@@ -2697,12 +2797,20 @@ export class PlanoAlimentarNutricionista {
             alert('Selecione uma unidade cadastrada.');
             return;
         }
+        const unidadeDireta = this.unidadeIndicaGramatura(unidadePadrao);
+        const gramasPorUnidade = unidadeDireta
+            ? 1
+            : Number(document.getElementById('foodGramasUnidade')?.value || 0);
+        if (!unidadeDireta && (!Number.isFinite(gramasPorUnidade) || gramasPorUnidade <= 0)) {
+            alert('Informe a gramatura por unidade deste alimento.');
+            return;
+        }
 
         const payload = {
             nome,
             categoria,
             unidadePadrao,
-            gramasPorUnidade: Number(document.getElementById('foodGramasUnidade')?.value || 100),
+            gramasPorUnidade,
             kcal: Number(document.getElementById('foodKcal')?.value || 0),
             carboidratos: Number(document.getElementById('foodCarboidratos')?.value || 0),
             proteinas: Number(document.getElementById('foodProteinas')?.value || 0),
@@ -2727,8 +2835,8 @@ export class PlanoAlimentarNutricionista {
         this.alimentosCarregados = false;
         await this.carregarBaseAlimentos();
         this.limparFormularioAlimento();
-        this.renderizarListaAlimentosModal();
         this.fecharModalNovoAlimento();
+        this.sincronizarModaisAlimentos({ formulario: false });
         onSaved?.();
     }
 
