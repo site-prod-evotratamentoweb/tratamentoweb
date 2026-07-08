@@ -636,11 +636,10 @@ export class PlanoAlimentarNutricionista {
                     <span style="display: inline-flex; align-items: center; gap: 5px;">
                         ${emEdicao
                             ? `<button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.editarObservacaoPlanoSalvo('${plano.id}', '${refeicao.id}')" aria-label="Editar observações da refeição" title="Editar observações da refeição" style="height: 24px; min-width: 24px; padding: 0 7px; border: none; border-radius: 7px; background: ${observacao ? '#fef3c7' : '#e2e8f0'}; color: ${observacao ? '#92400e' : '#334155'}; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">Obs</button>`
-                            : (observacao ? `<span title="Esta refeição possui observações" style="height: 24px; min-width: 24px; padding: 0 7px; border-radius: 7px; background: #fef3c7; color: #92400e; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">Obs</span>` : '')}
+                            : (observacao ? `<button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.visualizarObservacaoPlanoSalvo('${plano.id}', '${refeicao.id}')" aria-label="Ver observações da refeição" title="Ver observações da refeição" style="height: 24px; min-width: 24px; padding: 0 7px; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">Obs</button>` : '')}
                         <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisRefeicaoSalva('${plano.id}', '${refeicao.id}')" aria-label="Ver detalhes nutricionais da refeição" title="Ver detalhes nutricionais da refeição" style="width: 24px; min-width: 24px; height: 24px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                     </span>
                 </div>
-                ${observacao ? `<div style="padding: 7px 9px 0; color: #475569; font-size: 12px; line-height: 1.3; flex: 0 0 auto;"><strong>Obs.:</strong> ${this.escapeHtml(observacao)}</div>` : ''}
                 <div style="padding: ${bodyPadding}; display: grid; align-content: start; grid-auto-rows: ${itemRows}; gap: ${itemGap}; overflow-y: auto; flex: 1; min-height: 0; ${emModal ? 'max-height: 219px;' : ''}">
                     ${itens.length
                         ? itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item, modo)).join('')
@@ -695,11 +694,10 @@ export class PlanoAlimentarNutricionista {
         }, this.criarResumoNutricionalVazio());
     }
 
-    renderDetalhesNutricionaisResumo(titulo, resumo, observacao = '') {
+    renderDetalhesNutricionaisResumo(titulo, resumo) {
         return `
             <div style="display: grid; gap: 12px;">
                 <div style="font-size: 18px; font-weight: 700; color: #1a237e;">${this.escapeHtml(titulo)}</div>
-                ${observacao ? `<div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 10px 12px; color: #7c2d12; font-size: 14px; line-height: 1.45;"><strong>Observações:</strong><br>${this.escapeHtml(observacao).replace(/\n/g, '<br>')}</div>` : ''}
                 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
                     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
                         <div style="font-size: 12px; color: #64748b;">Energia</div>
@@ -1002,6 +1000,7 @@ export class PlanoAlimentarNutricionista {
     obterGramasPorUnidadeEstimado(alimento = {}) {
         const gramasCadastradas = Number(alimento.gramasPorUnidade || 0);
         const unidade = this.normalizarUnidadeMedida(alimento.unidadePadrao || '');
+        const nome = this.normalizarBusca(alimento.nome || '');
         const categoria = this.normalizarBusca(alimento.categoria || '');
 
         if (this.unidadeIndicaGramatura(alimento.unidadePadrao || '')) {
@@ -1010,6 +1009,25 @@ export class PlanoAlimentarNutricionista {
 
         if (gramasCadastradas > 0 && gramasCadastradas !== 100) {
             return gramasCadastradas;
+        }
+
+        if (unidade === 'col servir') {
+            if (nome.includes('feijao')) return 60;
+            if (nome.includes('arroz')) return 50;
+            if (nome.includes('cuscuz')) return 50;
+            if (nome.includes('macarrao') || nome.includes('massa')) return 80;
+            if (nome.includes('farofa')) return 35;
+            if (nome.includes('pure')) return 60;
+            if (nome.includes('salada') || nome.includes('alface') || nome.includes('couve')) return 30;
+            if (categoria.includes('leguminos')) return 60;
+            if (categoria.includes('legumes') || categoria.includes('verduras')) return 50;
+            return 60;
+        }
+
+        if (unidade === 'concha') {
+            if (nome.includes('feijao')) return 100;
+            if (nome.includes('sopa') || nome.includes('caldo')) return 120;
+            return 100;
         }
 
         const estimativasPorUnidade = {
@@ -1023,7 +1041,7 @@ export class PlanoAlimentarNutricionista {
             'caneca': 240,
             'col cafe': 2,
             'col cha': 5,
-            'col servir': 90,
+            'col servir': 60,
             'col sobrem': 10,
             'col sopa': categoria.includes('gord') || categoria.includes('oleo') ? 8 : 15,
             'concha': 100,
@@ -1251,7 +1269,6 @@ export class PlanoAlimentarNutricionista {
                         ${selecionada ? '<span style="font-size: 12px; font-weight: 500;">Selecionada</span>' : ''}
                     </span>
                 </div>
-                ${temObservacao ? `<div style="padding: 7px 9px 0; color: #475569; font-size: 12px; line-height: 1.3; flex: 0 0 auto;"><strong>Obs.:</strong> ${this.escapeHtml(this.observacoesRefeicoes[refeicao.id])}</div>` : ''}
                 <div class="meal-items-scroll" data-meal-id="${refeicao.id}" style="padding: 8px; display: grid; align-content: start; grid-auto-rows: minmax(44px, auto); gap: 6px; flex: 1; overflow-y: auto; min-height: 0;">
                     ${itens.length ? itens.map((item) => this.renderItemRefeicao(refeicao.id, item)).join('') : '<div style="color: #94a3b8; font-size: 13px; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px;">Nenhum alimento nesta refeição.</div>'}
                 </div>
@@ -2683,6 +2700,15 @@ export class PlanoAlimentarNutricionista {
         this.renderizarPlanosContainer();
     }
 
+    visualizarObservacaoPlanoSalvo(planoId, mealId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        const refeicao = this.getRefeicoesPlano().find((item) => item.id === mealId);
+        const observacao = String(plano?.observacoes_refeicoes?.[mealId] || '').trim();
+        if (!plano || !refeicao || !observacao) return;
+
+        alert(`Observações - ${refeicao.titulo}\n\n${observacao}`);
+    }
+
     async adicionarAlimentoPlanoVisualizado(planoId, foodId) {
         const plano = this.planosList.find((registro) => registro.id === planoId);
         const alimento = this.alimentosBase.find((item) => item.id === foodId);
@@ -2802,11 +2828,11 @@ export class PlanoAlimentarNutricionista {
         this.abrirModalDetalheItemPlano(this.normalizarItemPlano(item), Number(item.opcaoVisivelIndex || 0));
     }
 
-    abrirModalResumoNutricional(titulo, resumo, observacao = '') {
+    abrirModalResumoNutricional(titulo, resumo) {
         const modal = document.getElementById('modalDetalheAlimento');
         const formWrapper = modal?.querySelector('[data-detalhe-alimento-form]');
         if (formWrapper) {
-            formWrapper.innerHTML = this.renderDetalhesNutricionaisResumo(titulo, resumo, observacao);
+            formWrapper.innerHTML = this.renderDetalhesNutricionaisResumo(titulo, resumo);
         }
         if (modal) {
             modal.style.zIndex = '3000';
@@ -2831,8 +2857,7 @@ export class PlanoAlimentarNutricionista {
             ? plano.itens_plano[mealId].map((item) => this.normalizarItemPlano(item))
             : [];
         const resumo = this.calcularTotaisItensPlanoSalvo(itens);
-        const observacao = String(plano.observacoes_refeicoes?.[mealId] || '').trim();
-        this.abrirModalResumoNutricional(`Detalhes - ${refeicao.titulo}`, resumo, observacao);
+        this.abrirModalResumoNutricional(`Detalhes - ${refeicao.titulo}`, resumo);
     }
 
     editarPlano(planoId) {

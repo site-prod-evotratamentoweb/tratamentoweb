@@ -249,12 +249,12 @@ export class PlanoAlimentarCliente {
                     
                     ${isExpanded ? `
                         <div style="border-top: 1px solid #e2e8f0; padding: 20px; background: #f8fafc;">
-                            ${plano.breakfast ? this.renderRefeicaoCard('🌅 Café da Manhã', plano.breakfast, plano.observacoes_refeicoes?.breakfast) : ''}
-                            ${plano.morningSnack ? this.renderRefeicaoCard('🍎 Lanche da Manhã', plano.morningSnack, plano.observacoes_refeicoes?.morningSnack) : ''}
-                            ${plano.lunch ? this.renderRefeicaoCard('🍽️ Almoço', plano.lunch, plano.observacoes_refeicoes?.lunch) : ''}
-                            ${plano.afternoonSnack ? this.renderRefeicaoCard('🍌 Lanche da Tarde', plano.afternoonSnack, plano.observacoes_refeicoes?.afternoonSnack) : ''}
-                            ${plano.dinner ? this.renderRefeicaoCard('🌙 Jantar', plano.dinner, plano.observacoes_refeicoes?.dinner) : ''}
-                            ${plano.supper ? this.renderRefeicaoCard('⭐ Ceia', plano.supper, plano.observacoes_refeicoes?.supper) : ''}
+                            ${plano.breakfast ? this.renderRefeicaoCard('🌅 Café da Manhã', plano.breakfast) : ''}
+                            ${plano.morningSnack ? this.renderRefeicaoCard('🍎 Lanche da Manhã', plano.morningSnack) : ''}
+                            ${plano.lunch ? this.renderRefeicaoCard('🍽️ Almoço', plano.lunch) : ''}
+                            ${plano.afternoonSnack ? this.renderRefeicaoCard('🍌 Lanche da Tarde', plano.afternoonSnack) : ''}
+                            ${plano.dinner ? this.renderRefeicaoCard('🌙 Jantar', plano.dinner) : ''}
+                            ${plano.supper ? this.renderRefeicaoCard('⭐ Ceia', plano.supper) : ''}
                             
                             ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
                             ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições Alimentares', plano.restrictions) : ''}
@@ -270,12 +270,11 @@ export class PlanoAlimentarCliente {
         return plano?.atual === true;
     }
 
-    renderRefeicaoCard(titulo, conteudo, observacao = '') {
+    renderRefeicaoCard(titulo, conteudo) {
         return `
             <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px;">
                 <strong style="color: #f97316; display: block; margin-bottom: 6px;">${titulo}</strong>
                 <p style="color: #475569; margin: 0; font-size: 14px; white-space: pre-wrap;">${this.escapeHtml(conteudo)}</p>
-                ${observacao ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; color: #7c2d12; font-size: 13px; white-space: pre-wrap;"><strong>Obs.:</strong> ${this.escapeHtml(observacao)}</div>` : ''}
             </div>
         `;
     }
