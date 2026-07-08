@@ -971,10 +971,140 @@ export class PlanoAlimentarNutricionista {
             .slice(0, 20);
     }
 
+    normalizarUnidadeMedida(unidade = '') {
+        return this.normalizarBusca(unidade)
+            .replace(/\./g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    unidadeIndicaGramatura(unidade = '') {
+        const normalizada = this.normalizarUnidadeMedida(unidade);
+        return [
+            'g',
+            'gr',
+            'grama',
+            'gramas',
+            'kg',
+            'quilo',
+            'quilos',
+            'quilograma',
+            'quilogramas',
+            'mg',
+            'miligrama',
+            'miligramas',
+            'ml',
+            'mililitro',
+            'mililitros',
+            'l',
+            'litro',
+            'litros'
+        ].includes(normalizada);
+    }
+
+    calcularGramasPorQuantidade(alimento, quantidade = 1) {
+        const qtd = Number(quantidade || 0);
+        const unidade = alimento?.unidadePadrao || '';
+        const normalizada = this.normalizarUnidadeMedida(unidade);
+
+        if (['kg', 'quilo', 'quilos', 'quilograma', 'quilogramas'].includes(normalizada)) {
+            return qtd * 1000;
+        }
+
+        if (['mg', 'miligrama', 'miligramas'].includes(normalizada)) {
+            return qtd / 1000;
+        }
+
+        if (['l', 'litro', 'litros'].includes(normalizada)) {
+            return qtd * 1000;
+        }
+
+        if (['g', 'gr', 'grama', 'gramas', 'ml', 'mililitro', 'mililitros'].includes(normalizada)) {
+            return qtd;
+        }
+
+        return qtd * this.obterGramasPorUnidadeEstimado(alimento);
+    }
+
+    obterGramasPorUnidadeEstimado(alimento = {}) {
+        const gramasCadastradas = Number(alimento.gramasPorUnidade || 0);
+        const unidade = this.normalizarUnidadeMedida(alimento.unidadePadrao || '');
+        const categoria = this.normalizarBusca(alimento.categoria || '');
+
+        if (this.unidadeIndicaGramatura(alimento.unidadePadrao || '')) {
+            return 1;
+        }
+
+        if (gramasCadastradas > 0 && gramasCadastradas !== 100) {
+            return gramasCadastradas;
+        }
+
+        const estimativasPorUnidade = {
+            'banda': 50,
+            'bife': 100,
+            'bisnaga': 20,
+            'bola': 60,
+            'c amer': 150,
+            'c requej': 200,
+            'caixa': 200,
+            'caneca': 240,
+            'col cafe': 2,
+            'col cha': 5,
+            'col servir': 90,
+            'col sobrem': 10,
+            'col sopa': categoria.includes('gord') || categoria.includes('oleo') ? 8 : 15,
+            'concha': 100,
+            'copo': 200,
+            'cubo': 10,
+            'dente': 3,
+            'dose': 50,
+            'envelope': 10,
+            'escumad': 80,
+            'fatia': categoria.includes('latic') ? 25 : 30,
+            'file': 120,
+            'filé': 120,
+            'folha': 5,
+            'frasco': 200,
+            'garrafa': 500,
+            'gomo': 30,
+            'lata': 300,
+            'maco': 100,
+            'maço': 100,
+            'metade': 50,
+            'oitavo': 25,
+            'p fundo': 300,
+            'p raso': 200,
+            'p sobrem': 120,
+            'pacote': 100,
+            'pedaco': 80,
+            'pedaço': 80,
+            'pegador': 45,
+            'pires': 80,
+            'porcao': 100,
+            'porção': 100,
+            'posta': 120,
+            'pote': 170,
+            'quarto': 25,
+            'ramo': 5,
+            'rodela': 15,
+            'sache': 10,
+            'sachê': 10,
+            'scoop': 30,
+            'talo': 20,
+            'tigela': 250,
+            'tubo': 90,
+            'unidade': categoria.includes('ovos') ? 50 : 100,
+            'xic cafe': 50,
+            'xic cha': 160
+        };
+
+        return estimativasPorUnidade[unidade] || gramasCadastradas || 100;
+    }
+
     calcularNutrientes(alimento, quantidade, tipoQuantidade, gramasManual) {
         const qtd = Number(quantidade || 0);
         const gramas = tipoQuantidade === 'unidade'
-            ? qtd * Number(alimento.gramasPorUnidade || 100)
+            ? this.calcularGramasPorQuantidade(alimento, qtd)
             : Number(gramasManual || qtd || 0);
         const fator = gramas / 100;
 
@@ -999,13 +1129,14 @@ export class PlanoAlimentarNutricionista {
     formatarQuantidadePreview(alimento, quantidade = 1, curto = false) {
         const qtd = Number(quantidade || 0);
         const unidade = alimento.unidadePadrao || 'porcao';
-        const gramas = qtd * Number(alimento.gramasPorUnidade || 100);
+        const gramas = this.calcularGramasPorQuantidade(alimento, qtd);
+        const quantidadeTexto = `${this.formatarNumero(qtd)} ${unidade}`;
 
-        if (curto) {
-            return `${this.formatarNumero(qtd)} ${unidade}`;
+        if (this.unidadeIndicaGramatura(unidade)) {
+            return quantidadeTexto;
         }
 
-        return `${this.formatarNumero(qtd)} ${unidade} (${this.formatarNumero(gramas, 0)} g)`;
+        return `${quantidadeTexto} (${this.formatarNumero(gramas, 0)} g)`;
     }
 
     getRefeicoesPlano() {
@@ -1232,7 +1363,8 @@ export class PlanoAlimentarNutricionista {
 
         const preview = document.querySelector(`[data-quantidade-preview="${foodId}"]`);
         if (preview) {
-            preview.textContent = alimento.unidadePadrao || 'porcao';
+            const quantidade = this.obterQuantidadeAlimento(foodId);
+            preview.textContent = this.formatarQuantidadePreview(alimento, quantidade, true).replace(/^[\d.,]+\s*/, '');
         }
     }
 
@@ -1244,7 +1376,7 @@ export class PlanoAlimentarNutricionista {
         return alimentos.map((alimento) => {
             const quantidadeId = `foodQuantidade_${alimento.id}`;
             const quantidadeValor = Number(document.getElementById(quantidadeId)?.value || 1);
-            const unidadeMedida = alimento.unidadePadrao || 'porcao';
+            const unidadeMedida = this.formatarQuantidadePreview(alimento, quantidadeValor || 1, true).replace(/^[\d.,]+\s*/, '');
             return `
                 <div style="box-sizing: border-box; min-width: 0; flex: 0 0 calc((100% - 16px) / 3); height: 50px; overflow: hidden; display: grid; grid-template-columns: minmax(96px, 1fr) 52px minmax(46px, 0.44fr) 30px 30px; grid-template-rows: 16px 30px; gap: 4px 5px; align-items: start; padding-left: 8px; border-left: 2px solid #cbd5e1;">
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Nome do Alimento</div>
