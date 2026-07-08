@@ -132,6 +132,8 @@ export class PlanoAlimentarNutricionista {
         this.visualizacaoMealSelecionada = 'breakfast';
         this.visualizacaoOpcaoDestino = null;
         this.planoExportandoId = null;
+        this.modalSelecaoAlimentosMealId = null;
+        this.selecoesAlimentosModal = {};
         this.itensPlano = this.criarEstadoItensPlano();
         this.observacoesRefeicoes = this.criarEstadoObservacoesRefeicoes();
         this.detalhesBuscaAlimentos = {};
@@ -312,6 +314,39 @@ export class PlanoAlimentarNutricionista {
                             <button id="btnFecharDetalheAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">✕</button>
                         </div>
                         <div data-detalhe-alimento-form style="padding: 16px; overflow: auto; font-size: 14px; color: #334155;"></div>
+                    </div>
+                </div>
+
+                <div id="foodSelectDropdown" class="modal-overlay" style="display: none; z-index: 3100; padding: 14px;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(96vw, 1660px); height: min(92vh, 860px); max-height: calc(100vh - 28px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: 0 0 auto;">
+                            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                                <strong style="font-size: 15px;">Selecionar alimentos</strong>
+                                <span style="font-size: 12px; opacity: 0.9;">Selecione um ou mais alimentos e confirme para adicionar na refeição atual.</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
+                                <button id="btnFecharSelecaoAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
+                            </div>
+                        </div>
+                        <div style="padding: 14px 14px 10px; display: grid; gap: 10px; flex: 0 0 auto;">
+                            <div style="display: grid; grid-template-columns: minmax(240px, 1fr) auto; gap: 10px; align-items: end;">
+                                <label style="font-size: 12px; color: #475569; font-weight: 600; display: flex; flex-direction: column;">Pesquisar na lista
+                                    <input id="foodSelectSearch" autocomplete="off" placeholder="Pesquisar alimento" value="${this.escapeHtml(termoLista)}" style="width: 100%; margin-top: 6px; height: 36px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
+                                </label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button id="btnConfirmarSelecaoAlimento" type="button" style="height: 36px; padding: 0 16px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer; font-weight: 700;">Confirmar Seleção</button>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; color: #64748b;">
+                                <span id="foodSelectCount">0 selecionado(s)</span>
+                                <span>Refeição atual: <strong id="foodSelectMealLabel">${this.escapeHtml(this.getRefeicoesPlano().find((item) => item.id === this.obterRefeicaoSelecionada())?.titulo || 'Café da Manhã')}</strong></span>
+                            </div>
+                        </div>
+                        <div style="padding: 0 14px 14px; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+                            <div id="foodSelectResults" style="flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px;">
+                                ${this.renderListaSelecaoModalAlimentos(this.listarAlimentosSelecao(termoLista))}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1403,13 +1438,7 @@ export class PlanoAlimentarNutricionista {
                         <span style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Pesquisar Alimento</span>
                         <span style="display: grid; grid-template-columns: minmax(0, 1fr) 34px; gap: 5px; position: relative;">
                             <input id="foodSearch" autocomplete="off" placeholder="Digite o alimento" style="width: 100%; min-width: 0; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;" value="${this.escapeHtml(termo)}">
-                            <button id="btnAbrirSelecaoAlimento" type="button" title="Selecionar alimento na lista" aria-label="Selecionar alimento na lista" style="width: 34px; height: 30px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer; font-size: 16px;">☰</button>
-                            <div id="foodSelectDropdown" style="display: none; position: absolute; left: 0; top: 34px; width: min(420px, 82vw); max-height: 320px; background: white; border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 14px 30px rgba(15,23,42,0.18); z-index: 10001; padding: 8px;">
-                                <input id="foodSelectSearch" autocomplete="off" placeholder="Pesquisar na lista" value="${this.escapeHtml(termoLista)}" style="width: 100%; height: 32px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; margin-bottom: 8px;">
-                                <div id="foodSelectResults" style="display: grid; gap: 4px; max-height: 248px; overflow-y: auto;">
-                                    ${this.renderListaSelecaoAlimentos(alimentosLista)}
-                                </div>
-                            </div>
+                            <button id="btnAbrirSelecaoAlimento" type="button" title="Selecionar alimentos na lista" aria-label="Selecionar alimentos na lista" style="width: 34px; height: 30px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer; font-size: 16px;">☰</button>
                         </span>
                     </label>
                     <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 0 0 8px 0; align-items: flex-start; min-height: 0; height: 100%; scrollbar-gutter: stable;">
@@ -1430,6 +1459,43 @@ export class PlanoAlimentarNutricionista {
                 ${this.escapeHtml(alimento.nome)}
             </button>
         `).join('');
+    }
+
+    renderListaSelecaoModalAlimentos(alimentos) {
+        if (!alimentos.length) {
+            return '<div style="padding: 12px; color: #64748b; font-size: 13px;">Nenhum alimento encontrado.</div>';
+        }
+
+        return `
+            <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; align-content: start;">
+                ${alimentos.map((alimento) => this.renderCardSelecaoAlimento(alimento)).join('')}
+            </div>
+        `;
+    }
+
+    renderCardSelecaoAlimento(alimento) {
+        const selecionado = Boolean(this.selecoesAlimentosModal?.[alimento.id]);
+        const quantidade = this.selecoesAlimentosModal?.[alimento.id]?.quantidade || 1;
+        const unidade = alimento.unidadePadrao || '';
+        return `
+            <div class="btnCardSelecaoAlimento" data-food-id="${this.escapeHtml(alimento.id)}" role="button" tabindex="0" style="display: flex; flex-direction: column; gap: 8px; text-align: left; border: 2px solid ${selecionado ? '#ea580c' : '#dbe3ef'}; background: ${selecionado ? '#fff7ed' : 'white'}; color: #334155; border-radius: 12px; padding: 10px; cursor: pointer; min-height: 126px; box-shadow: ${selecionado ? '0 0 0 1px rgba(234,88,12,0.12)' : 'none'};">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+                    <div style="min-width: 0;">
+                        <strong style="display: block; font-size: 13px; color: #1a237e; line-height: 1.3; white-space: normal;">${this.escapeHtml(alimento.nome)}</strong>
+                        <span style="display: block; margin-top: 4px; font-size: 11px; color: #64748b;">${this.escapeHtml(alimento.categoria || 'Sem categoria')}</span>
+                    </div>
+                    <span style="flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; border: 2px solid ${selecionado ? '#ea580c' : '#cbd5e1'}; background: ${selecionado ? '#ea580c' : 'white'}; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${selecionado ? '✓' : ''}</span>
+                </div>
+                <label style="font-size: 11px; color: #475569; font-weight: 700; display: flex; flex-direction: column; gap: 4px;">
+                    Quantidade
+                    <input data-food-quantity="${this.escapeHtml(alimento.id)}" type="number" min="1" step="1" required value="${this.escapeHtml(quantidade)}" style="width: 100%; height: 32px; padding: 5px 8px; border: 1px solid ${selecionado ? '#fdba74' : '#cbd5e1'}; border-radius: 8px; font-size: 13px; background: white;">
+                </label>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; font-size: 12px; color: #64748b;">
+                    <span>Unidade</span>
+                    <strong style="color: #334155;">${this.escapeHtml(unidade || 'porção')}</strong>
+                </div>
+            </div>
+        `;
     }
 
     obterQuantidadeAlimento(foodId) {
@@ -2303,40 +2369,27 @@ export class PlanoAlimentarNutricionista {
         const search = document.getElementById('foodSearch');
         const results = document.getElementById('foodResults');
         const btnAbrirSelecao = document.getElementById('btnAbrirSelecaoAlimento');
-        const dropdown = document.getElementById('foodSelectDropdown');
-        const selectSearch = document.getElementById('foodSelectSearch');
-        const selectResults = document.getElementById('foodSelectResults');
         const quantidade = document.getElementById('foodQuantidade');
         const refreshResults = () => {
             if (!results) return;
             results.innerHTML = this.renderResultadosAlimentos(this.filtrarAlimentos(search?.value || ''));
             this.attachFoodResultButtons();
         };
-        const refreshSelectResults = () => {
-            if (!selectResults) return;
-            selectResults.innerHTML = this.renderListaSelecaoAlimentos(this.listarAlimentosSelecao(selectSearch?.value || ''));
-            this.attachFoodSelectButtons();
-        };
 
         search?.addEventListener('input', refreshResults);
-        btnAbrirSelecao?.addEventListener('click', () => {
-            if (!dropdown) return;
-            const aberto = dropdown.style.display === 'block';
-            dropdown.style.display = aberto ? 'none' : 'block';
-            if (!aberto) {
-                selectSearch?.focus();
-                if (selectResults && !selectSearch?.value) {
-                    selectResults.innerHTML = this.renderListaSelecaoAlimentos(this.listarAlimentosSelecao(''));
-                    this.attachFoodSelectButtons();
-                }
-                refreshSelectResults();
-            }
-        });
-        selectSearch?.addEventListener('input', refreshSelectResults);
+        btnAbrirSelecao?.addEventListener('click', () => this.abrirModalSelecaoAlimentos());
         quantidade?.addEventListener('input', refreshResults);
         this.attachMealEditorEvents();
         this.attachFoodResultButtons();
         this.attachFoodSelectButtons();
+        document.getElementById('btnFecharSelecaoAlimento')?.addEventListener('click', () => this.fecharModalSelecaoAlimentos());
+        document.getElementById('btnConfirmarSelecaoAlimento')?.addEventListener('click', () => this.confirmarSelecaoAlimentosModal());
+        document.getElementById('foodSelectSearch')?.addEventListener('input', () => this.renderizarModalSelecaoAlimentos());
+        document.getElementById('foodSelectDropdown')?.addEventListener('click', (event) => {
+            if (event.target.id === 'foodSelectDropdown') {
+                this.fecharModalSelecaoAlimentos();
+            }
+        });
     }
 
     attachMealEditorEvents() {
@@ -2388,22 +2441,117 @@ export class PlanoAlimentarNutricionista {
     }
 
     attachFoodSelectButtons() {
-        document.querySelectorAll('.btnSelecionarAlimentoLista').forEach((button) => {
-            button.addEventListener('click', () => this.selecionarAlimentoDaLista(button.dataset.foodId));
+        document.querySelectorAll('.btnCardSelecaoAlimento').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                if (event.target.closest('input')) return;
+                this.alternarSelecaoAlimentoModal(button.dataset.foodId);
+            });
+            button.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    this.alternarSelecaoAlimentoModal(button.dataset.foodId);
+                }
+            });
+        });
+        document.querySelectorAll('[data-food-quantity]').forEach((input) => {
+            input.addEventListener('click', (event) => event.stopPropagation());
+            input.addEventListener('input', () => this.atualizarQuantidadeSelecaoAlimentoModal(input.dataset.foodQuantity, input.value));
         });
     }
 
-    selecionarAlimentoDaLista(foodId) {
-        const alimento = this.alimentosBase.find((item) => item.id === foodId);
-        const search = document.getElementById('foodSearch');
-        const results = document.getElementById('foodResults');
-        const dropdown = document.getElementById('foodSelectDropdown');
-        if (!alimento || !search || !results) return;
+    abrirModalSelecaoAlimentos(mealId = null) {
+        this.modalSelecaoAlimentosMealId = mealId || this.obterRefeicaoSelecionada();
+        this.selecoesAlimentosModal = {};
 
-        search.value = alimento.nome;
-        results.innerHTML = this.renderResultadosAlimentos(this.filtrarAlimentos(alimento.nome));
-        this.attachFoodResultButtons();
-        if (dropdown) dropdown.style.display = 'none';
+        const modal = document.getElementById('foodSelectDropdown');
+        if (!modal) return;
+
+        const search = document.getElementById('foodSelectSearch');
+        if (search) search.value = '';
+
+        this.renderizarModalSelecaoAlimentos();
+        modal.style.display = 'flex';
+        setTimeout(() => search?.focus(), 60);
+    }
+
+    fecharModalSelecaoAlimentos() {
+        const modal = document.getElementById('foodSelectDropdown');
+        if (modal) modal.style.display = 'none';
+        this.modalSelecaoAlimentosMealId = null;
+        this.selecoesAlimentosModal = {};
+    }
+
+    alternarSelecaoAlimentoModal(foodId) {
+        if (!foodId) return;
+        if (this.selecoesAlimentosModal[foodId]) {
+            delete this.selecoesAlimentosModal[foodId];
+        } else {
+            this.selecoesAlimentosModal[foodId] = {
+                quantidade: 1
+            };
+        }
+        this.renderizarModalSelecaoAlimentos();
+    }
+
+    atualizarQuantidadeSelecaoAlimentoModal(foodId, valor) {
+        if (!foodId) return;
+        const quantidade = Math.max(1, Math.floor(Number(valor || 1)));
+        this.selecoesAlimentosModal[foodId] = {
+            quantidade,
+            ...(this.selecoesAlimentosModal[foodId] || {})
+        };
+        this.renderizarModalSelecaoAlimentos();
+    }
+
+    renderizarModalSelecaoAlimentos() {
+        const modal = document.getElementById('foodSelectDropdown');
+        if (!modal) return;
+
+        const search = modal.querySelector('#foodSelectSearch');
+        const results = modal.querySelector('#foodSelectResults');
+        const count = modal.querySelector('#foodSelectCount');
+        const mealLabel = modal.querySelector('#foodSelectMealLabel');
+
+        if (mealLabel) {
+            const mealId = this.modalSelecaoAlimentosMealId || this.obterRefeicaoSelecionada();
+            const refeicao = this.getRefeicoesPlano().find((item) => item.id === mealId);
+            mealLabel.textContent = refeicao?.titulo || 'Café da Manhã';
+        }
+
+        const alimentos = this.listarAlimentosSelecao(search?.value || '');
+        if (results) {
+            results.innerHTML = this.renderListaSelecaoModalAlimentos(alimentos);
+            this.attachFoodSelectButtons();
+        }
+
+        if (count) {
+            count.textContent = `${Object.keys(this.selecoesAlimentosModal || {}).length} selecionado(s)`;
+        }
+    }
+
+    confirmarSelecaoAlimentosModal() {
+        const mealId = this.modalSelecaoAlimentosMealId || this.obterRefeicaoSelecionada();
+        const selecionados = Object.entries(this.selecoesAlimentosModal || {})
+            .map(([foodId, dados]) => ({
+                foodId,
+                quantidade: Math.max(1, Math.floor(Number(dados?.quantidade || 1)))
+            }))
+            .filter((item) => item.foodId && item.quantidade > 0);
+
+        if (!selecionados.length) {
+            alert('Selecione ao menos um alimento.');
+            return;
+        }
+
+        for (const item of selecionados) {
+            const alimento = this.alimentosBase.find((registro) => registro.id === item.foodId);
+            if (!alimento) continue;
+            this.adicionarAlimentoNaRefeicaoComQuantidade(alimento, item.quantidade, mealId, false);
+        }
+
+        this.refeicaoSelecionada = mealId;
+        this.fecharModalSelecaoAlimentos();
+        this.renderizarRefeicoesPlano();
     }
 
     editarObservacaoRefeicao(mealId) {
@@ -2888,13 +3036,16 @@ export class PlanoAlimentarNutricionista {
 
     adicionarAlimentoNaRefeicao(foodId) {
         const alimento = this.alimentosBase.find((item) => item.id === foodId);
-        if (!alimento) return;
-
         const quantidade = Number(document.getElementById(`foodQuantidade_${foodId}`)?.value || 1);
-        const mealId = this.obterRefeicaoSelecionada();
-        this.refeicaoSelecionada = mealId;
+        return this.adicionarAlimentoNaRefeicaoComQuantidade(alimento, quantidade, this.obterRefeicaoSelecionada());
+    }
+
+    adicionarAlimentoNaRefeicaoComQuantidade(alimento, quantidade, mealId = null, renderizar = true) {
+        if (!alimento) return;
+        const refeicaoId = mealId || this.obterRefeicaoSelecionada();
+        this.refeicaoSelecionada = refeicaoId;
         const opcao = this.criarOpcaoItemPlano(alimento, quantidade);
-        this.itensPlano[mealId] = this.itensPlano[mealId] || [];
+        this.itensPlano[refeicaoId] = this.itensPlano[refeicaoId] || [];
 
         if (this.opcaoDestinoPlano) {
             const itemDestino = (this.itensPlano[this.opcaoDestinoPlano.mealId] || [])
@@ -2913,20 +3064,20 @@ export class PlanoAlimentarNutricionista {
                 itemDestino.detalhes = itemDestino.opcoes[0]?.detalhes || null;
                 this.refeicaoSelecionada = this.opcaoDestinoPlano.mealId;
                 this.opcaoDestinoPlano = null;
-                this.renderizarRefeicoesPlano();
+                if (renderizar) this.renderizarRefeicoesPlano();
                 return;
             }
             this.opcaoDestinoPlano = null;
         }
 
-        this.itensPlano[mealId].push({
+        this.itensPlano[refeicaoId].push({
             id: this.gerarIdItemPlano(),
             texto: opcao.texto,
             detalhes: opcao.detalhes,
             opcoes: [opcao],
             detalhesAberto: false
         });
-        this.renderizarRefeicoesPlano();
+        if (renderizar) this.renderizarRefeicoesPlano();
     }
 
     async loadPlanos() {
