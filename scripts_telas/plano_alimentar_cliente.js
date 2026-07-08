@@ -197,6 +197,9 @@ export class PlanoAlimentarCliente {
     renderPlanosList() {
         // Ordena por data (mais recente primeiro)
         const planosOrdenados = [...this.planosList].sort((a, b) => {
+            if (this.isPlanoAtual(a) !== this.isPlanoAtual(b)) {
+                return this.isPlanoAtual(a) ? -1 : 1;
+            }
             const dataA = this.extrairData(a.id);
             const dataB = this.extrairData(b.id);
             return dataB - dataA;

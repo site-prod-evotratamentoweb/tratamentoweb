@@ -529,6 +529,9 @@ export class PlanoAlimentarNutricionista {
 
         // Ordena por data (mais recente primeiro)
         const planosOrdenados = [...this.planosList].sort((a, b) => {
+            if (this.isPlanoAtual(a) !== this.isPlanoAtual(b)) {
+                return this.isPlanoAtual(a) ? -1 : 1;
+            }
             const dataA = this.extrairData(a.id);
             const dataB = this.extrairData(b.id);
             return dataB - dataA;
@@ -627,10 +630,6 @@ export class PlanoAlimentarNutricionista {
         const itemGap = emModal ? '5px' : '4px';
         const bodyPadding = emModal ? '7px' : '6px';
 
-        if (!itens.length) {
-            return this.renderRefeicaoCard(`${refeicao.icone} ${refeicao.titulo}`, plano[refeicao.id], modo);
-        }
-
         return `
             <section style="background: white; border: 1px solid #dbe3ef; border-radius: 8px; overflow: hidden; height: ${altura}; min-height: 0; display: flex; flex-direction: column;">
                 <div style="background: #f1f5f9; color: #1a237e; padding: ${headerPadding}; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex: 0 0 auto; font-size: ${headerFont}; line-height: 1.1;">
@@ -638,11 +637,18 @@ export class PlanoAlimentarNutricionista {
                         <span>${refeicao.icone}</span>
                         <span>${refeicao.titulo}</span>
                     </span>
-                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisRefeicaoSalva('${plano.id}', '${refeicao.id}')" aria-label="Ver detalhes nutricionais da refeição" title="Ver detalhes nutricionais da refeição" style="width: 24px; min-width: 24px; height: 24px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                    <span style="display: inline-flex; align-items: center; gap: 5px;">
+                        <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.editarObservacaoPlanoSalvo('${plano.id}', '${refeicao.id}')" aria-label="Observações da refeição" title="Observações da refeição" style="height: 24px; min-width: 24px; padding: 0 7px; border: none; border-radius: 7px; background: ${observacao ? '#fef3c7' : '#e2e8f0'}; color: ${observacao ? '#92400e' : '#334155'}; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">Obs</button>
+                        <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalhesNutricionaisRefeicaoSalva('${plano.id}', '${refeicao.id}')" aria-label="Ver detalhes nutricionais da refeição" title="Ver detalhes nutricionais da refeição" style="width: 24px; min-width: 24px; height: 24px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                    </span>
                 </div>
                 ${observacao ? `<div style="padding: 7px 9px 0; color: #475569; font-size: 12px; line-height: 1.3; flex: 0 0 auto;"><strong>Obs.:</strong> ${this.escapeHtml(observacao)}</div>` : ''}
                 <div style="padding: ${bodyPadding}; display: grid; align-content: start; grid-auto-rows: ${itemRows}; gap: ${itemGap}; overflow-y: auto; flex: 1; min-height: 0; ${emModal ? 'max-height: 219px;' : ''}">
-                    ${itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item, modo)).join('')}
+                    ${itens.length
+                        ? itens.map((item) => this.renderItemPlanoSalvo(plano.id, refeicao.id, item, modo)).join('')
+                        : (plano[refeicao.id]
+                            ? `<div style="color: #475569; margin: 0; font-size: 13px; white-space: pre-wrap; overflow-y: auto; padding-right: 4px;">${this.escapeHtml(plano[refeicao.id])}</div>`
+                            : '<div style="color: #94a3b8; font-size: 12px; padding: 8px; border: 1px dashed #cbd5e1; border-radius: 8px;">Sem alimentos cadastrados.</div>')}
                 </div>
             </section>
         `;
@@ -2556,6 +2562,22 @@ export class PlanoAlimentarNutricionista {
         Object.assign(plano, payload);
     }
 
+    async editarObservacaoPlanoSalvo(planoId, mealId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        const refeicao = this.getRefeicoesPlano().find((item) => item.id === mealId);
+        if (!plano || !refeicao) return;
+
+        const observacoes = { ...(plano.observacoes_refeicoes || {}) };
+        const novaObservacao = prompt(`Observações para ${refeicao.titulo}:`, observacoes[mealId] || '');
+        if (novaObservacao === null) return;
+
+        observacoes[mealId] = String(novaObservacao || '').trim();
+        plano.observacoes_refeicoes = observacoes;
+        await this.salvarPlanoVisualizado(planoId);
+        this.abrirModalVisualizarPlano(planoId);
+        this.renderizarPlanosContainer();
+    }
+
     async adicionarAlimentoPlanoVisualizado(planoId, foodId) {
         const plano = this.planosList.find((registro) => registro.id === planoId);
         const alimento = this.alimentosBase.find((item) => item.id === foodId);
@@ -3153,6 +3175,50 @@ export class PlanoAlimentarNutricionista {
         `;
     }
 
+    obterOrganizacaoAtual() {
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            return String(this.userInfo.organizacao || currentUser.organizacao || '').trim().toUpperCase();
+        } catch (_error) {
+            return String(this.userInfo.organizacao || '').trim().toUpperCase();
+        }
+    }
+
+    montarCaminhoQrPortfolio() {
+        const organizacao = this.obterOrganizacaoAtual();
+        const loginUnder = String(this.userInfo.login || '').trim().replace(/\./g, '_');
+        if (!organizacao || !loginUnder) return '';
+        return `./imagens/qr_code_portfolios_profissionais/${organizacao}/${loginUnder}.jpg`;
+    }
+
+    async montarQrPortfolioPdf() {
+        try {
+            const profissionalSnap = await getDoc(doc(db, 'logins', this.userInfo.login));
+            if (!profissionalSnap.exists() || profissionalSnap.data()?.habilitar_portfolio !== true) {
+                return '';
+            }
+
+            const qrPath = this.montarCaminhoQrPortfolio();
+            if (!qrPath) return '';
+
+            const qrUrl = new URL(qrPath, window.location.href).href;
+            return `
+                <section class="portfolio-section">
+                    <h2 class="section-title">Portfolio profissional</h2>
+                    <div class="portfolio-box">
+                        <div>
+                            <strong>${this.escapeHtml(this.userInfo.nome || 'Profissional')}</strong>
+                            <p>Aponte a câmera do celular para acessar o portfolio profissional.</p>
+                        </div>
+                        <img src="${this.escapeHtml(qrUrl)}" alt="QR Code do portfolio profissional">
+                    </div>
+                </section>
+            `;
+        } catch (_error) {
+            return '';
+        }
+    }
+
     async exportarPlanoPdf(planoId) {
         const plano = this.planosList.find(p => p.id === planoId);
         if (!plano) return;
@@ -3165,6 +3231,7 @@ export class PlanoAlimentarNutricionista {
         const refeicoesDetalhadas = this.montarRefeicoesDetalhadasPdfPlano(plano);
         const resumoTotal = this.calcularTotaisPlanoSalvo(plano, this.getRefeicoesPlano());
         const graficosEvolucao = await this.montarGraficosEvolucaoPdf();
+        const qrPortfolio = await this.montarQrPortfolioPdf();
 
         const html = `
             <!doctype html>
@@ -3211,6 +3278,11 @@ export class PlanoAlimentarNutricionista {
                     .evolution-card p { margin: 0 0 5px; color: #64748b; font-size: 11px; }
                     .evolution-card svg { width: 100%; height: 176px; display: block; }
                     .chart-empty { padding: 26px 0; text-align: center; background: #f8fafc; border-radius: 8px; }
+                    .portfolio-section { margin-top: 12px; break-inside: avoid; }
+                    .portfolio-box { border: 1px solid #dbe3ef; border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #f8fafc; }
+                    .portfolio-box strong { color: #1a237e; font-size: 16px; }
+                    .portfolio-box p { margin: 6px 0 0; color: #475569; font-size: 12px; }
+                    .portfolio-box img { width: 118px; height: 118px; object-fit: contain; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px; }
                     .notes { margin-top: 8px; display: grid; gap: 7px; }
                     .note { border: 1px solid #e2e8f0; border-radius: 9px; padding: 9px; break-inside: avoid; font-size: 12px; line-height: 1.35; }
                     .note strong { color: #1a237e; display: block; margin-bottom: 4px; }
@@ -3289,6 +3361,7 @@ export class PlanoAlimentarNutricionista {
                     ` : ''}
 
                     ${graficosEvolucao}
+                    ${qrPortfolio}
                     <div class="print-copyright">© TRATAMENTO WEB</div>
                 </main>
                 <script>
