@@ -180,6 +180,7 @@ export class PlanoAlimentarNutricionista {
 
     async carregarPacientesERestaurar() {
         try {
+            const precisavaCarregar = !this.pacientesList.length;
             if (!this.pacientesList.length) {
                 this.pacientesList = await this.funcoes.loadPacientesList(this.userInfo.login);
                 this.navegador.pacientesList = this.pacientesList;
@@ -187,6 +188,8 @@ export class PlanoAlimentarNutricionista {
 
             if (this.restaurarPacienteSelecionado()) {
                 await this.loadPlanos();
+                this.render();
+            } else if (precisavaCarregar && this.pacientesList.length) {
                 this.render();
             }
         } catch (_error) {}
