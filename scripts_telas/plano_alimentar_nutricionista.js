@@ -212,12 +212,6 @@ export class PlanoAlimentarNutricionista {
                         <span class="fab-text">Importar Plano</span>
                     </button>
                     <input id="inputImportarPlano" type="file" accept=".xlsx,.xls" style="display: none;">
-                    ${this.planosList.length ? `
-                    <button id="btnRecalcularGramaturas" class="fab-button fab-button-teal" title="Recalcular Gramaturas dos Planos">
-                        <span class="fab-icon">↻</span>
-                        <span class="fab-text">Recalcular Gramaturas</span>
-                    </button>
-                    ` : ''}
                     <button id="btnNovoPlano" class="fab-button" title="Novo Plano Alimentar">
                         <span class="fab-icon">+</span>
                         <span class="fab-text">Novo Plano Alimentar</span>
@@ -383,17 +377,6 @@ export class PlanoAlimentarNutricionista {
                         width: 240px;
                         background: #115e59;
                         box-shadow: 0 6px 20px rgba(15, 118, 110, 0.4);
-                    }
-
-                    .fab-button-teal {
-                        background: #0891b2;
-                        box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
-                    }
-
-                    .fab-button-teal:hover {
-                        width: 280px;
-                        background: #0e7490;
-                        box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
                     }
 
                     .modal-save-button {
@@ -929,6 +912,8 @@ export class PlanoAlimentarNutricionista {
     }
 
     renderConfiguracoesAlimentos() {
+        const termo = document.getElementById('configFoodSearch')?.value || '';
+        const alimentos = this.filtrarAlimentosConfiguracao(termo);
         return `
             <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
                 <div style="display: grid; gap: 10px;">
@@ -941,12 +926,64 @@ export class PlanoAlimentarNutricionista {
                         <textarea id="configUnidadesAlimentos" rows="12" style="width: 100%; resize: vertical; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">${this.escapeHtml(this.unidadesAlimentos.join('\n'))}</textarea>
                     </label>
                 </div>
+                <div style="grid-column: 1 / -1; display: grid; gap: 10px; min-height: 0;">
+                    <div style="display: grid; grid-template-columns: minmax(240px, 1fr) auto; gap: 8px; align-items: end;">
+                        <label style="font-size: 12px; color: #475569; font-weight: 600;">Unidade e gramatura por alimento
+                            <input id="configFoodSearch" autocomplete="off" placeholder="Pesquisar alimento" value="${this.escapeHtml(termo)}" style="width: 100%; margin-top: 5px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        </label>
+                        <div style="font-size: 12px; color: #64748b; padding-bottom: 10px;">Edite a unidade padrão e a gramatura consumida por unidade.</div>
+                    </div>
+                    <div style="border: 1px solid #dbe3ef; border-radius: 10px; overflow: hidden;">
+                        <div style="display: grid; grid-template-columns: minmax(220px, 1.4fr) 170px 110px 110px; gap: 8px; background: #f1f5f9; color: #334155; font-size: 12px; font-weight: 700; padding: 8px 10px;">
+                            <span>Alimento</span>
+                            <span>Unidade</span>
+                            <span>g/unid</span>
+                            <span>Estimativa</span>
+                        </div>
+                        <div id="configFoodRows" style="max-height: 300px; overflow-y: auto;">
+                            ${this.renderLinhasConfiguracaoGramatura(alimentos)}
+                        </div>
+                    </div>
+                </div>
                 <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px;">
                     <button id="btnCancelarConfigAlimentos" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
                     <button id="btnSalvarConfigAlimentos" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Salvar Configurações</button>
                 </div>
             </div>
         `;
+    }
+
+    filtrarAlimentosConfiguracao(termo = '') {
+        const busca = this.normalizarBusca(termo);
+        return this.alimentosBase
+            .filter((alimento) => !busca || this.normalizarBusca(alimento.nome).includes(busca))
+            .sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'))
+            .slice(0, 120);
+    }
+
+    renderLinhasConfiguracaoGramatura(alimentos) {
+        if (!alimentos.length) {
+            return '<div style="padding: 12px; color: #64748b; font-size: 13px;">Nenhum alimento encontrado.</div>';
+        }
+
+        return alimentos.map((alimento) => {
+            const unidade = alimento.unidadePadrao || '';
+            const unidadeDireta = this.unidadeIndicaGramatura(unidade);
+            const gramasEfetivas = unidadeDireta ? 1 : this.obterGramasPorUnidadeEstimado(alimento);
+            return `
+                <div class="configFoodRow" data-food-id="${this.escapeHtml(alimento.id)}" style="display: grid; grid-template-columns: minmax(220px, 1.4fr) 170px 110px 110px; gap: 8px; align-items: center; padding: 8px 10px; border-top: 1px solid #e2e8f0; background: white;">
+                    <div style="min-width: 0;">
+                        <strong style="display: block; color: #1a237e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</strong>
+                        <span style="font-size: 11px; color: #64748b;">${this.escapeHtml(alimento.categoria || 'Sem categoria')}</span>
+                    </div>
+                    <select class="configFoodUnidade" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                        ${this.renderSelectOptions(this.unidadesAlimentos, unidade)}
+                    </select>
+                    <input class="configFoodGramas" type="number" min="0.1" step="0.1" value="${this.escapeHtml(gramasEfetivas)}" ${unidadeDireta ? 'disabled' : ''} style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: ${unidadeDireta ? '#f1f5f9' : 'white'};">
+                    <span style="font-size: 12px; color: #64748b;">${unidadeDireta ? 'medida direta' : `${this.formatarNumero(gramasEfetivas, 1)} g`}</span>
+                </div>
+            `;
+        }).join('');
     }
 
     filtrarAlimentos(termo = '') {
@@ -1496,27 +1533,46 @@ export class PlanoAlimentarNutricionista {
         };
     }
 
-    async recalcularGramaturasPlanosExistentes() {
-        if (!this.selectedPaciente || !this.planosList.length) return;
+    async recalcularGramaturasPlanosExistentes(opcoes = {}) {
+        const pacientes = (this.pacientesList || []).filter((paciente) => paciente?.login);
+        if (!pacientes.length) return;
 
-        const confirmado = confirm(`Recalcular gramaturas dos ${this.planosList.length} planos alimentares de ${this.selectedPaciente.nome || this.selectedPaciente.login}?\n\nOs documentos serao mantidos; apenas as quantidades em gramas e os totais nutricionais serao atualizados.`);
-        if (!confirmado) return;
+        if (opcoes.confirmar !== false) {
+            const confirmado = confirm(`Recalcular gramaturas dos planos alimentares de todos os pacientes vinculados?\n\nOs documentos serao mantidos; apenas as quantidades em gramas e os totais nutricionais serao atualizados.`);
+            if (!confirmado) return;
+        }
 
         try {
             await this.carregarBaseAlimentos();
+            let totalPlanos = 0;
 
-            const atualizacoes = this.planosList.map((plano) => {
-                const payload = this.recalcularPlanoComGramaturaAtual(plano);
-                return updateDoc(
-                    doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, plano.id),
-                    payload
-                );
-            });
+            for (const paciente of pacientes) {
+                const planosRef = collection(db, 'planos_alimentares', this.userInfo.login, paciente.login);
+                const snapshot = await getDocs(planosRef);
+                const atualizacoesPaciente = [];
 
-            await Promise.all(atualizacoes);
-            alert('Gramaturas recalculadas com sucesso.');
-            await this.loadPlanos();
-            await this.render();
+                snapshot.forEach((docSnap) => {
+                    const plano = { id: docSnap.id, ...docSnap.data() };
+                    const payload = this.recalcularPlanoComGramaturaAtual(plano);
+                    atualizacoesPaciente.push(updateDoc(
+                        doc(db, 'planos_alimentares', this.userInfo.login, paciente.login, plano.id),
+                        payload
+                    ));
+                });
+
+                totalPlanos += atualizacoesPaciente.length;
+                if (atualizacoesPaciente.length) {
+                    await Promise.all(atualizacoesPaciente);
+                }
+            }
+
+            if (opcoes.mostrarAlerta !== false) {
+                alert(`Gramaturas recalculadas com sucesso.\n\nPlanos atualizados: ${totalPlanos}`);
+            }
+            if (this.selectedPaciente) {
+                await this.loadPlanos();
+                await this.render();
+            }
         } catch (error) {
             alert('Nao foi possivel recalcular as gramaturas: ' + error.message);
         }
@@ -1715,18 +1771,51 @@ export class PlanoAlimentarNutricionista {
     }
 
     attachConfigAlimentosEvents() {
+        const search = document.getElementById('configFoodSearch');
+        const rows = document.getElementById('configFoodRows');
+        const refreshRows = () => {
+            if (!rows) return;
+            rows.innerHTML = this.renderLinhasConfiguracaoGramatura(this.filtrarAlimentosConfiguracao(search?.value || ''));
+            this.attachConfigFoodRowEvents();
+        };
+
+        search?.addEventListener('input', refreshRows);
         document.getElementById('btnCancelarConfigAlimentos')?.addEventListener('click', () => this.fecharModalConfigAlimentos());
         document.getElementById('btnSalvarConfigAlimentos')?.addEventListener('click', () => this.salvarConfiguracoesAlimentos());
+        this.attachConfigFoodRowEvents();
+    }
+
+    attachConfigFoodRowEvents() {
+        document.querySelectorAll('.configFoodUnidade').forEach((select) => {
+            select.addEventListener('change', () => {
+                const row = select.closest('.configFoodRow');
+                const alimento = this.alimentosBase.find((item) => item.id === row?.dataset.foodId);
+                const input = row?.querySelector('.configFoodGramas');
+                const estimativa = row?.querySelector('span:last-child');
+                if (!alimento || !input || !estimativa) return;
+
+                const unidadeDireta = this.unidadeIndicaGramatura(select.value);
+                const alimentoPreview = { ...alimento, unidadePadrao: select.value };
+                const gramas = unidadeDireta ? 1 : this.obterGramasPorUnidadeEstimado(alimentoPreview);
+                input.disabled = unidadeDireta;
+                input.value = gramas;
+                input.style.background = unidadeDireta ? '#f1f5f9' : 'white';
+                estimativa.textContent = unidadeDireta ? 'medida direta' : `${this.formatarNumero(gramas, 1)} g`;
+            });
+        });
     }
 
     async salvarConfiguracoesAlimentos() {
         const categorias = this.lerListaConfigTextarea('configCategoriasAlimentos');
         const unidades = this.lerListaConfigTextarea('configUnidadesAlimentos');
+        const alimentosAlterados = this.coletarConfiguracoesGramaturaAlimentos();
 
         if (!categorias.length || !unidades.length) {
             alert('Informe pelo menos uma categoria e uma unidade.');
             return;
         }
+
+        if (!alimentosAlterados) return;
 
         await setDoc(doc(db, 'base_alimentos_nutricionais', '_configuracoes_alimentos'), {
             tipo: 'configuracoes_alimentos',
@@ -1736,11 +1825,64 @@ export class PlanoAlimentarNutricionista {
             data_atualizacao: new Date().toISOString()
         }, { merge: true });
 
+        if (alimentosAlterados.length) {
+            await Promise.all(alimentosAlterados.map((alimento) => updateDoc(
+                doc(db, 'base_alimentos_nutricionais', alimento.id),
+                {
+                    unidadePadrao: alimento.unidadePadrao,
+                    gramasPorUnidade: alimento.gramasPorUnidade,
+                    atualizado_por: this.userInfo.login,
+                    data_atualizacao: new Date().toISOString()
+                }
+            )));
+
+            this.alimentosBase = this.alimentosBase.map((alimento) => {
+                const alterado = alimentosAlterados.find((item) => item.id === alimento.id);
+                return alterado
+                    ? { ...alimento, unidadePadrao: alterado.unidadePadrao, gramasPorUnidade: alterado.gramasPorUnidade }
+                    : alimento;
+            });
+            this.alimentosCarregados = true;
+        }
+
         this.categoriasAlimentos = categorias;
         this.unidadesAlimentos = unidades;
         this.configAlimentosCarregada = true;
         this.fecharModalConfigAlimentos();
         this.renderizarListaAlimentosModal();
+
+        if (alimentosAlterados.length && (this.pacientesList || []).length) {
+            const recalcular = confirm('Unidades/gramaturas alteradas. Deseja recalcular os planos alimentares existentes de todos os pacientes vinculados agora?');
+            if (recalcular) {
+                await this.recalcularGramaturasPlanosExistentes({ confirmar: false });
+            }
+        }
+    }
+
+    coletarConfiguracoesGramaturaAlimentos() {
+        const rows = [...document.querySelectorAll('.configFoodRow')];
+        const alterados = [];
+
+        for (const row of rows) {
+            const alimento = this.alimentosBase.find((item) => item.id === row.dataset.foodId);
+            const unidadePadrao = row.querySelector('.configFoodUnidade')?.value || '';
+            const unidadeDireta = this.unidadeIndicaGramatura(unidadePadrao);
+            const gramasPorUnidade = unidadeDireta
+                ? 1
+                : Number(row.querySelector('.configFoodGramas')?.value || 0);
+
+            if (!alimento || !unidadePadrao) continue;
+            if (!unidadeDireta && (!Number.isFinite(gramasPorUnidade) || gramasPorUnidade <= 0)) {
+                alert(`Informe uma gramatura valida para ${alimento.nome}.`);
+                return null;
+            }
+
+            if (alimento.unidadePadrao !== unidadePadrao || Number(alimento.gramasPorUnidade || 0) !== gramasPorUnidade) {
+                alterados.push({ id: alimento.id, unidadePadrao, gramasPorUnidade });
+            }
+        }
+
+        return alterados;
     }
 
     attachListaAlimentosResultButtons() {
@@ -1977,7 +2119,6 @@ export class PlanoAlimentarNutricionista {
         document.getElementById('btnListaAlimentos')?.addEventListener('click', () => this.abrirModalListaAlimentos());
         document.getElementById('btnImportarPlano')?.addEventListener('click', () => document.getElementById('inputImportarPlano')?.click());
         document.getElementById('inputImportarPlano')?.addEventListener('change', (event) => this.importarPlanoXlsx(event));
-        document.getElementById('btnRecalcularGramaturas')?.addEventListener('click', () => this.recalcularGramaturasPlanosExistentes());
 
         const btnSalvarPlano = document.getElementById('btnSalvarPlano');
         if (btnSalvarPlano) {
