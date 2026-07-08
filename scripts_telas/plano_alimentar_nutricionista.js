@@ -141,7 +141,6 @@ export class PlanoAlimentarNutricionista {
 
     render() {
         localStorage.setItem('activeModule', 'plano_alimentar');
-        this.restaurarPacienteSelecionado();
 
         const app = document.getElementById('app');
         app.innerHTML = this.renderHTML();
@@ -158,18 +157,37 @@ export class PlanoAlimentarNutricionista {
         
         this.attachEvents();
         if (this.selectedPaciente) {
-            this.loadPlanos();
+            void this.loadPlanos();
+        } else {
+            void this.carregarPacientesERestaurar();
         }
     }
 
     restaurarPacienteSelecionado() {
         const loginSalvo = localStorage.getItem('planoAlimentarSelectedPacienteLogin');
-        if (!loginSalvo) return;
+        if (!loginSalvo) return false;
 
         const paciente = this.pacientesList.find((item) => item.login === loginSalvo);
         if (paciente) {
             this.selectedPaciente = paciente;
+            return true;
         }
+
+        return false;
+    }
+
+    async carregarPacientesERestaurar() {
+        try {
+            if (!this.pacientesList.length) {
+                this.pacientesList = await this.funcoes.loadPacientesList(this.userInfo.login);
+                this.navegador.pacientesList = this.pacientesList;
+            }
+
+            if (this.restaurarPacienteSelecionado()) {
+                await this.loadPlanos();
+                this.render();
+            }
+        } catch (_error) {}
     }
 
     renderHTML() {

@@ -364,6 +364,7 @@ export class LoginManager {
                     login,
                     email: emailMontado,
                     organizacao,
+                    firebaseConfig: organizationFirebaseConfig,
                     authToken: result.token?.idToken || '',
                     sessionCreatedAt: new Date().toISOString(),
                     sessionExpiresAt,
@@ -439,6 +440,7 @@ export class LoginManager {
                     cargo: userData.cargo,
                     perfil: userData.perfil,
                     userData,
+                    firebaseConfig: organizationFirebaseConfig,
                     authToken: result.token?.idToken || '',
                     userRef,
                     rememberLogin: rememberCheckbox?.checked
@@ -455,6 +457,7 @@ export class LoginManager {
                 login,
                 email: emailMontado,
                 organizacao,
+                firebaseConfig: organizationFirebaseConfig,
                 perfil: userData.perfil || (isPaciente ? 'operador' : 'supervisor'),
                 authToken: result.token?.idToken || '',
                 sessionCreatedAt: new Date().toISOString(),
@@ -606,6 +609,7 @@ export class LoginManager {
                     login: this.tempData.login,
                     email: this.tempData.email,
                     organizacao: this.tempData.organizacao,
+                    firebaseConfig: this.tempData.firebaseConfig,
                     authToken: this.tempData.authToken || '',
                     perfil: userData.perfil || 'operador',
                     sessionCreatedAt: new Date().toISOString(),
@@ -695,6 +699,10 @@ export class LoginManager {
     async showHome(userData) {
         document.body.classList.remove('profile-paciente', 'profile-profissional');
         document.body.classList.add(userData.cargo === 'paciente' ? 'profile-paciente' : 'profile-profissional');
+
+        if (userData.firebaseConfig?.apiKey && userData.firebaseConfig?.projectId) {
+            configureOrganizationFirebase(userData.firebaseConfig, userData.organizacao || userData.login);
+        }
 
         const activeModule = localStorage.getItem('activeModule') || userData.activeModule || 'home';
         if (activeModule && activeModule !== 'home') {
