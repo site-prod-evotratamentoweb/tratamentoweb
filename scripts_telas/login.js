@@ -25,6 +25,7 @@ export class LoginManager {
         this.sessionTimerId = null;
         this.renderLoginScreen();
         this.setupEventListeners();
+        this.ativarKeepAliveBackend();
         this.checkAutoLogin();
         this.loadSavedCredentials();
     }
@@ -206,6 +207,27 @@ export class LoginManager {
             clearTimeout(this.sessionTimerId);
             this.sessionTimerId = null;
         }
+    }
+
+    ativarKeepAliveBackend() {
+        const ping = async () => {
+            try {
+                const apiBaseUrl = (
+                    window.TRATAMENTOWEB_API_BASE_URL ||
+                    localStorage.getItem('tratamentowebApiBaseUrl') ||
+                    DEFAULT_RENDER_API_BASE_URL
+                ).replace(/\/$/, '');
+                await fetch(`${apiBaseUrl}/health`, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    credentials: 'omit',
+                    mode: 'cors'
+                });
+            } catch (_error) {}
+        };
+
+        void ping();
+        this.keepAliveTimerId = setInterval(ping, 4 * 60 * 1000);
     }
 
     iniciarTimerSessao(expiresAt) {
