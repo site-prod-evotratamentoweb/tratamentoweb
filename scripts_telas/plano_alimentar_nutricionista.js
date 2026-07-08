@@ -1473,7 +1473,7 @@ export class PlanoAlimentarNutricionista {
         }
 
         return `
-            <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; align-content: start;">
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-content: start;">
                 ${alimentos.map((alimento) => this.renderCardSelecaoAlimento(alimento)).join('')}
             </div>
         `;
@@ -2388,6 +2388,7 @@ export class PlanoAlimentarNutricionista {
         this.attachFoodSelectButtons();
         document.getElementById('btnFecharSelecaoAlimento')?.addEventListener('click', () => this.fecharModalSelecaoAlimentos());
         document.getElementById('btnConfirmarSelecaoAlimento')?.addEventListener('click', () => this.confirmarSelecaoAlimentosModal());
+        document.getElementById('btnLimparSelecaoAlimento')?.addEventListener('click', () => this.limparSelecaoAlimentosModal());
         document.getElementById('foodSelectSearch')?.addEventListener('input', () => this.renderizarModalSelecaoAlimentos());
         document.getElementById('foodSelectDropdown')?.addEventListener('click', (event) => {
             if (event.target.id === 'foodSelectDropdown') {
@@ -2497,9 +2498,31 @@ export class PlanoAlimentarNutricionista {
         this.renderizarModalSelecaoAlimentos();
     }
 
-    atualizarQuantidadeSelecaoAlimentoModal(foodId, valor) {
+    permiteQuantidadeDecimal(unidade = '') {
+        const normalizada = this.normalizarBusca(unidade);
+        const unidadesInteiras = new Set([
+            'unidade', 'un', 'fatia', 'colher de sopa', 'colher de cha', 'colher de chá', 'colher de servir',
+            'concha', 'porcao', 'porção', 'pedaço', 'pedaco', 'filé', 'file', 'bife', 'gomo', 'rodela',
+            'dente', 'folha', 'ramo', 'maço', 'maco', 'talo', 'pegador', 'cubo', 'scoop', 'caixa', 'pote'
+        ]);
+        return !unidadesInteiras.has(normalizada);
+    }
+
+    normalizarQuantidadeSelecaoAlimento(valor, permiteDecimal = false) {
+        const bruto = String(valor ?? '').replace(/[^\d,]/g, '');
+        if (permiteDecimal) {
+            const [inteiroBruto = '', decimalBruto = ''] = bruto.split(',');
+            const inteiro = inteiroBruto.slice(0, 4);
+            const decimal = decimalBruto.slice(0, 2);
+            return decimal ? `${inteiro},${decimal}` : (inteiro || '1');
+        }
+
+        const inteiro = bruto.split(',')[0].slice(0, 4);
+        return inteiro || '1';
+    }
+
+    atualizarQuantidadeSelecaoAlimentoModal(foodId, valor, permiteDecimal = false) {
         if (!foodId) return;
-        const permiteDecimal = arguments.length > 2 ? Boolean(arguments[2]) : this.permiteQuantidadeDecimal(this.alimentosBase.find((item) => item.id === foodId)?.unidadePadrao || '');
         const quantidade = this.normalizarQuantidadeSelecaoAlimento(valor, permiteDecimal);
         this.selecoesAlimentosModal[foodId] = {
             quantidade,
@@ -2544,7 +2567,14 @@ export class PlanoAlimentarNutricionista {
         const selecionados = Object.entries(this.selecoesAlimentosModal || {})
             .map(([foodId, dados]) => ({
                 foodId,
-                quantidade: Math.max(1, Math.floor(Number(dados?.quantidade || 1)))
+                quantidadeTexto: this.normalizarQuantidadeSelecaoAlimento(
+                    dados?.quantidade || 1,
+                    this.permiteQuantidadeDecimal(this.alimentosBase.find((registro) => registro.id === foodId)?.unidadePadrao || '')
+                )
+            }))
+            .map((item) => ({
+                foodId: item.foodId,
+                quantidade: Math.max(1, Number(String(item.quantidadeTexto || '1').replace(',', '.')) || 1)
             }))
             .filter((item) => item.foodId && item.quantidade > 0);
 
