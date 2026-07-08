@@ -205,19 +205,19 @@ export class PlanoAlimentarCliente {
         return planosOrdenados.map((plano, index) => {
             const isExpanded = this.planoSelecionado === plano.id;
             const dataFormatada = this.formatarDataExibicao(plano.id);
-            const isMaisRecente = index === 0;
-            
+            const planoAtual = this.isPlanoAtual(plano, planosOrdenados, index);
+
             return `
                 <div class="plano-card" style="
-                    background: white; 
-                    border: 2px solid ${isMaisRecente ? '#22c55e' : '#e2e8f0'}; 
-                    border-radius: 12px; 
+                    background: white;
+                    border: 2px solid ${planoAtual ? '#22c55e' : '#e2e8f0'};
+                    border-radius: 12px;
                     overflow: hidden;
                 ">
                     <div onclick="window.planoClienteInstance.selecionarPlano('${plano.id}')" 
                          style="padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                            ${isMaisRecente ? `
+                            ${planoAtual ? `
                                 <span style="background: #22c55e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
                                     ATUAL
                                 </span>
@@ -261,6 +261,10 @@ export class PlanoAlimentarCliente {
                 </div>
             `;
         }).join('');
+    }
+
+    isPlanoAtual(plano) {
+        return plano?.atual === true;
     }
 
     renderRefeicaoCard(titulo, conteudo) {

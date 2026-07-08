@@ -533,27 +533,28 @@ export class PlanoAlimentarNutricionista {
 
         return planosOrdenados.map((plano, index) => {
             const dataFormatada = this.formatarDataExibicao(plano.id);
+            const planoAtual = this.isPlanoAtual(plano, planosOrdenados, index);
             
             return `
                 <div class="plano-card" style="
-                    background: white; 
-                    border: 2px solid ${index === 0 ? '#22c55e' : '#e2e8f0'}; 
-                    border-radius: 12px; 
-                    margin-bottom: 16px; 
+                    background: white;
+                    border: 2px solid ${planoAtual ? '#22c55e' : '#e2e8f0'};
+                    border-radius: 12px;
+                    margin-bottom: 16px;
                     overflow: hidden;
                 ">
                     <!-- Cabeçalho do Card -->
                     <div style="padding: 12px 14px; display: flex; align-items: center; justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
                         <div onclick="window.planoAlimentarInstance.abrirModalVisualizarPlano('${plano.id}')" style="cursor: pointer; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                             <span style="
-                                background: ${index === 0 ? '#22c55e' : '#64748b'}; 
-                                color: white; 
-                                padding: 5px 12px; 
-                                border-radius: 20px; 
-                                font-size: 14px; 
+                                background: ${planoAtual ? '#22c55e' : '#64748b'};
+                                color: white;
+                                padding: 5px 12px;
+                                border-radius: 20px;
+                                font-size: 14px;
                                 font-weight: 600;
                             ">
-                                ${index === 0 ? 'ATUAL' : `v${planosOrdenados.length - index}`}
+                                ${planoAtual ? 'ATUAL' : 'Histórico'}
                             </span>
                             
                             <span style="color: #1a237e; font-size: 17px; font-weight: 700;">
@@ -568,6 +569,7 @@ export class PlanoAlimentarNutricionista {
                                 </span>
                             ` : ''}
                             <button type="button" onclick="window.planoAlimentarInstance.abrirModalVisualizarPlano('${plano.id}')" title="Exibir plano" aria-label="Exibir plano" style="height: 36px; padding: 0 14px; background: #1a237e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700;">Exibir Plano</button>
+                            ${!planoAtual ? `<button type="button" onclick="window.planoAlimentarInstance.definirPlanoAtual('${plano.id}')" title="Definir como plano atual" aria-label="Definir como plano atual" style="height: 36px; padding: 0 14px; background: #16a34a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700;">Tornar atual</button>` : ''}
                         </div>
                     </div>
                 </div>
@@ -792,10 +794,13 @@ export class PlanoAlimentarNutricionista {
     }
 
     renderAcoesPlanoVisualizacao(planoId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        const planoAtual = this.isPlanoAtual(plano);
         return `
             <div style="position: relative;">
                 <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.toggleMenuAcoesPlano()" title="Menu do plano" aria-label="Menu do plano" style="height: 34px; padding: 0 12px; background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 18px;">☰</button>
                 <div id="menuAcoesPlano" style="display: none; position: absolute; right: 0; top: 40px; width: 190px; background: white; color: #334155; border: 1px solid #dbe3ef; border-radius: 8px; box-shadow: 0 12px 28px rgba(15,23,42,0.18); overflow: hidden; z-index: 10000;">
+                    ${!planoAtual ? `<button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.definirPlanoAtual('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #166534; text-align: left; cursor: pointer; font-size: 14px;">Tornar atual</button>` : ''}
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Detalhes do Plano</button>
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.alternarEdicaoPlanoVisualizado('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Editar Plano</button>
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.exportarPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Exportar</button>
@@ -1218,6 +1223,63 @@ export class PlanoAlimentarNutricionista {
         if (container) {
             container.innerHTML = this.renderPlanosList();
         }
+    }
+
+    isPlanoAtual(plano) {
+        return plano?.atual === true;
+    }
+
+    async definirPlanoAtual(planoId) {
+        if (!this.selectedPaciente || !planoId) return;
+
+        try {
+            const agoraIso = new Date().toISOString();
+            await Promise.all(this.planosList.map((plano) => (
+                updateDoc(
+                    doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, plano.id),
+                    {
+                        atual: plano.id === planoId,
+                        data_atualizacao: agoraIso,
+                        atualizado_por: this.userInfo.login
+                    }
+                )
+            )));
+
+            this.planosList = this.planosList.map((plano) => ({
+                ...plano,
+                atual: plano.id === planoId,
+                data_atualizacao: agoraIso,
+                atualizado_por: this.userInfo.login
+            }));
+
+            this.renderizarPlanosContainer();
+            if (this.planoExpandido) this.abrirModalVisualizarPlano(this.planoExpandido);
+        } catch (error) {
+            alert('Nao foi possivel definir o plano atual.');
+        }
+    }
+
+    async desmarcarPlanosAtuais() {
+        if (!this.selectedPaciente || !this.planosList.length) return;
+
+        const agoraIso = new Date().toISOString();
+        await Promise.all(this.planosList.map((plano) => (
+            updateDoc(
+                doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, plano.id),
+                {
+                    atual: false,
+                    data_atualizacao: agoraIso,
+                    atualizado_por: this.userInfo.login
+                }
+            )
+        )));
+
+        this.planosList = this.planosList.map((plano) => ({
+            ...plano,
+            atual: false,
+            data_atualizacao: agoraIso,
+            atualizado_por: this.userInfo.login
+        }));
     }
 
     renderFormularioPlano() {
@@ -2597,18 +2659,18 @@ export class PlanoAlimentarNutricionista {
                 itens_plano: this.itensPlano,
                 profissional_nome: this.userInfo.nome,
                 profissional_foto_url: this.userInfo.foto_perfil_url || this.userInfo.fotoPerfilUrl || this.userInfo.foto || '',
-                modelo_plano: 'base_nutricional_linhas_v2'
+                modelo_plano: 'base_nutricional_linhas_v2',
+                atual: true,
+                criado_por: this.userInfo.login,
+                data_criacao: agora.toISOString()
             };
 
             const nutricionistaLogin = this.userInfo.login;
             const pacienteLogin = this.selectedPaciente.login;
-            
+
             // Caminho: planos_alimentares > nutricionista > paciente > documento
-            const pacienteCollectionRef = collection(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin);
-            await addDoc(pacienteCollectionRef, mealPlanData);
-            
-            // Ou se quiser usar o ID personalizado com data/hora:
-            // await setDoc(doc(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin, documentoId), mealPlanData);
+            await this.desmarcarPlanosAtuais();
+            await setDoc(doc(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin, documentoId), mealPlanData);
             
             alert(`✅ Plano criado com sucesso!\n📅 ${this.formatarDataExibicao(documentoId)}`);
             
@@ -3253,10 +3315,15 @@ export class PlanoAlimentarNutricionista {
                 profissional_nome: this.userInfo.nome,
                 modelo_plano: 'base_nutricional_linhas_v2',
                 origem_importacao: file.name,
-                data_importacao: agora.toISOString()
+                data_importacao: agora.toISOString(),
+                atual: true,
+                criado_por: this.userInfo.login,
+                data_criacao: agora.toISOString()
             };
 
-            await addDoc(collection(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login), mealPlanData);
+            const documentoId = this.gerarIdDocumento(agora);
+            await this.desmarcarPlanosAtuais();
+            await setDoc(doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, documentoId), mealPlanData);
             alert('Plano alimentar importado com sucesso.');
             await this.loadPlanos();
             await this.render();
