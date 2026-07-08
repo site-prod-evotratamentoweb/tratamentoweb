@@ -449,6 +449,7 @@ export class PlanoAlimentarNutricionista {
                         display: flex;
                         align-items: center;
                         justify-content: center;
+                        line-height: 1;
                     }
 
                     .modal-save-text {
@@ -1023,6 +1024,14 @@ export class PlanoAlimentarNutricionista {
             .slice(0, 20);
     }
 
+    listarAlimentosSelecao(termo = '') {
+        const busca = this.normalizarBusca(termo);
+        return this.alimentosBase
+            .filter((alimento) => !busca || this.normalizarBusca(alimento.nome).includes(busca))
+            .sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'))
+            .slice(0, 80);
+    }
+
     normalizarUnidadeMedida(unidade = '') {
         return this.normalizarBusca(unidade)
             .replace(/\./g, '')
@@ -1346,7 +1355,7 @@ export class PlanoAlimentarNutricionista {
                 <div style="background: ${selecionada ? '#1a237e' : '#f1f5f9'}; color: ${selecionada ? 'white' : '#1a237e'}; padding: 10px 14px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px;">
                     <span>${refeicao.titulo}</span>
                     <span style="display: inline-flex; align-items: center; gap: 6px;">
-                        <button type="button" class="btnObservacaoRefeicao" data-meal-id="${refeicao.id}" title="Observações da refeição" aria-label="Observações da refeição" style="height: 24px; min-width: 24px; padding: 0 7px; border: none; border-radius: 7px; background: ${temObservacao ? '#fef3c7' : (selecionada ? 'rgba(255,255,255,0.18)' : '#e2e8f0')}; color: ${temObservacao ? '#92400e' : (selecionada ? 'white' : '#334155')}; cursor: pointer; font-size: 12px; font-weight: 800;">Obs</button>
+                        <button type="button" class="btnObservacaoRefeicao" data-meal-id="${refeicao.id}" title="Observações da refeição" aria-label="Observações da refeição" style="height: 24px; min-width: 24px; padding: 0 7px; border: none; border-radius: 7px; background: ${temObservacao ? '#fed7aa' : (selecionada ? 'rgba(255,255,255,0.18)' : '#e2e8f0')}; color: ${temObservacao ? '#9a3412' : (selecionada ? 'white' : '#334155')}; cursor: pointer; font-size: 12px; font-weight: 800;">Obs</button>
                         ${selecionada ? '<span style="font-size: 12px; font-weight: 500;">Selecionada</span>' : ''}
                     </span>
                 </div>
@@ -1386,7 +1395,7 @@ export class PlanoAlimentarNutricionista {
         const termo = document.getElementById('foodSearch')?.value || '';
         const termoLista = document.getElementById('foodSelectSearch')?.value || '';
         const alimentos = this.filtrarAlimentos(termo);
-        const alimentosLista = this.filtrarAlimentos(termoLista);
+        const alimentosLista = this.listarAlimentosSelecao(termoLista);
         return `
                 <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 6px 8px; margin-bottom: 10px; flex: 0 0 auto; overflow: visible; height: 72px; box-sizing: border-box; position: relative; z-index: 20;">
                 <div style="display: grid; grid-template-columns: minmax(132px, 0.68fr) minmax(0, 4.32fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
@@ -2305,7 +2314,7 @@ export class PlanoAlimentarNutricionista {
         };
         const refreshSelectResults = () => {
             if (!selectResults) return;
-            selectResults.innerHTML = this.renderListaSelecaoAlimentos(this.filtrarAlimentos(selectSearch?.value || ''));
+            selectResults.innerHTML = this.renderListaSelecaoAlimentos(this.listarAlimentosSelecao(selectSearch?.value || ''));
             this.attachFoodSelectButtons();
         };
 
@@ -2316,6 +2325,10 @@ export class PlanoAlimentarNutricionista {
             dropdown.style.display = aberto ? 'none' : 'block';
             if (!aberto) {
                 selectSearch?.focus();
+                if (selectResults && !selectSearch?.value) {
+                    selectResults.innerHTML = this.renderListaSelecaoAlimentos(this.listarAlimentosSelecao(''));
+                    this.attachFoodSelectButtons();
+                }
                 refreshSelectResults();
             }
         });
