@@ -326,7 +326,7 @@ export class PlanoAlimentarNutricionista {
                         <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: 0 0 auto;">
                             <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
                                 <strong style="font-size: 15px;">Selecionar alimentos</strong>
-                                <span style="font-size: 12px; opacity: 0.95; font-weight: 700;">Refeição: <strong id="foodSelectMealLabel">${this.escapeHtml(this.getRefeicoesPlano().find((item) => item.id === this.obterRefeicaoSelecionada())?.titulo || 'Café da Manhã')}</strong></span>
+                                <span style="font-size: 15px; opacity: 1; font-weight: 800; line-height: 1.1;">Refeição: <strong id="foodSelectMealLabel">${this.escapeHtml(this.getRefeicoesPlano().find((item) => item.id === this.obterRefeicaoSelecionada())?.titulo || 'Café da Manhã')}</strong></span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
                                 <button id="btnFecharSelecaoAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
@@ -1488,15 +1488,11 @@ export class PlanoAlimentarNutricionista {
             ? String(quantidade).replace('.', ',')
             : String(Math.trunc(Number(quantidade) || 1));
         return `
-            <div class="btnCardSelecaoAlimento" data-food-id="${this.escapeHtml(alimento.id)}" role="button" tabindex="0" style="display: grid; grid-template-columns: minmax(0, 1fr) 92px 100px; gap: 8px; align-items: center; text-align: left; border: 2px solid ${selecionado ? '#ea580c' : '#dbe3ef'}; background: ${selecionado ? '#fff7ed' : 'white'}; color: #334155; border-radius: 12px; padding: 10px; cursor: pointer; min-height: 72px; box-shadow: ${selecionado ? '0 0 0 1px rgba(234,88,12,0.12)' : 'none'};">
-                <strong title="${this.escapeHtml(alimento.nome)}" style="display: block; font-size: 13px; color: #1a237e; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(alimento.nome)}</strong>
-                <label style="font-size: 11px; color: #475569; font-weight: 700; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
-                    Qtd.
-                    <input data-food-quantity="${this.escapeHtml(alimento.id)}" data-allow-decimal="${permiteDecimal ? '1' : '0'}" type="text" inputmode="${permiteDecimal ? 'decimal' : 'numeric'}" maxlength="${permiteDecimal ? 7 : 4}" value="${this.escapeHtml(quantidadeTexto)}" placeholder="${permiteDecimal ? '9999,99' : '9999'}" style="width: 100%; height: 32px; padding: 5px 8px; border: 1px solid ${selecionado ? '#fdba74' : '#cbd5e1'}; border-radius: 8px; font-size: 13px; background: white;">
-                </label>
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #64748b; min-width: 0;">
-                    <span>Unidade</span>
-                    <strong title="${this.escapeHtml(unidade || 'porção')}" style="color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">${this.escapeHtml(unidade || 'porção')}</strong>
+            <div class="btnCardSelecaoAlimento" data-food-id="${this.escapeHtml(alimento.id)}" role="button" tabindex="0" style="display: grid; grid-template-columns: minmax(0, 1fr) 92px 84px; gap: 8px; align-items: center; text-align: left; border: 2px solid ${selecionado ? '#ea580c' : '#dbe3ef'}; background: ${selecionado ? '#fff7ed' : 'white'}; color: #334155; border-radius: 12px; padding: 10px; cursor: pointer; min-height: 64px; box-shadow: ${selecionado ? '0 0 0 1px rgba(234,88,12,0.12)' : 'none'};">
+                <strong title="${this.escapeHtml(alimento.nome)}" style="display: block; font-size: 13px; color: #1a237e; line-height: 1.2; white-space: normal; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(alimento.nome)}</strong>
+                <input data-food-quantity="${this.escapeHtml(alimento.id)}" data-allow-decimal="${permiteDecimal ? '1' : '0'}" type="text" inputmode="${permiteDecimal ? 'decimal' : 'numeric'}" maxlength="${permiteDecimal ? 7 : 4}" value="${this.escapeHtml(quantidadeTexto)}" placeholder="${permiteDecimal ? '9999,99' : '9999'}" aria-label="Quantidade de ${this.escapeHtml(alimento.nome)}" style="width: 100%; height: 32px; padding: 5px 8px; border: 1px solid ${selecionado ? '#fdba74' : '#cbd5e1'}; border-radius: 8px; font-size: 13px; background: white; text-align: center;">
+                <div title="${this.escapeHtml(unidade || 'porção')}" style="display: flex; align-items: center; justify-content: center; min-width: 0; font-size: 12px; color: #334155; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0 8px; height: 32px; background: #f8fafc;">
+                    ${this.escapeHtml(unidade || 'porção')}
                 </div>
             </div>
         `;
