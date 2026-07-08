@@ -193,6 +193,7 @@ export class PlanoAlimentarNutricionista {
     }
 
     renderHTML() {
+        const termoLista = '';
         return `
             <div class="dashboard-container" style="height: calc(100vh - 12px); max-height: calc(100vh - 12px); margin: 6px auto; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
