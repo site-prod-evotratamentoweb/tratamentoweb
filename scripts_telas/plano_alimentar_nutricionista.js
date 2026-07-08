@@ -258,7 +258,7 @@ export class PlanoAlimentarNutricionista {
     
                 <!-- Modal para Criar/Editar Plano -->
                 <div id="modalPlano" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="position: relative; background: white; border-radius: 16px; width: 96vw; max-width: 1520px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                    <div class="modal-content" style="position: relative; background: white; border-radius: 16px; width: min(99vw, calc(100vw - 12px)); max-width: calc(100vw - 12px); height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
                         <div data-plano-form style="padding: 8px 12px; flex: 1; overflow: hidden;">
                             ${this.renderFormularioPlano()}
                         </div>
@@ -276,12 +276,12 @@ export class PlanoAlimentarNutricionista {
                 </div>
 
                 <div id="modalListaAlimentos" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="position: relative; background: white; border-radius: 16px; width: 96vw; max-width: 1520px; height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                    <div class="modal-content" style="position: relative; background: white; border-radius: 16px; width: min(99vw, calc(100vw - 12px)); max-width: calc(100vw - 12px); height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
                         <button onclick="document.getElementById('modalListaAlimentos').style.display='none'"
                                 style="position: absolute; top: 12px; right: 12px; z-index: 5; background: rgba(15,23,42,0.14); color: #334155; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">
                             X
                         </button>
-                        <div data-lista-alimentos-form style="padding: 16px 58px 16px 16px; flex: 1; overflow: hidden;">
+                        <div data-lista-alimentos-form style="padding: 16px 22px 16px 16px; flex: 1; overflow: hidden;">
                             ${this.renderModalListaAlimentos()}
                         </div>
                     </div>
@@ -322,7 +322,7 @@ export class PlanoAlimentarNutricionista {
                 </div>
 
                 <div id="foodSelectDropdown" class="modal-overlay" style="display: none; z-index: 3100; padding: 14px;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(96vw, 1660px); height: min(92vh, 860px); max-height: calc(100vh - 28px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(99vw, calc(100vw - 12px)); max-width: calc(100vw - 12px); height: min(92vh, 860px); max-height: calc(100vh - 28px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: 0 0 auto;">
                             <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
                                 <strong style="font-size: 15px;">Selecionar alimentos</strong>
@@ -332,7 +332,7 @@ export class PlanoAlimentarNutricionista {
                                 <button id="btnFecharSelecaoAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
                             </div>
                         </div>
-                        <div style="padding: 14px 14px 10px; display: grid; gap: 10px; flex: 0 0 auto;">
+                        <div style="padding: 14px 12px 10px; display: grid; gap: 10px; flex: 0 0 auto;">
                             <div style="display: grid; grid-template-columns: minmax(240px, 1fr) auto; gap: 10px; align-items: end;">
                                 <label style="font-size: 12px; color: #475569; font-weight: 600; display: flex; flex-direction: column;">Pesquisar na lista
                                     <input id="foodSelectSearch" autocomplete="off" placeholder="Pesquisar alimento" value="${this.escapeHtml(termoLista)}" style="width: 100%; margin-top: 6px; height: 36px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
@@ -346,7 +346,7 @@ export class PlanoAlimentarNutricionista {
                                 <span>Refeição atual: <strong id="foodSelectMealLabel">${this.escapeHtml(this.getRefeicoesPlano().find((item) => item.id === this.obterRefeicaoSelecionada())?.titulo || 'Café da Manhã')}</strong></span>
                             </div>
                         </div>
-                        <div style="padding: 0 14px 14px; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="padding: 0 12px 12px; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
                             <div id="foodSelectResults" style="flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px;">
                                 ${this.renderListaSelecaoModalAlimentos(this.listarAlimentosSelecao(termoLista))}
                             </div>
@@ -1471,7 +1471,7 @@ export class PlanoAlimentarNutricionista {
         }
 
         return `
-            <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; align-content: start;">
+            <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; align-content: start;">
                 ${alimentos.map((alimento) => this.renderCardSelecaoAlimento(alimento)).join('')}
             </div>
         `;
