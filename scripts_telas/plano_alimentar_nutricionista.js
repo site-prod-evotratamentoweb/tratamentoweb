@@ -212,6 +212,12 @@ export class PlanoAlimentarNutricionista {
                         <span class="fab-text">Importar Plano</span>
                     </button>
                     <input id="inputImportarPlano" type="file" accept=".xlsx,.xls" style="display: none;">
+                    ${this.planosList.length ? `
+                    <button id="btnRecalcularGramaturas" class="fab-button fab-button-teal" title="Recalcular Gramaturas dos Planos">
+                        <span class="fab-icon">↻</span>
+                        <span class="fab-text">Recalcular Gramaturas</span>
+                    </button>
+                    ` : ''}
                     <button id="btnNovoPlano" class="fab-button" title="Novo Plano Alimentar">
                         <span class="fab-icon">+</span>
                         <span class="fab-text">Novo Plano Alimentar</span>
@@ -377,6 +383,17 @@ export class PlanoAlimentarNutricionista {
                         width: 240px;
                         background: #115e59;
                         box-shadow: 0 6px 20px rgba(15, 118, 110, 0.4);
+                    }
+
+                    .fab-button-teal {
+                        background: #0891b2;
+                        box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+                    }
+
+                    .fab-button-teal:hover {
+                        width: 280px;
+                        background: #0e7490;
+                        box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
                     }
 
                     .modal-save-button {
@@ -1427,6 +1444,84 @@ export class PlanoAlimentarNutricionista {
         }
     }
 
+    recalcularItemPlanoComGramaturaAtual(item) {
+        const itemNormalizado = this.normalizarItemPlano(item);
+        const opcoesRecalculadas = (itemNormalizado.opcoes || [])
+            .map((opcao) => {
+                const alimento = this.encontrarAlimentoDaOpcao(opcao);
+                if (!alimento) return opcao;
+
+                const quantidade = this.obterQuantidadeOpcao(opcao);
+                const opcaoRecalculada = this.criarOpcaoItemPlano(alimento, quantidade);
+                return {
+                    ...opcaoRecalculada,
+                    id: opcao.id || opcaoRecalculada.id
+                };
+            })
+            .filter((opcao) => opcao.texto);
+
+        return {
+            ...itemNormalizado,
+            opcoes: opcoesRecalculadas,
+            opcaoVisivelIndex: Math.max(0, Math.min(opcoesRecalculadas.length - 1, Number(itemNormalizado.opcaoVisivelIndex || 0))),
+            texto: this.formatarTextoItemPlano({ opcoes: opcoesRecalculadas }),
+            detalhes: opcoesRecalculadas[0]?.detalhes || itemNormalizado.detalhes || null,
+            detalhesAberto: false
+        };
+    }
+
+    recalcularPlanoComGramaturaAtual(plano) {
+        const itensPlano = this.getRefeicoesPlano().reduce((estado, refeicao) => {
+            const itens = Array.isArray(plano.itens_plano?.[refeicao.id])
+                ? plano.itens_plano[refeicao.id]
+                : this.criarEstadoItensPlano(plano)[refeicao.id] || [];
+
+            estado[refeicao.id] = itens
+                .map((item) => this.recalcularItemPlanoComGramaturaAtual(item))
+                .filter((item) => item.opcoes?.length || item.texto);
+
+            return estado;
+        }, {});
+
+        return {
+            breakfast: this.obterTextoRefeicaoImportada(itensPlano, 'breakfast'),
+            morningSnack: this.obterTextoRefeicaoImportada(itensPlano, 'morningSnack'),
+            lunch: this.obterTextoRefeicaoImportada(itensPlano, 'lunch'),
+            afternoonSnack: this.obterTextoRefeicaoImportada(itensPlano, 'afternoonSnack'),
+            dinner: this.obterTextoRefeicaoImportada(itensPlano, 'dinner'),
+            supper: this.obterTextoRefeicaoImportada(itensPlano, 'supper'),
+            itens_plano: itensPlano,
+            data_atualizacao: new Date().toISOString(),
+            atualizado_por: this.userInfo.login
+        };
+    }
+
+    async recalcularGramaturasPlanosExistentes() {
+        if (!this.selectedPaciente || !this.planosList.length) return;
+
+        const confirmado = confirm(`Recalcular gramaturas dos ${this.planosList.length} planos alimentares de ${this.selectedPaciente.nome || this.selectedPaciente.login}?\n\nOs documentos serao mantidos; apenas as quantidades em gramas e os totais nutricionais serao atualizados.`);
+        if (!confirmado) return;
+
+        try {
+            await this.carregarBaseAlimentos();
+
+            const atualizacoes = this.planosList.map((plano) => {
+                const payload = this.recalcularPlanoComGramaturaAtual(plano);
+                return updateDoc(
+                    doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, plano.id),
+                    payload
+                );
+            });
+
+            await Promise.all(atualizacoes);
+            alert('Gramaturas recalculadas com sucesso.');
+            await this.loadPlanos();
+            await this.render();
+        } catch (error) {
+            alert('Nao foi possivel recalcular as gramaturas: ' + error.message);
+        }
+    }
+
     async desmarcarPlanosAtuais() {
         if (!this.selectedPaciente || !this.planosList.length) return;
 
@@ -1882,6 +1977,7 @@ export class PlanoAlimentarNutricionista {
         document.getElementById('btnListaAlimentos')?.addEventListener('click', () => this.abrirModalListaAlimentos());
         document.getElementById('btnImportarPlano')?.addEventListener('click', () => document.getElementById('inputImportarPlano')?.click());
         document.getElementById('inputImportarPlano')?.addEventListener('change', (event) => this.importarPlanoXlsx(event));
+        document.getElementById('btnRecalcularGramaturas')?.addEventListener('click', () => this.recalcularGramaturasPlanosExistentes());
 
         const btnSalvarPlano = document.getElementById('btnSalvarPlano');
         if (btnSalvarPlano) {
