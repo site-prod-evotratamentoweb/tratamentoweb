@@ -11,15 +11,18 @@ import {
     serverTimestamp
 } from '../0_firebase_api_config.js';
 import { deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { HomeManager } from './0_home.js';
+import { HomeManager, FuncoesCompartilhadas } from './0_home.js';
+import { criarNavegador } from './0_complementos_menu_navegacao.js';
 
 const CARGOS_VALIDOS = ['paciente', 'nutricionista', 'psicologo'];
 const LOGIN_EMAIL_DOMAIN = 'tratamentoweb.com.br';
 const DEFAULT_RENDER_API_BASE_URL = 'https://backend-tratamentoweb.onrender.com';
+const SESSION_DURATION_MS = 10 * 60 * 60 * 1000;
 
 export class LoginManager {
     constructor() {
         this.tempData = null;
+        this.sessionTimerId = null;
         this.renderLoginScreen();
         this.setupEventListeners();
         this.checkAutoLogin();
@@ -162,14 +165,71 @@ export class LoginManager {
         try {
             const user = JSON.parse(savedUser);
             if (!this.isCargoValido(user.cargo)) {
-                localStorage.removeItem('currentUser');
+                this.clearSessionState();
                 return;
             }
 
-            this.showHome(user);
+            const expiresAt = user.sessionExpiresAt || localStorage.getItem('sessionExpiresAt');
+            if (!this.isSessionValid(expiresAt)) {
+                this.expirarSessao();
+                return;
+            }
+
+            this.iniciarTimerSessao(expiresAt);
+            void this.showHome(user).catch(() => {
+                this.clearSessionState();
+                this.renderLoginScreen();
+                this.setupEventListeners();
+            });
         } catch (error) {
-            localStorage.removeItem('currentUser');
+            this.clearSessionState();
         }
+    }
+
+    isSessionValid(expiresAt) {
+        if (!expiresAt) return false;
+        const expiracao = new Date(expiresAt).getTime();
+        return Number.isFinite(expiracao) && expiracao > Date.now();
+    }
+
+    clearSessionState() {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('activeModule');
+        localStorage.removeItem('planoAlimentarSelectedPacienteLogin');
+        localStorage.removeItem('sessionCreatedAt');
+        localStorage.removeItem('sessionExpiresAt');
+        this.pararTimerSessao();
+    }
+
+    pararTimerSessao() {
+        if (this.sessionTimerId) {
+            clearTimeout(this.sessionTimerId);
+            this.sessionTimerId = null;
+        }
+    }
+
+    iniciarTimerSessao(expiresAt) {
+        this.pararTimerSessao();
+        const expiracao = new Date(expiresAt).getTime();
+        const restante = expiracao - Date.now();
+        if (!Number.isFinite(restante) || restante <= 0) {
+            this.expirarSessao();
+            return;
+        }
+
+        this.sessionTimerId = setTimeout(() => {
+            this.expirarSessao();
+        }, restante);
+    }
+
+    async expirarSessao() {
+        this.clearSessionState();
+        try {
+            await signOut(auth);
+        } catch (error) {}
+        this.renderLoginScreen();
+        this.setupEventListeners();
+        this.showError('Sessao expirada. Entre novamente.');
     }
 
     isCargoValido(cargo) {
@@ -309,18 +369,29 @@ export class LoginManager {
                 await updateDoc(userRef, { ultimo_login: serverTimestamp() });
             } catch (_error) {}
 
+            const sessionExpiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
             const sessionUser = this.sanitizeSessionUser({
                 ...userData,
                 login,
                 email: emailMontado,
                 organizacao,
                 perfil: userData.perfil || (isPaciente ? 'operador' : 'supervisor'),
-                authToken: result.token?.idToken || ''
+                authToken: result.token?.idToken || '',
+                sessionCreatedAt: new Date().toISOString(),
+                sessionExpiresAt,
+                activeModule: 'home'
             });
 
             this.saveRememberedCredentials(rememberCheckbox?.checked, organizacao, login);
             localStorage.setItem('currentUser', JSON.stringify(sessionUser));
-            this.showHome(sessionUser);
+            localStorage.setItem('sessionCreatedAt', sessionUser.sessionCreatedAt);
+            localStorage.setItem('sessionExpiresAt', sessionUser.sessionExpiresAt);
+            this.iniciarTimerSessao(sessionExpiresAt);
+            void this.showHome(sessionUser).catch(() => {
+                this.clearSessionState();
+                this.renderLoginScreen();
+                this.setupEventListeners();
+            });
         } catch (error) {
 
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
@@ -533,9 +604,23 @@ export class LoginManager {
         setTimeout(() => errorDiv.remove(), 5000);
     }
 
-    showHome(userData) {
+    async showHome(userData) {
         document.body.classList.remove('profile-paciente', 'profile-profissional');
         document.body.classList.add(userData.cargo === 'paciente' ? 'profile-paciente' : 'profile-profissional');
+
+        const activeModule = localStorage.getItem('activeModule') || userData.activeModule || 'home';
+        if (activeModule && activeModule !== 'home') {
+            try {
+                const pacientesList = userData.cargo === 'paciente'
+                    ? []
+                    : await FuncoesCompartilhadas.loadPacientesList(userData.login);
+                const navegador = criarNavegador(userData, pacientesList);
+                await navegador.navegarPara(activeModule);
+                return;
+            } catch (error) {
+                localStorage.setItem('activeModule', 'home');
+            }
+        }
 
         const homeManager = new HomeManager(userData);
         homeManager.render();

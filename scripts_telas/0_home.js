@@ -440,6 +440,10 @@ export class FuncoesCompartilhadas {
         } catch (error) {
         }
         localStorage.removeItem('currentUser');
+        localStorage.removeItem('activeModule');
+        localStorage.removeItem('planoAlimentarSelectedPacienteLogin');
+        localStorage.removeItem('sessionCreatedAt');
+        localStorage.removeItem('sessionExpiresAt');
         window.location.reload();
     }
     

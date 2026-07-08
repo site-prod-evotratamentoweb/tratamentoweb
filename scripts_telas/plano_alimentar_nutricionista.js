@@ -140,6 +140,9 @@ export class PlanoAlimentarNutricionista {
     }
 
     render() {
+        localStorage.setItem('activeModule', 'plano_alimentar');
+        this.restaurarPacienteSelecionado();
+
         const app = document.getElementById('app');
         app.innerHTML = this.renderHTML();
         
@@ -156,6 +159,16 @@ export class PlanoAlimentarNutricionista {
         this.attachEvents();
         if (this.selectedPaciente) {
             this.loadPlanos();
+        }
+    }
+
+    restaurarPacienteSelecionado() {
+        const loginSalvo = localStorage.getItem('planoAlimentarSelectedPacienteLogin');
+        if (!loginSalvo) return;
+
+        const paciente = this.pacientesList.find((item) => item.login === loginSalvo);
+        if (paciente) {
+            this.selectedPaciente = paciente;
         }
     }
 
@@ -547,7 +560,7 @@ export class PlanoAlimentarNutricionista {
                 ">
                     <!-- Cabeçalho do Card -->
                     <div style="padding: 12px 14px; display: flex; align-items: center; justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
-                        <div onclick="window.planoAlimentarInstance.abrirModalVisualizarPlano('${plano.id}')" style="cursor: pointer; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                             ${planoAtual ? `<span style="
                                 background: ${planoAtual ? '#22c55e' : '#64748b'};
                                 color: white;
@@ -2134,12 +2147,15 @@ export class PlanoAlimentarNutricionista {
                 const login = e.target.value;
                 if (login) {
                     this.selectedPaciente = this.pacientesList.find(p => p.login === login);
+                    localStorage.setItem('activeModule', 'plano_alimentar');
+                    localStorage.setItem('planoAlimentarSelectedPacienteLogin', login);
                     this.planoExpandido = null;
                     this.planoEditando = null;
                     await this.loadPlanos();
                     await this.render();
                 } else {
                     this.selectedPaciente = null;
+                    localStorage.removeItem('planoAlimentarSelectedPacienteLogin');
                     this.planosList = [];
                     this.planoExpandido = null;
                     this.planoEditando = null;
