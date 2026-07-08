@@ -195,9 +195,6 @@ export class MenuProfissional {
                 
                 // Usa o navegador centralizado
                 await this.navegador.navegarPara(module);
-                
-                // Callback para atualizar estado se necessário
-                if (this.onNavigate) this.onNavigate(module);
             });
         });
     }
