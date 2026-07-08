@@ -557,7 +557,7 @@ export class PlanoAlimentarNutricionista {
                                 font-weight: 600;
                             ">
                                 ATUAL
-                            </span>` : `<button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.definirPlanoAtual('${plano.id}')" title="Definir como plano atual" aria-label="Definir como plano atual" style="background: #64748b; color: white; padding: 5px 12px; border: none; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            </span>` : `<button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.planoAlimentarInstance.definirPlanoAtual('${plano.id}')" title="Definir como plano atual" aria-label="Definir como plano atual" style="background: #64748b; color: white; padding: 5px 12px; border: none; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer;">
                                 Tornar atual
                             </button>`}
                             
