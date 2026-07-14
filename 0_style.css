@@ -1650,9 +1650,23 @@ body.profile-paciente .menu-toggle-btn:hover {
         max-width: 100px;
     }
     
-    body.profile-paciente .menu-toggle-btn {
+body.profile-paciente .menu-toggle-btn {
         width: 28px;
         height: 28px;
         font-size: 14px;
     }
 }
+
+/* Abas e salas de palestras */
+.media-tabs { display:flex; gap:6px; margin-bottom:20px; padding:5px; border:1px solid #e2e8f0; border-radius:13px; background:#fff; }
+.media-tabs button { flex:1; min-height:44px; border:0; border-radius:9px; color:#64748b; background:transparent; font-size:14px; font-weight:750; cursor:pointer; transition:.2s; }
+.media-tabs button.active { color:#fff; background:#283593; box-shadow:0 5px 13px rgba(40,53,147,.2); }
+.media-tab-panel[hidden] { display:none; }.media-section-action { display:flex; justify-content:flex-end; margin:-4px 0 14px; }
+.lecture-list { display:grid; gap:12px; }.lecture-card { display:grid; grid-template-columns:74px minmax(0,1fr) auto; gap:18px; align-items:center; padding:17px 18px; border:1px solid #e2e8f0; border-radius:15px; background:#fff; box-shadow:0 3px 12px rgba(15,23,42,.05); }
+.lecture-date { width:64px; height:67px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:13px; color:#283593; background:#eef2ff; }.lecture-date strong { font-size:25px; line-height:1; }.lecture-date span { margin-top:4px; font-size:11px; font-weight:800; text-transform:uppercase; }
+.lecture-info { min-width:0; }.lecture-info h3 { margin:7px 0 3px; color:#172167; font-size:17px; }.lecture-info>p { margin:0 0 8px; color:#64748b; font-size:12px; line-height:1.5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lecture-meta,.lecture-details { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }.lecture-meta>span:not(.media-badge),.lecture-details { color:#94a3b8; font-size:10px; }.lecture-status { padding:5px 8px; border-radius:999px; font-weight:800; }.lecture-status.is-agendada { color:#1d4ed8!important; background:#dbeafe; }.lecture-status.is-ao-vivo { color:#b91c1c!important; background:#fee2e2; animation:lecture-pulse 1.8s infinite; }.lecture-status.is-encerrada { color:#64748b!important; background:#e2e8f0; }@keyframes lecture-pulse { 50% { opacity:.65; } }
+.lecture-actions { display:flex; gap:7px; align-items:center; }.lecture-actions button { min-height:38px; padding:0 12px; }.lecture-delete-btn { min-height:38px; padding:0 11px; border:0; border-radius:10px; color:#b91c1c; background:#fee2e2; font-weight:700; cursor:pointer; }
+.lecture-start-options { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; padding:0; border:0; }.lecture-start-options legend { margin-bottom:8px; color:#475569; font-size:12px; font-weight:750; }.lecture-start-options label { display:flex; gap:9px; padding:12px; border:1px solid #dbe2ea; border-radius:10px; cursor:pointer; }.lecture-start-options input { accent-color:#283593; }.lecture-start-options strong,.lecture-start-options small { display:block; }.lecture-start-options strong { color:#334155; font-size:13px; }.lecture-start-options small { margin-top:3px; color:#94a3b8; font-size:10px; }
+.lecture-room-modal { padding:10px; }.lecture-room-dialog { width:calc(100vw - 20px); height:calc(100vh - 20px); overflow:hidden; display:flex; flex-direction:column; border-radius:16px; background:#111827; box-shadow:0 30px 90px rgba(0,0,0,.5); }.lecture-room-dialog>header { flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:13px 17px; color:#fff; background:#172167; }.lecture-room-dialog h2 { margin:2px 0 0; color:#fff; font-size:17px; }.lecture-room-dialog>header button { width:38px; height:38px; border:1px solid rgba(255,255,255,.25); border-radius:9px; color:#fff; background:rgba(255,255,255,.12); font-size:25px; cursor:pointer; }#jitsiContainer { flex:1; min-height:0; }#jitsiContainer iframe { display:block; width:100%!important; height:100%!important; border:0; }
+@media (max-width:700px) { .lecture-card { grid-template-columns:58px minmax(0,1fr); gap:11px; padding:14px; }.lecture-date { width:55px; height:59px; }.lecture-actions { grid-column:1/-1; justify-content:flex-end; flex-wrap:wrap; }.lecture-start-options { grid-template-columns:1fr; }.lecture-room-modal { padding:0; }.lecture-room-dialog { width:100vw; height:100vh; border-radius:0; } }
