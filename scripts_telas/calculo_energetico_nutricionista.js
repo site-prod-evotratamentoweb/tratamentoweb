@@ -9,7 +9,8 @@ import {
     query, 
     where, 
     doc, 
-    updateDoc 
+    updateDoc,
+    deleteDoc
 } from '../0_firebase_api_config.js';
 
 export class CalculoEnergeticoNutricionista {
@@ -42,7 +43,6 @@ export class CalculoEnergeticoNutricionista {
         
         this.attachEvents();
         if (this.selectedPaciente) {
-            this.carregarDadosPaciente();
             if (this.historicoCarregadoLogin !== this.selectedPaciente.login) {
                 void this.loadCalculo();
             }
@@ -107,7 +107,7 @@ export class CalculoEnergeticoNutricionista {
                         <div id="modalNovoCalculo" style="display:none; position:fixed; inset:0; z-index:3000; background:rgba(15,23,42,.62); padding:12px; align-items:center; justify-content:center;">
                             <div style="background:white; width:min(96vw,1100px); height:min(94vh,900px); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 70px rgba(15,23,42,.35);">
                                 <div style="padding:14px 18px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                                    <h3 style="margin:0; color:#1a237e;">Novo Cálculo Energético</h3>
+                                    <h3 id="tituloModalCalculo" style="margin:0; color:#1a237e;">Novo Cálculo Energético</h3>
                                     <button id="btnFecharNovoCalculo" type="button" aria-label="Fechar" style="background:rgba(26,35,126,.12); color:#1a237e; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                                 </div>
                                 <div style="flex:1; min-height:0; overflow-y:auto; padding:16px;">
@@ -343,6 +343,15 @@ export class CalculoEnergeticoNutricionista {
     attachEvents() {
         const modalNovoCalculo = document.getElementById('modalNovoCalculo');
         const abrirNovoCalculo = () => {
+            this.currentCalculo = null;
+            modalNovoCalculo?.querySelectorAll('input, textarea, select').forEach((campo) => {
+                campo.value = '';
+            });
+            modalNovoCalculo?.querySelectorAll('[id^="resumo_"]').forEach((campo) => {
+                campo.textContent = '--';
+            });
+            const titulo = document.getElementById('tituloModalCalculo');
+            if (titulo) titulo.textContent = 'Novo Cálculo Energético';
             if (modalNovoCalculo) modalNovoCalculo.style.display = 'flex';
         };
         const fecharNovoCalculo = () => {
@@ -366,7 +375,6 @@ export class CalculoEnergeticoNutricionista {
                     this.calculoExpandido = null;
                     this.historicoCarregadoLogin = null;
                     await this.render();
-                    this.carregarDadosPaciente();
                 } else {
                     this.selectedPaciente = null;
                     await this.render();
@@ -397,6 +405,12 @@ export class CalculoEnergeticoNutricionista {
                 this.calculoExpandido = button.dataset.calculoDetalhes;
                 this.render();
             });
+        });
+        document.querySelectorAll('[data-calculo-editar]').forEach((button) => {
+            button.addEventListener('click', () => this.editarCalculo(button.dataset.calculoEditar));
+        });
+        document.querySelectorAll('[data-calculo-excluir]').forEach((button) => {
+            button.addEventListener('click', () => this.excluirCalculo(button.dataset.calculoExcluir));
         });
         const modalDetalhesCalculo = document.getElementById('modalDetalhesCalculo');
         const fecharDetalhesCalculo = () => {
@@ -764,7 +778,11 @@ export class CalculoEnergeticoNutricionista {
             <div class="plano-card" style="background:white; border:2px solid #e2e8f0; border-radius:12px; margin-bottom:16px; overflow:hidden; transition:all .3s ease;">
                 <div style="padding:12px 14px; display:flex; align-items:center; justify-content:flex-start; gap:12px; flex-wrap:wrap;">
                     <div><strong>Cálculo de ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.objetivo || '')} · ${this.escapeHtml(registro.vet_ajustado || '--')} kcal</div></div>
-                    <button type="button" data-calculo-detalhes="${this.escapeHtml(registro.id)}" title="Exibir detalhes" aria-label="Exibir detalhes" style="height:36px; padding:0 14px; margin-left:4px; background:#1a237e; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Exibir Detalhes</button>
+                    <div style="display:flex; align-items:center; gap:8px; margin-left:4px; flex-wrap:wrap;">
+                        <button type="button" data-calculo-detalhes="${this.escapeHtml(registro.id)}" title="Exibir detalhes" aria-label="Exibir detalhes" style="height:36px; padding:0 14px; background:#1a237e; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Exibir Detalhes</button>
+                        <button type="button" data-calculo-editar="${this.escapeHtml(registro.id)}" style="height:36px; padding:0 14px; background:#e0e7ff; color:#1a237e; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Editar</button>
+                        <button type="button" data-calculo-excluir="${this.escapeHtml(registro.id)}" style="height:36px; padding:0 14px; background:#fee2e2; color:#b91c1c; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Excluir</button>
+                    </div>
                 </div>
             </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhum cálculo energético registrado para este paciente.</p>';
         const modal = registroAberto ? `
@@ -782,6 +800,41 @@ export class CalculoEnergeticoNutricionista {
         return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>Histórico de cálculos energéticos</h3></div>${conteudo}</section>${modal}`;
     }
 
+    editarCalculo(id) {
+        const registro = this.calculosList.find((item) => item.id === id);
+        if (!registro) return;
+        this.currentCalculo = {
+            ...registro,
+            ptn_metodo: registro.proteinas?.metodo,
+            ptn_g_kg: registro.proteinas?.g_kg,
+            cho_metodo: registro.carboidratos?.metodo,
+            cho_g_kg: registro.carboidratos?.g_kg,
+            lip_metodo: registro.lipidios?.metodo,
+            lip_g_kg: registro.lipidios?.g_kg
+        };
+        this.render();
+        const titulo = document.getElementById('tituloModalCalculo');
+        if (titulo) titulo.textContent = 'Editar Cálculo Energético';
+        const salvar = document.getElementById('saveCalculoBtn');
+        if (salvar) salvar.textContent = 'Salvar Ajustes';
+        const modal = document.getElementById('modalNovoCalculo');
+        if (modal) modal.style.display = 'flex';
+        this.calcularTudo();
+    }
+
+    async excluirCalculo(id) {
+        const registro = this.calculosList.find((item) => item.id === id);
+        if (!registro || !confirm(`Excluir o cálculo de ${this.formatarDataHora(registro)}?\n\nEsta ação não pode ser desfeita.`)) return;
+        try {
+            await deleteDoc(doc(db, 'calculos_energeticos', id));
+            if (this.currentCalculo?.id === id) this.currentCalculo = null;
+            this.historicoCarregadoLogin = null;
+            await this.loadCalculo();
+        } catch (error) {
+            alert('Erro ao excluir: ' + error.message);
+        }
+    }
+
     async saveCalculo() {
         if (!this.selectedPaciente) {
             alert('❌ Selecione um paciente primeiro!');
@@ -790,49 +843,54 @@ export class CalculoEnergeticoNutricionista {
 
         try {
             const macros = this.calcularMacros();
+            const numeroOuNull = (id) => {
+                const valor = document.getElementById(id)?.value;
+                return valor === '' || valor === undefined ? null : Number(valor);
+            };
             
+            const agora = new Date().toISOString();
             const calculoData = {
                 paciente_login: this.selectedPaciente.login,
                 paciente_nome: this.selectedPaciente.nome,
                 profissional: this.userInfo.nome,
                 profissional_login: this.userInfo.login,
-                data_calculo: new Date().toISOString().split('T')[0],
-                data_criacao: new Date().toISOString(),
-                data_atualizacao: new Date().toISOString(),
+                data_calculo: this.currentCalculo?.data_calculo || agora.split('T')[0],
+                data_criacao: this.currentCalculo?.data_criacao || this.currentCalculo?.data_atualizacao || agora,
+                data_atualizacao: agora,
                 
-                peso: parseFloat(document.getElementById('peso')?.value) || null,
-                altura: parseFloat(document.getElementById('altura')?.value) || null,
-                idade: parseInt(document.getElementById('idade')?.value) || null,
+                peso: numeroOuNull('peso'),
+                altura: numeroOuNull('altura'),
+                idade: numeroOuNull('idade'),
                 sexo: document.getElementById('sexo')?.value,
-                fator_atividade: parseFloat(document.getElementById('fator_atividade')?.value) || 1.2,
+                fator_atividade: numeroOuNull('fator_atividade'),
                 
                 formula: document.getElementById('formula')?.value,
-                massa_magra: parseFloat(document.getElementById('massa_magra')?.value) || null,
+                massa_magra: numeroOuNull('massa_magra'),
                 geb: this.calcularGEB(),
                 get: this.calcularGET(),
                 
                 objetivo: document.getElementById('objetivo')?.value,
-                adicional_energetico: parseFloat(document.getElementById('adicional_energetico')?.value) || 0,
-                deficit_energetico: parseFloat(document.getElementById('deficit_energetico')?.value) || 0,
+                adicional_energetico: numeroOuNull('adicional_energetico'),
+                deficit_energetico: numeroOuNull('deficit_energetico'),
                 vet_ajustado: macros.vet,
                 
                 proteinas: {
                     metodo: document.getElementById('ptn_metodo')?.value,
-                    g_kg: parseFloat(document.getElementById('ptn_g_kg')?.value) || 1.6,
+                    g_kg: numeroOuNull('ptn_g_kg'),
                     gramas: macros.ptn.gramas,
                     kcal: macros.ptn.kcal,
                     percentual: macros.ptn.percentual
                 },
                 carboidratos: {
                     metodo: document.getElementById('cho_metodo')?.value,
-                    g_kg: parseFloat(document.getElementById('cho_g_kg')?.value) || 5,
+                    g_kg: numeroOuNull('cho_g_kg'),
                     gramas: macros.cho.gramas,
                     kcal: macros.cho.kcal,
                     percentual: macros.cho.percentual
                 },
                 lipidios: {
                     metodo: document.getElementById('lip_metodo')?.value,
-                    g_kg: parseFloat(document.getElementById('lip_g_kg')?.value) || 0.8,
+                    g_kg: numeroOuNull('lip_g_kg'),
                     gramas: macros.lip.gramas,
                     kcal: macros.lip.kcal,
                     percentual: macros.lip.percentual

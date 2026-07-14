@@ -475,7 +475,7 @@ export class HomePsicologo {
         }
         
         const sorted = [...this.currentEvaluations].sort((a,b) => new Date(a.data_avaliacao) - new Date(b.data_avaliacao));
-        const labels = sorted.map(e => e.data_avaliacao);
+        const labels = sorted.map(e => this.funcoes.formatDateToDisplay(e.data_avaliacao));
         const data = {
             ansiedade: sorted.map(e => e.escalas?.ansiedade || 0),
             depressao: sorted.map(e => e.escalas?.depressao || 0),

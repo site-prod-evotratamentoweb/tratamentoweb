@@ -1,7 +1,7 @@
 import { FuncoesCompartilhadas } from './0_home.js';
 import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
-import { db, collection, addDoc, getDocs, query, where, doc, updateDoc } from '../0_firebase_api_config.js';
+import { db, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from '../0_firebase_api_config.js';
 
 export class AnamneseNutricionista {
     constructor(userInfo, pacientesList) {
@@ -96,7 +96,7 @@ export class AnamneseNutricionista {
                         <div id="modalNovaAnamnese" style="display:none; position:fixed; inset:0; z-index:3000; background:rgba(15,23,42,.62); padding:12px; align-items:center; justify-content:center;">
                             <div style="background:white; width:min(96vw,1100px); height:min(94vh,900px); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 70px rgba(15,23,42,.35);">
                                 <div style="padding:14px 18px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                                    <h3 style="margin:0; color:#1a237e;">Novo Prontuário</h3>
+                                    <h3 id="tituloModalAnamnese" style="margin:0; color:#1a237e;">Novo Prontuário</h3>
                                     <button id="btnFecharNovaAnamnese" type="button" aria-label="Fechar" style="background:rgba(26,35,126,.12); color:#1a237e; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                                 </div>
                                 <div style="flex:1; min-height:0; overflow-y:auto; padding:16px;">
@@ -352,6 +352,12 @@ export class AnamneseNutricionista {
     attachEvents() {
         const modalNovaAnamnese = document.getElementById('modalNovaAnamnese');
         const abrirNovaAnamnese = () => {
+            this.currentAnamnese = null;
+            modalNovaAnamnese?.querySelectorAll('input:not([readonly]), textarea, select').forEach((campo) => {
+                campo.value = '';
+            });
+            const titulo = document.getElementById('tituloModalAnamnese');
+            if (titulo) titulo.textContent = 'Novo Prontuário';
             if (modalNovaAnamnese) modalNovaAnamnese.style.display = 'flex';
         };
         const fecharNovaAnamnese = () => {
@@ -423,6 +429,12 @@ export class AnamneseNutricionista {
                 this.anamneseExpandida = button.dataset.anamneseDetalhes;
                 this.render();
             });
+        });
+        document.querySelectorAll('[data-anamnese-editar]').forEach((button) => {
+            button.addEventListener('click', () => this.editarAnamnese(button.dataset.anamneseEditar));
+        });
+        document.querySelectorAll('[data-anamnese-excluir]').forEach((button) => {
+            button.addEventListener('click', () => this.excluirAnamnese(button.dataset.anamneseExcluir));
         });
         const modalDetalhesAnamnese = document.getElementById('modalDetalhesAnamnese');
         const fecharDetalhesAnamnese = () => {
@@ -523,7 +535,11 @@ export class AnamneseNutricionista {
             <div class="plano-card" style="background:white; border:2px solid #e2e8f0; border-radius:12px; margin-bottom:16px; overflow:hidden; transition:all .3s ease;">
                 <div style="padding:12px 14px; display:flex; align-items:center; justify-content:flex-start; gap:12px; flex-wrap:wrap;">
                     <div><strong>Anamnese de ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.profissional || '')}</div></div>
-                    <button type="button" data-anamnese-detalhes="${this.escapeHtml(registro.id)}" title="Exibir detalhes" aria-label="Exibir detalhes" style="height:36px; padding:0 14px; margin-left:4px; background:#1a237e; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Exibir Detalhes</button>
+                    <div style="display:flex; align-items:center; gap:8px; margin-left:4px; flex-wrap:wrap;">
+                        <button type="button" data-anamnese-detalhes="${this.escapeHtml(registro.id)}" title="Exibir detalhes" aria-label="Exibir detalhes" style="height:36px; padding:0 14px; background:#1a237e; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Exibir Detalhes</button>
+                        <button type="button" data-anamnese-editar="${this.escapeHtml(registro.id)}" style="height:36px; padding:0 14px; background:#e0e7ff; color:#1a237e; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Editar</button>
+                        <button type="button" data-anamnese-excluir="${this.escapeHtml(registro.id)}" style="height:36px; padding:0 14px; background:#fee2e2; color:#b91c1c; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Excluir</button>
+                    </div>
                 </div>
             </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhuma anamnese registrada para este paciente.</p>';
         const modal = registroAberto ? `
@@ -541,6 +557,37 @@ export class AnamneseNutricionista {
         return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>Histórico de anamneses</h3></div>${conteudo}</section>${modal}`;
     }
 
+    editarAnamnese(id) {
+        const registro = this.anamnesesList.find((item) => item.id === id);
+        if (!registro) return;
+        this.currentAnamnese = registro;
+        this.render();
+        const titulo = document.getElementById('tituloModalAnamnese');
+        if (titulo) titulo.textContent = 'Editar Prontuário';
+        const salvar = document.getElementById('saveAnamneseBtn');
+        if (salvar) salvar.textContent = 'Salvar Ajustes';
+        const dataAnamnese = document.getElementById('dataAnamnese');
+        if (dataAnamnese) {
+            dataAnamnese.disabled = true;
+            dataAnamnese.title = 'A data original do prontuário é preservada durante ajustes.';
+        }
+        const modal = document.getElementById('modalNovaAnamnese');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    async excluirAnamnese(id) {
+        const registro = this.anamnesesList.find((item) => item.id === id);
+        if (!registro || !confirm(`Excluir a anamnese de ${this.formatarDataHora(registro)}?\n\nEsta ação não pode ser desfeita.`)) return;
+        try {
+            await deleteDoc(doc(db, 'anamneses_nutricionais', id));
+            if (this.currentAnamnese?.id === id) this.currentAnamnese = null;
+            this.historicoCarregadoLogin = null;
+            await this.loadAnamnese();
+        } catch (error) {
+            alert('Erro ao excluir: ' + error.message);
+        }
+    }
+
     async saveAnamnese() {
         if (!this.selectedPaciente) {
             alert('❌ Selecione um paciente primeiro!');
@@ -548,14 +595,15 @@ export class AnamneseNutricionista {
         }
 
         try {
+            const agora = new Date().toISOString();
             const anamneseData = {
                 paciente_login: this.selectedPaciente.login,
                 paciente_nome: this.selectedPaciente.nome,
                 profissional: this.userInfo.nome,
                 profissional_login: this.userInfo.login,
-                data_anamnese: document.getElementById('dataAnamnese')?.value || new Date().toISOString().split('T')[0],
-                data_criacao: new Date().toISOString(),
-                data_atualizacao: new Date().toISOString(),
+                data_anamnese: this.currentAnamnese?.data_anamnese || document.getElementById('dataAnamnese')?.value || agora.split('T')[0],
+                data_criacao: this.currentAnamnese?.data_criacao || this.currentAnamnese?.data_atualizacao || agora,
+                data_atualizacao: agora,
                 
                 historico_clinico: {
                     doencas_preexistentes: document.getElementById('doencas_preexistentes')?.value || '',

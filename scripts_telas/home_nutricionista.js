@@ -502,7 +502,7 @@ export class HomeNutricionista {
     }
 
     createChartsWithData(evaluations) {
-        const labels = evaluations.map(e => e.data_avaliacao);
+        const labels = evaluations.map(e => this.funcoes.formatDateToDisplay(e.data_avaliacao));
         const weights = evaluations.map(e => e.dados_antropometricos?.peso || 0);
         const imcs = evaluations.map(e => e.dados_antropometricos?.imc || 0);
         const muscles = evaluations.map(e => e.bioimpedancia?.massa_muscular || 0);
