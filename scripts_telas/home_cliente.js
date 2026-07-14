@@ -133,6 +133,10 @@ export class HomeCliente {
                             <span>🌟</span>
                             <span>Minha Jornada</span>
                         </button>
+                        <button class="menu-item" data-module="palestras_videos">
+                            <span>🎥</span>
+                            <span>Palestras e Vídeos</span>
+                        </button>
                         ${isMembro ? `
                         <button class="menu-item" id="membroExclusiveMenuItem">
                             <span>⭐</span>

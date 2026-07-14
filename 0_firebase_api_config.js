@@ -112,6 +112,51 @@ async function uploadParaImgbb(imagemBase64) {
     }
 }
 
+async function apiAutenticada(caminho, options = {}) {
+    const token = getSessionAuthToken();
+    if (!token) throw new Error('Sessão expirada. Faça login novamente.');
+    const response = await fetch(`${getRenderApiBaseUrl()}${caminho}`, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options.headers || {}) }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error?.message || 'Falha na comunicação com o servidor.');
+    return result;
+}
+
+async function uploadParaCloudinary(file, onProgress = null) {
+    const assinatura = await apiAutenticada('/api/uploads/cloudinary/signature', { method: 'POST', body: '{}' });
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', assinatura.apiKey);
+    formData.append('timestamp', assinatura.timestamp);
+    formData.append('folder', assinatura.folder);
+    formData.append('signature', assinatura.signature);
+    const url = `https://api.cloudinary.com/v1_1/${encodeURIComponent(assinatura.cloudName)}/auto/upload`;
+
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable && onProgress) onProgress(Math.round((event.loaded / event.total) * 100));
+        };
+        xhr.onload = () => {
+            const result = JSON.parse(xhr.responseText || '{}');
+            if (xhr.status >= 200 && xhr.status < 300) resolve(result);
+            else reject(new Error(result.error?.message || 'Falha ao enviar o arquivo ao Cloudinary.'));
+        };
+        xhr.onerror = () => reject(new Error('Falha de conexão durante o upload.'));
+        xhr.send(formData);
+    });
+}
+
+async function excluirDoCloudinary(publicId, resourceType) {
+    return apiAutenticada('/api/uploads/cloudinary', {
+        method: 'DELETE',
+        body: JSON.stringify({ publicId, resourceType })
+    });
+}
+
 export {
     db,
     auth,
@@ -135,5 +180,7 @@ export {
     signInWithEmailAndPassword,
     signOut,
 
-    uploadParaImgbb
+    uploadParaImgbb,
+    uploadParaCloudinary,
+    excluirDoCloudinary
 };

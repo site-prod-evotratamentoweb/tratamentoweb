@@ -74,6 +74,9 @@ export class NavegadorNutricionista extends NavegadorBase {
             case 'shopping_nutri':
                 await this.irParaShoppingNutri();
                 return true;
+            case 'palestras_videos':
+                await this.irParaPalestrasVideos();
+                return true;
         }
         
         // Se não encontrou, tenta navegar pelos módulos base
@@ -122,6 +125,11 @@ export class NavegadorNutricionista extends NavegadorBase {
         const shoppingScreen = new ShoppingNutriNutricionista(this.userInfo, this.pacientesList);
         shoppingScreen.render();
     }
+
+    async irParaPalestrasVideos() {
+        const { PalestrasVideosNutricionista } = await import('./palestras_videos_nutricionista.js');
+        new PalestrasVideosNutricionista(this.userInfo, this.pacientesList).render();
+    }
 }
 
 // ==================== NAVEGADOR DO PSICÓLOGO ====================
@@ -153,6 +161,9 @@ export class NavegadorPsicologo extends NavegadorBase {
                 return true;
             case 'shopping_nutri':
                 await this.irParaShoppingNutri();
+                return true;
+            case 'palestras_videos':
+                await this.irParaPalestrasVideos();
                 return true;
         }
         
@@ -196,6 +207,11 @@ export class NavegadorPsicologo extends NavegadorBase {
         const shoppingScreen = new ShoppingNutriNutricionista(this.userInfo, this.pacientesList);
         shoppingScreen.render();
     }
+
+    async irParaPalestrasVideos() {
+        const { PalestrasVideosPsicologo } = await import('./palestras_videos_psicologo.js');
+        new PalestrasVideosPsicologo(this.userInfo, this.pacientesList).render();
+    }
 }
 
 // ==================== NAVEGADOR DO PACIENTE ====================
@@ -233,6 +249,9 @@ export class NavegadorPaciente extends NavegadorBase {
                 return true;
             case 'shopping_nutri':
                 await this.irParaShoppingNutri();
+                return true;
+            case 'palestras_videos':
+                await this.irParaPalestrasVideos();
                 return true;
         }
         
@@ -291,6 +310,12 @@ export class NavegadorPaciente extends NavegadorBase {
         const { ShoppingNutriCliente } = await import('./shopping_nutri_cliente.js');
         const shoppingScreen = new ShoppingNutriCliente(this.userInfo);
         shoppingScreen.render();
+    }
+
+
+    async irParaPalestrasVideos() {
+        const { PalestrasVideosCliente } = await import('./palestras_videos_cliente.js');
+        new PalestrasVideosCliente(this.userInfo).render();
     }
 }
 
