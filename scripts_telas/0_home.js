@@ -137,7 +137,7 @@ export class FuncoesCompartilhadas {
         try {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             
-            if (currentUser.cargo === 'paciente') {
+            if (!profissionalLogin && currentUser.cargo === 'paciente') {
                 return [];
             }
             

@@ -1,6 +1,7 @@
 import { FuncoesCompartilhadas } from './0_home.js';
 import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
+import { db, doc, getDoc, updateDoc } from '../0_firebase_api_config.js';
 
 export class CadastroCliente {
     constructor(userInfo) {
@@ -39,11 +40,11 @@ export class CadastroCliente {
         const podeCadastrar = this.funcoes.podeCriarPaciente(this.userInfo.perfil);
         
         return `
-            <div class="dashboard-container">
+            <div class="dashboard-container" style="height:calc(100vh - 12px); max-height:calc(100vh - 12px); margin:6px auto; display:flex; flex-direction:column;">
                 <div id="menuContainer"></div>
 
-                <div class="main-content">
-                    <div class="content-header">
+                <div class="main-content" style="flex:1; min-height:0; overflow-y:auto; padding:12px 16px 90px;">
+                    <div class="content-header" style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin-bottom:12px;">
                         <div class="header-title">
                             <h3>👥 Cadastro de Clientes / Pacientes</h3>
                             <p>Gerencie todos os clientes cadastrados no sistema</p>
@@ -59,7 +60,7 @@ export class CadastroCliente {
                         `}
                     </div>
 
-                    <div class="search-bar">
+                    <div class="search-bar" style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:12px; margin-bottom:12px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
                         <div class="search-input-wrapper">
                             <span class="search-icon">🔍</span>
                             <input type="text" id="searchCliente" placeholder="Buscar por nome, login ou telefone..." class="search-input">
@@ -96,12 +97,12 @@ export class CadastroCliente {
 
             <!-- MODAL CADASTRO/EDIÇÃO -->
             <div id="clienteModal" class="modal" style="display: none;">
-                <div class="modal-content modal-medium">
-                    <div class="modal-header">
+                <div class="modal-content" style="padding:0; background:white; border-radius:16px; width:min(94vw,900px); max-width:900px; height:min(92vh,760px); margin:4vh auto; overflow:hidden; display:flex; flex-direction:column;">
+                    <div class="modal-header" style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%); color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; flex:0 0 auto;">
                         <h3 id="modalTitle">📝 Cadastrar Cliente</h3>
-                        <button class="close-modal">&times;</button>
+                        <button class="close-modal" type="button" style="background:rgba(255,255,255,.18); color:white; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                     </div>
-                    <form id="clienteForm">
+                    <form id="clienteForm" style="flex:1; min-height:0; overflow-y:auto; padding:16px;">
                         <div class="form-section">
                             <h4>📋 Dados Pessoais</h4>
                             <div class="form-row">
@@ -166,23 +167,23 @@ export class CadastroCliente {
 
             <!-- MODAL DETALHES -->
             <div id="detalhesModal" class="modal" style="display: none;">
-                <div class="modal-content modal-medium">
-                    <div class="modal-header">
+                <div class="modal-content" style="padding:0; background:white; border-radius:16px; width:min(94vw,900px); max-width:900px; max-height:92vh; margin:4vh auto; overflow:hidden; display:flex; flex-direction:column;">
+                    <div class="modal-header" style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%); color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
                         <h3>👤 Detalhes do Cliente</h3>
-                        <button class="close-detalhes-modal">&times;</button>
+                        <button class="close-detalhes-modal" type="button" style="background:rgba(255,255,255,.18); color:white; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                     </div>
-                    <div id="detalhesContent"></div>
+                    <div id="detalhesContent" style="padding:16px; overflow-y:auto;"></div>
                 </div>
             </div>
 
             <!-- MODAL CÓDIGO -->
             <div id="codigoModal" class="modal" style="display: none;">
-                <div class="modal-content modal-small">
-                    <div class="modal-header">
+                <div class="modal-content" style="padding:0; background:white; border-radius:16px; width:min(92vw,520px); max-width:520px; margin:8vh auto; overflow:hidden;">
+                    <div class="modal-header" style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%); color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
                         <h3>🔑 Código de Acesso</h3>
-                        <button class="close-codigo-modal">&times;</button>
+                        <button class="close-codigo-modal" type="button" style="background:rgba(255,255,255,.18); color:white; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                     </div>
-                    <div id="codigoContent"></div>
+                    <div id="codigoContent" style="padding:18px;"></div>
                 </div>
             </div>
         `;
@@ -220,9 +221,13 @@ export class CadastroCliente {
         }
         
         return filteredList.map(c => `
-            <table>
-                <td>...</td>
-                <td>...</td>
+            <tr>
+                <td><strong style="color:#1e293b;">${this.escapeHtml(c.nome || c.login)}</strong></td>
+                <td><span class="login-code">${this.escapeHtml(c.login)}</span></td>
+                <td>${this.escapeHtml(c.whatsapp || c.telefone || c.email || '--')}</td>
+                <td>${this.escapeHtml(this.funcoes.formatDateToDisplay(c.dataNascimento) || '--')}</td>
+                <td>${this.funcoes.calcularIdade(c.dataNascimento) ?? '--'}${this.funcoes.calcularIdade(c.dataNascimento) !== null ? ' anos' : ''}</td>
+                <td><span class="status-badge ${c.status_ativo !== false ? 'active' : 'inactive'}">${c.status_ativo !== false ? 'Ativo' : 'Inativo'}</span></td>
                 <td class="actions">
                     <button class="btn-icon view-cliente" data-login="${c.login}" title="Ver Detalhes">👁️</button>
                     <button class="btn-icon edit-cliente" data-login="${c.login}" title="Editar">✏️</button>
@@ -239,6 +244,10 @@ export class CadastroCliente {
                 </td>
             </tr>
         `).join('');
+    }
+
+    escapeHtml(valor) {
+        return String(valor ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
     }
 
     attachEvents() {
@@ -322,6 +331,8 @@ export class CadastroCliente {
                     await this.suspendCliente(login);
                 } else if (btn.classList.contains('activate-cliente')) {
                     await this.activateCliente(login);
+                } else if (btn.classList.contains('unlink-cliente')) {
+                    await this.desvincularPaciente(login);
                 }
             });
         }
