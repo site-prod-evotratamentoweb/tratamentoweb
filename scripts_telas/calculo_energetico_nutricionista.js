@@ -108,7 +108,7 @@ export class CalculoEnergeticoNutricionista {
                             <div style="background:white; width:min(96vw,1100px); height:min(94vh,900px); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 70px rgba(15,23,42,.35);">
                                 <div style="padding:14px 18px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:12px;">
                                     <h3 style="margin:0; color:#1a237e;">Novo Cálculo Energético</h3>
-                                    <button id="btnFecharNovoCalculo" type="button" class="btn-secondary" aria-label="Fechar">X</button>
+                                    <button id="btnFecharNovoCalculo" type="button" aria-label="Fechar" style="background:rgba(26,35,126,.12); color:#1a237e; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                                 </div>
                                 <div style="flex:1; min-height:0; overflow-y:auto; padding:16px;">
                         <div class="calculo-container">
@@ -696,20 +696,20 @@ export class CalculoEnergeticoNutricionista {
     renderHistoricoCalculos() {
         const registroAberto = this.calculosList.find((registro) => registro.id === this.calculoExpandido);
         const conteudo = this.calculosList.length ? this.calculosList.map((registro) => `
-            <div style="border:1px solid #e2e8f0; border-radius:14px; padding:15px 16px; margin-top:10px; background:white; box-shadow:0 2px 8px rgba(15,23,42,.06); transition:transform .2s ease, box-shadow .2s ease;">
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div class="plano-card" style="background:white; border:2px solid #e2e8f0; border-radius:12px; margin-bottom:16px; overflow:hidden; transition:all .3s ease;">
+                <div style="padding:12px 14px; display:flex; align-items:center; justify-content:flex-start; gap:12px; flex-wrap:wrap;">
                     <div><strong>Cálculo de ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.objetivo || '')} · ${this.escapeHtml(registro.vet_ajustado || '--')} kcal</div></div>
-                    <button type="button" class="btn-secondary" data-calculo-detalhes="${this.escapeHtml(registro.id)}">Exibir detalhes</button>
+                    <button type="button" data-calculo-detalhes="${this.escapeHtml(registro.id)}" title="Exibir detalhes" aria-label="Exibir detalhes" style="height:36px; padding:0 14px; margin-left:4px; background:#1a237e; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Exibir Detalhes</button>
                 </div>
             </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhum cálculo energético registrado para este paciente.</p>';
         const modal = registroAberto ? `
-            <div id="modalDetalhesCalculo" style="display:flex; position:fixed; inset:0; z-index:3200; background:rgba(15,23,42,.68); padding:8px; align-items:center; justify-content:center;">
-                <div style="background:white; width:min(98vw,1400px); height:min(96vh,950px); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 28px 80px rgba(15,23,42,.42);">
-                    <div style="background:linear-gradient(135deg,#1a237e 0%,#0f1a5c 100%); color:white; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:14px;">
-                        <div><h3 style="margin:0 0 4px; color:white;">Detalhes do Cálculo Energético</h3><span style="opacity:.85; font-size:14px;">${this.escapeHtml(this.formatarDataHora(registroAberto))} · ${this.escapeHtml(registroAberto.paciente_nome || this.selectedPaciente?.nome || '')}</span></div>
-                        <button id="btnFecharDetalhesCalculo" type="button" aria-label="Fechar" style="width:40px; height:40px; border:0; border-radius:10px; color:white; background:rgba(255,255,255,.18); cursor:pointer; font-size:20px;">X</button>
+            <div id="modalDetalhesCalculo" style="display:flex; position:fixed; inset:0; z-index:3200; background:rgba(0,0,0,.5); padding:20px; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:16px; width:98vw; max-width:1600px; height:96vh; max-height:calc(100vh - 16px); overflow:hidden; margin:8px auto; display:flex; flex-direction:column;">
+                    <div style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%); color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex:0 0 auto;">
+                        <strong style="font-size:16px;">Cálculo Energético - ${this.escapeHtml(this.formatarDataHora(registroAberto))} · ${this.escapeHtml(registroAberto.paciente_nome || this.selectedPaciente?.nome || '')}</strong>
+                        <button id="btnFecharDetalhesCalculo" type="button" aria-label="Fechar" style="background:rgba(255,255,255,.18); color:white; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                     </div>
-                    <div style="flex:1; min-height:0; overflow-y:auto; padding:18px; background:#f8fafc;">
+                    <div style="padding:10px; overflow-y:auto; flex:1; min-height:0; background:#f8fafc;">
                         <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px;">${this.renderDetalhes(registroAberto)}</div>
                     </div>
                 </div>
