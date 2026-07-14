@@ -420,10 +420,18 @@ export class AnamneseNutricionista {
 
         document.querySelectorAll('[data-anamnese-detalhes]').forEach((button) => {
             button.addEventListener('click', () => {
-                const id = button.dataset.anamneseDetalhes;
-                this.anamneseExpandida = this.anamneseExpandida === id ? null : id;
+                this.anamneseExpandida = button.dataset.anamneseDetalhes;
                 this.render();
             });
+        });
+        const modalDetalhesAnamnese = document.getElementById('modalDetalhesAnamnese');
+        const fecharDetalhesAnamnese = () => {
+            this.anamneseExpandida = null;
+            this.render();
+        };
+        document.getElementById('btnFecharDetalhesAnamnese')?.addEventListener('click', fecharDetalhesAnamnese);
+        modalDetalhesAnamnese?.addEventListener('click', (event) => {
+            if (event.target === modalDetalhesAnamnese) fecharDetalhesAnamnese();
         });
 
         // Data padrão
@@ -510,15 +518,27 @@ export class AnamneseNutricionista {
     }
 
     renderHistoricoAnamneses() {
+        const registroAberto = this.anamnesesList.find((registro) => registro.id === this.anamneseExpandida);
         const conteudo = this.anamnesesList.length ? this.anamnesesList.map((registro) => `
-            <div style="border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-top:10px; background:white;">
+            <div style="border:1px solid #e2e8f0; border-radius:14px; padding:15px 16px; margin-top:10px; background:white; box-shadow:0 2px 8px rgba(15,23,42,.06); transition:transform .2s ease, box-shadow .2s ease;">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
                     <div><strong>Anamnese de ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.profissional || '')}</div></div>
-                    <button type="button" class="btn-secondary" data-anamnese-detalhes="${this.escapeHtml(registro.id)}">${this.anamneseExpandida === registro.id ? 'Ocultar detalhes' : 'Exibir detalhes'}</button>
+                    <button type="button" class="btn-secondary" data-anamnese-detalhes="${this.escapeHtml(registro.id)}">Exibir detalhes</button>
                 </div>
-                ${this.anamneseExpandida === registro.id ? `<div style="display:grid; gap:10px; margin-top:14px; max-height:55vh; overflow-y:auto; padding-right:6px;">${this.renderDetalhes(registro)}</div>` : ''}
             </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhuma anamnese registrada para este paciente.</p>';
-        return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>Histórico de anamneses</h3></div>${conteudo}</section>`;
+        const modal = registroAberto ? `
+            <div id="modalDetalhesAnamnese" style="display:flex; position:fixed; inset:0; z-index:3200; background:rgba(15,23,42,.68); padding:8px; align-items:center; justify-content:center;">
+                <div style="background:white; width:min(98vw,1400px); height:min(96vh,950px); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 28px 80px rgba(15,23,42,.42);">
+                    <div style="background:linear-gradient(135deg,#1a237e 0%,#0f1a5c 100%); color:white; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:14px;">
+                        <div><h3 style="margin:0 0 4px; color:white;">Detalhes da Anamnese</h3><span style="opacity:.85; font-size:14px;">${this.escapeHtml(this.formatarDataHora(registroAberto))} · ${this.escapeHtml(registroAberto.paciente_nome || this.selectedPaciente?.nome || '')}</span></div>
+                        <button id="btnFecharDetalhesAnamnese" type="button" aria-label="Fechar" style="width:40px; height:40px; border:0; border-radius:10px; color:white; background:rgba(255,255,255,.18); cursor:pointer; font-size:20px;">X</button>
+                    </div>
+                    <div style="flex:1; min-height:0; overflow-y:auto; padding:18px; background:#f8fafc;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px;">${this.renderDetalhes(registroAberto)}</div>
+                    </div>
+                </div>
+            </div>` : '';
+        return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>Histórico de anamneses</h3></div>${conteudo}</section>${modal}`;
     }
 
     async saveAnamnese() {
