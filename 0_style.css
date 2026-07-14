@@ -1670,3 +1670,18 @@ body.profile-paciente .menu-toggle-btn {
 .lecture-start-options { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; padding:0; border:0; }.lecture-start-options legend { margin-bottom:8px; color:#475569; font-size:12px; font-weight:750; }.lecture-start-options label { display:flex; gap:9px; padding:12px; border:1px solid #dbe2ea; border-radius:10px; cursor:pointer; }.lecture-start-options input { accent-color:#283593; }.lecture-start-options strong,.lecture-start-options small { display:block; }.lecture-start-options strong { color:#334155; font-size:13px; }.lecture-start-options small { margin-top:3px; color:#94a3b8; font-size:10px; }
 .lecture-room-modal { padding:10px; }.lecture-room-dialog { width:calc(100vw - 20px); height:calc(100vh - 20px); overflow:hidden; display:flex; flex-direction:column; border-radius:16px; background:#111827; box-shadow:0 30px 90px rgba(0,0,0,.5); }.lecture-room-dialog>header { flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:13px 17px; color:#fff; background:#172167; }.lecture-room-dialog h2 { margin:2px 0 0; color:#fff; font-size:17px; }.lecture-room-dialog>header button { width:38px; height:38px; border:1px solid rgba(255,255,255,.25); border-radius:9px; color:#fff; background:rgba(255,255,255,.12); font-size:25px; cursor:pointer; }#jitsiContainer { flex:1; min-height:0; }#jitsiContainer iframe { display:block; width:100%!important; height:100%!important; border:0; }
 @media (max-width:700px) { .lecture-card { grid-template-columns:58px minmax(0,1fr); gap:11px; padding:14px; }.lecture-date { width:55px; height:59px; }.lecture-actions { grid-column:1/-1; justify-content:flex-end; flex-wrap:wrap; }.lecture-start-options { grid-template-columns:1fr; }.lecture-room-modal { padding:0; }.lecture-room-dialog { width:100vw; height:100vh; border-radius:0; } }
+
+body.profile-profissional .media-library-page { height:calc(100vh - 24px); min-height:0; overflow:hidden; }
+body.profile-profissional .media-library-main { height:100%; max-height:none; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+body.profile-paciente .media-library-main { height:calc(100vh - 76px); min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+.media-library-main .media-tabs { flex:0 0 auto; }
+.media-library-main .media-tab-panel { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; padding:1px 6px 88px 1px; scrollbar-gutter:stable; }
+.media-library-main .media-tab-panel::-webkit-scrollbar { width:8px; }
+.media-library-main .media-tab-panel::-webkit-scrollbar-thumb { border-radius:999px; background:#cbd5e1; }
+.media-library-main .media-tab-panel::-webkit-scrollbar-track { background:transparent; }
+.media-create-actions { position:fixed; right:30px; bottom:30px; z-index:100; }
+.media-create-actions .btn-expand { border:0; color:#fff; background:#1a237e; box-shadow:0 8px 22px rgba(26,35,126,.28); cursor:pointer; }
+.media-create-actions .btn-expand:hover,.media-create-actions .btn-expand:focus-visible { width:auto; padding:14px 28px; }
+.media-create-actions .btn-expand:focus-visible .btn-text { display:inline; }
+.media-create-actions [hidden] { display:none; }
+@media (max-width:700px) { body.profile-profissional .media-library-main { padding:10px 12px 0!important; } body.profile-paciente .media-library-main { height:calc(100vh - 62px); padding:10px 12px 0!important; }.media-create-actions { right:18px; bottom:18px; }.media-library-main .media-tab-panel { padding-bottom:78px; } }
