@@ -158,12 +158,6 @@ async function excluirDoCloudinary(publicId, resourceType) {
     });
 }
 
-async function obterAcessoJaaS(meetingId) {
-    return apiAutenticada('/api/meetings/jaas-token', {
-        method: 'POST',
-        body: JSON.stringify({ meetingId })
-    });
-}
 
 export {
     db,
@@ -190,6 +184,5 @@ export {
 
     uploadParaImgbb,
     uploadParaCloudinary,
-    excluirDoCloudinary,
-    obterAcessoJaaS
+    excluirDoCloudinary
 };
