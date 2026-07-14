@@ -519,14 +519,24 @@ export class AnamneseNutricionista {
     }
 
     renderDetalhes(registro) {
-        const ignorar = new Set(['id', 'paciente_login', 'paciente_nome', 'profissional_login', 'data_criacao', 'data_atualizacao']);
-        const renderValor = (valor) => {
-            if (valor && typeof valor === 'object' && !valor.toDate) {
-                return `<div style="display:grid; gap:8px; margin-top:6px;">${Object.entries(valor).map(([chave, item]) => `<div><strong>${this.escapeHtml(chave.replaceAll('_', ' '))}:</strong> ${renderValor(item)}</div>`).join('')}</div>`;
-            }
-            return this.escapeHtml(valor === null || valor === '' || valor === undefined ? '--' : valor);
-        };
-        return Object.entries(registro).filter(([chave]) => !ignorar.has(chave)).map(([chave, valor]) => `<div style="padding:10px; background:#f8fafc; border-radius:8px;"><strong>${this.escapeHtml(chave.replaceAll('_', ' '))}:</strong> ${renderValor(valor)}</div>`).join('');
+        const vazio = (valor) => valor === null || valor === '' || valor === undefined;
+        const campo = (rotulo, valor, unidade = '') => `<div class="anamnese-detail-field"><span class="anamnese-detail-label">${this.escapeHtml(rotulo)}</span><span class="anamnese-detail-value ${vazio(valor) ? 'is-empty' : ''}">${vazio(valor) ? 'Não informado' : `${this.escapeHtml(valor)}${unidade ? ` <small>${this.escapeHtml(unidade)}</small>` : ''}`}</span></div>`;
+        const secao = (icone, titulo, subtitulo, campos, classe = '') => `<section class="anamnese-detail-section ${classe}"><header class="anamnese-detail-section-header"><span class="anamnese-detail-icon" aria-hidden="true">${icone}</span><div><h3>${titulo}</h3><p>${subtitulo}</p></div></header><div class="anamnese-detail-grid">${campos.join('')}</div></section>`;
+        const clinico = registro.historico_clinico || {};
+        const alimentar = registro.historico_alimentar || {};
+        const antropometria = registro.antropometria || {};
+        const composicao = registro.composicao_corporal || {};
+        const exames = registro.exames_laboratoriais || {};
+        const estilo = registro.estilo_vida || {};
+        return `<div class="anamnese-detail-summary">${campo('Data da anamnese', registro.data_anamnese)}${campo('Profissional responsável', registro.profissional)}${campo('Paciente', registro.paciente_nome || this.selectedPaciente?.nome)}</div><div class="anamnese-detail-sections">
+            ${secao('✚', 'Histórico clínico', 'Condições de saúde e antecedentes', [campo('Doenças preexistentes', clinico.doencas_preexistentes), campo('Medicamentos em uso', clinico.medicamentos), campo('Cirurgias prévias', clinico.cirurgias), campo('Histórico familiar', clinico.historico_familiar)])}
+            ${secao('◉', 'Histórico alimentar', 'Rotina, preferências e restrições', [campo('Hábitos alimentares', alimentar.habitos_alimentares), campo('Consumo de água', alimentar.consumo_agua, 'ml/dia'), campo('Restrições alimentares', alimentar.restricoes), campo('Preferências alimentares', alimentar.preferencias), campo('Suplementos', alimentar.suplementos)])}
+            ${secao('↔', 'Avaliação antropométrica', 'Medidas e objetivo corporal', [campo('Peso atual', antropometria.peso_atual, 'kg'), campo('Altura', antropometria.altura, 'm'), campo('Peso habitual', antropometria.peso_habitual, 'kg'), campo('Peso desejado', antropometria.peso_desejado, 'kg'), campo('IMC', antropometria.imc), campo('Classificação do IMC', antropometria.classificacao_imc)], 'is-compact')}
+            ${secao('◇', 'Composição corporal', 'Indicadores de bioimpedância e medidas', [campo('Massa muscular', composicao.massa_muscular, 'kg'), campo('Gordura corporal', composicao.gordura_corporal, '%'), campo('Água corporal', composicao.agua_corporal, '%'), campo('Massa óssea', composicao.massa_ossea, 'kg'), campo('Metabolismo basal', composicao.metabolismo_basal, 'kcal'), campo('Circunferência abdominal', composicao.circunferencia_abdominal, 'cm')], 'is-compact')}
+            ${secao('⌁', 'Exames laboratoriais', 'Principais marcadores bioquímicos', [campo('Glicemia', exames.glicemia, 'mg/dL'), campo('Colesterol total', exames.colesterol_total, 'mg/dL'), campo('HDL', exames.hdl, 'mg/dL'), campo('LDL', exames.ldl, 'mg/dL'), campo('Triglicerídeos', exames.triglicerideos, 'mg/dL'), campo('Hemoglobina glicada', exames.hemoglobina_glicada, '%'), campo('Vitamina D', exames.vitamina_d, 'ng/mL'), campo('Ferritina', exames.ferritina, 'ng/mL')], 'is-compact')}
+            ${secao('☀', 'Estilo de vida', 'Atividade, descanso e bem-estar', [campo('Atividade física', estilo.atividade_fisica), campo('Qualidade do sono', estilo.sono), campo('Hábitos', estilo.habitos), campo('Nível de estresse', estilo.nivel_estresse)])}
+            ${secao('✎', 'Observações profissionais', 'Considerações complementares da consulta', [campo('Observações', registro.observacoes)], 'is-full')}
+        </div>`;
     }
 
     renderHistoricoAnamneses() {
@@ -543,14 +553,14 @@ export class AnamneseNutricionista {
                 </div>
             </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhuma anamnese registrada para este paciente.</p>';
         const modal = registroAberto ? `
-            <div id="modalDetalhesAnamnese" style="display:flex; position:fixed; inset:0; z-index:3200; background:rgba(0,0,0,.5); padding:20px; align-items:center; justify-content:center;">
-                <div style="background:white; border-radius:16px; width:98vw; max-width:1600px; height:96vh; max-height:calc(100vh - 16px); overflow:hidden; margin:8px auto; display:flex; flex-direction:column;">
-                    <div style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%); color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex:0 0 auto;">
-                        <strong style="font-size:16px;">Anamnese - ${this.escapeHtml(this.formatarDataHora(registroAberto))} · ${this.escapeHtml(registroAberto.paciente_nome || this.selectedPaciente?.nome || '')}</strong>
-                        <button id="btnFecharDetalhesAnamnese" type="button" aria-label="Fechar" style="background:rgba(255,255,255,.18); color:white; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
+            <div id="modalDetalhesAnamnese" class="anamnese-detail-modal" role="dialog" aria-modal="true" aria-labelledby="tituloDetalhesAnamnese">
+                <div class="anamnese-detail-dialog">
+                    <div class="anamnese-detail-modal-header">
+                        <div><span class="anamnese-detail-eyebrow">Prontuário nutricional</span><h2 id="tituloDetalhesAnamnese">Detalhes da anamnese</h2><p>${this.escapeHtml(this.formatarDataHora(registroAberto))} · ${this.escapeHtml(registroAberto.paciente_nome || this.selectedPaciente?.nome || '')}</p></div>
+                        <button id="btnFecharDetalhesAnamnese" type="button" aria-label="Fechar detalhes da anamnese">×</button>
                     </div>
-                    <div style="padding:10px; overflow-y:auto; flex:1; min-height:0; background:#f8fafc;">
-                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px;">${this.renderDetalhes(registroAberto)}</div>
+                    <div class="anamnese-detail-body">
+                        ${this.renderDetalhes(registroAberto)}
                     </div>
                 </div>
             </div>` : '';

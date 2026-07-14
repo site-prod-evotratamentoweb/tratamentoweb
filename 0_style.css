@@ -766,6 +766,48 @@ body.profile-profissional .section-header h3 {
     margin: 0;
 }
 
+/* Modal de detalhes da anamnese */
+.anamnese-detail-modal { display:flex; position:fixed; inset:0; z-index:3200; padding:20px; align-items:center; justify-content:center; background:rgba(15,23,42,.68); backdrop-filter:blur(4px); }
+.anamnese-detail-dialog { width:min(1180px,96vw); max-height:calc(100vh - 32px); overflow:hidden; display:flex; flex-direction:column; background:#f8fafc; border-radius:20px; box-shadow:0 28px 80px rgba(15,23,42,.38); }
+.anamnese-detail-modal-header { flex:0 0 auto; display:flex; align-items:flex-start; justify-content:space-between; gap:24px; padding:22px 26px; color:#fff; background:linear-gradient(135deg,#172167,#283593); }
+.anamnese-detail-modal-header h2 { margin:3px 0 4px; font-size:24px; line-height:1.2; color:#fff; }
+.anamnese-detail-modal-header p { margin:0; color:rgba(255,255,255,.78); font-size:14px; }
+.anamnese-detail-eyebrow { display:block; color:#c7d2fe; font-size:11px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
+.anamnese-detail-modal-header button { flex:0 0 auto; width:40px; height:40px; display:grid; place-items:center; padding:0; border:1px solid rgba(255,255,255,.24); border-radius:11px; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; font-size:27px; line-height:1; transition:background .2s,transform .2s; }
+.anamnese-detail-modal-header button:hover { background:rgba(255,255,255,.22); transform:translateY(-1px); }
+.anamnese-detail-body { flex:1; min-height:0; overflow-y:auto; padding:22px 26px 30px; }
+.anamnese-detail-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:18px; }
+.anamnese-detail-summary .anamnese-detail-field { background:#eef2ff; border-color:#dbe3ff; }
+.anamnese-detail-sections { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; align-items:start; }
+.anamnese-detail-section { overflow:hidden; background:#fff; border:1px solid #e2e8f0; border-radius:14px; box-shadow:0 2px 8px rgba(15,23,42,.04); }
+.anamnese-detail-section.is-full { grid-column:1/-1; }
+.anamnese-detail-section-header { display:flex; gap:12px; align-items:center; padding:16px 18px; border-bottom:1px solid #e8edf5; }
+.anamnese-detail-section-header h3 { margin:0 0 2px; color:#172167; font-size:16px; line-height:1.3; }
+.anamnese-detail-section-header p { margin:0; color:#64748b; font-size:12px; }
+.anamnese-detail-icon { width:34px; height:34px; flex:0 0 auto; display:grid; place-items:center; border-radius:10px; color:#283593; background:#eef2ff; font-size:17px; font-weight:800; }
+.anamnese-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:14px; }
+.anamnese-detail-section.is-compact .anamnese-detail-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.anamnese-detail-section.is-full .anamnese-detail-grid { grid-template-columns:1fr; }
+.anamnese-detail-field { min-width:0; padding:11px 12px; background:#f8fafc; border:1px solid #edf0f5; border-radius:10px; }
+.anamnese-detail-label { display:block; margin-bottom:5px; color:#64748b; font-size:11px; font-weight:800; letter-spacing:.035em; text-transform:uppercase; }
+.anamnese-detail-value { display:block; color:#1e293b; font-size:14px; line-height:1.5; overflow-wrap:anywhere; white-space:pre-wrap; }
+.anamnese-detail-value small { color:#64748b; font-size:12px; font-weight:600; }
+.anamnese-detail-value.is-empty { color:#94a3b8; font-style:italic; }
+
+@media (max-width:800px) {
+    .anamnese-detail-modal { padding:0; align-items:stretch; }
+    .anamnese-detail-dialog { width:100%; max-height:100vh; border-radius:0; }
+    .anamnese-detail-modal-header { padding:18px; }
+    .anamnese-detail-modal-header h2 { font-size:20px; }
+    .anamnese-detail-body { padding:16px; }
+    .anamnese-detail-summary,.anamnese-detail-sections { grid-template-columns:1fr; }
+    .anamnese-detail-section.is-full { grid-column:auto; }
+}
+
+@media (max-width:520px) {
+    .anamnese-detail-grid,.anamnese-detail-section.is-compact .anamnese-detail-grid { grid-template-columns:1fr; }
+}
+
 body.profile-profissional .info-section {
     background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
     padding: 18px;
