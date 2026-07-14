@@ -158,6 +158,15 @@ export class FuncoesCompartilhadas {
             const pacientesList = [];
             
             for (const [pacienteLogin, pacienteNome] of Object.entries(pacientesMap)) {
+                const pacienteBase = {
+                    login: pacienteLogin,
+                    nome: pacienteNome,
+                    cargo: 'paciente',
+                    perfil: 'operador',
+                    status_ativo: true,
+                    hasUltimoLogin: false
+                };
+
                 try {
                     const pacienteRef = doc(db, "logins", pacienteLogin);
                     const pacienteDoc = await getDoc(pacienteRef);
@@ -165,6 +174,7 @@ export class FuncoesCompartilhadas {
                     if (pacienteDoc.exists()) {
                         const pacienteData = pacienteDoc.data();
                         pacientesList.push({
+                            ...pacienteBase,
                             login: pacienteLogin,
                             nome: pacienteData.nome || pacienteNome,
                             email: pacienteData.email,
@@ -181,16 +191,12 @@ export class FuncoesCompartilhadas {
                             plano: pacienteData.plano
                         });
                     } else {
-                        pacientesList.push({
-                            login: pacienteLogin,
-                            nome: pacienteNome,
-                            cargo: 'paciente',
-                            perfil: 'operador',
-                            status_ativo: true,
-                            hasUltimoLogin: false
-                        });
+                        pacientesList.push(pacienteBase);
                     }
                 } catch (err) {
+                    // O vínculo no mapa do profissional é a fonte principal.
+                    // Mesmo sem acesso ao documento individual, o paciente deve aparecer.
+                    pacientesList.push(pacienteBase);
                 }
             }
             

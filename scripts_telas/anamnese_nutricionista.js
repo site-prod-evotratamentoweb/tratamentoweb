@@ -35,6 +35,17 @@ export class AnamneseNutricionista {
         if (this.selectedPaciente) {
             this.loadAnamnese();
             this.carregarDadosAntropometricos();
+        } else if (!this.pacientesList.length) {
+            void this.carregarPacientes();
+        }
+    }
+
+    async carregarPacientes() {
+        this.pacientesList = await this.funcoes.loadPacientesList(this.userInfo.login);
+        this.navegador.pacientesList = this.pacientesList;
+
+        if (this.pacientesList.length) {
+            this.render();
         }
     }
 

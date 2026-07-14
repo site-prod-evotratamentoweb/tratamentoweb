@@ -341,7 +341,7 @@ export class CadastroCliente {
     }
 
     async loadClientes() {
-        this.clientesList = await this.funcoes.loadPacientesList();
+        this.clientesList = await this.funcoes.loadPacientesList(this.userInfo.login);
         // Atualiza a lista no navegador
         this.navegador.pacientesList = this.clientesList;
         this.refreshTable();
