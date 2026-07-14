@@ -56,7 +56,7 @@ export class AnamneseNutricionista {
             <div class="dashboard-container" style="height: calc(100vh - 24px); max-height: calc(100vh - 24px); margin: 12px auto; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
 
-                <div class="main-content" style="flex: 1; overflow: hidden; padding: 14px 20px; min-height: 0;">
+                <div class="main-content" style="flex: 1; overflow-y: auto; padding: 14px 20px 90px; min-height: 0;">
                     <!-- INFORMAÇÕES DO PACIENTE (com seletor dentro) -->
                     <div id="pacienteInfo" class="info-section" style="margin-bottom: 24px;">
                         <!-- SELETOR DE PACIENTE DENTRO DO CARD -->
@@ -71,7 +71,7 @@ export class AnamneseNutricionista {
                             </select>
                         </div>
 
-                        <div class="info-grid">
+                        <div class="info-grid" style="display:none;">
                             <div class="info-card">
                                 <span class="info-label">Nome</span>
                                 <span class="info-value" id="infoNome">${this.selectedPaciente?.nome || '--'}</span>
@@ -93,6 +93,13 @@ export class AnamneseNutricionista {
 
                     ${this.selectedPaciente ? `
                         ${this.renderHistoricoAnamneses()}
+                        <div id="modalNovaAnamnese" style="display:none; position:fixed; inset:0; z-index:3000; background:rgba(15,23,42,.62); padding:12px; align-items:center; justify-content:center;">
+                            <div style="background:white; width:min(96vw,1100px); height:min(94vh,900px); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 70px rgba(15,23,42,.35);">
+                                <div style="padding:14px 18px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                                    <h3 style="margin:0; color:#1a237e;">Novo Prontuário</h3>
+                                    <button id="btnFecharNovaAnamnese" type="button" class="btn-secondary" aria-label="Fechar">X</button>
+                                </div>
+                                <div style="flex:1; min-height:0; overflow-y:auto; padding:16px;">
                         <!-- ANAMNESE COMPLETA -->
                         <div class="anamnese-container">
                             <!-- Dados da Consulta -->
@@ -315,6 +322,13 @@ export class AnamneseNutricionista {
                                 </div>
                             </div>
                         </div>
+                                </div>
+                                <div style="padding:12px 18px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:10px;">
+                                    <button id="btnCancelarNovaAnamnese" type="button" class="btn-secondary">Cancelar</button>
+                                    <button id="saveAnamneseBtn" type="button" class="btn-primary">Salvar Prontuário</button>
+                                </div>
+                            </div>
+                        </div>
                     ` : `
                         <div class="empty-state" style="text-align: center; padding: 60px; background: white; border-radius: 1rem;">
                             <span class="empty-icon" style="font-size: 48px; opacity: 0.5;">👆</span>
@@ -326,9 +340,9 @@ export class AnamneseNutricionista {
 
                 <!-- BOTÃO SALVAR ANAMNESE (flutuante) -->
                 <div style="position: fixed; bottom: 30px; right: 30px; z-index: 100;">
-                    <button id="saveAnamneseBtn" class="btn-primary btn-expand">
-                        <span>💾</span>
-                        <span class="btn-text">Salvar Anamnese</span>
+                    <button id="btnNovaAnamnese" class="btn-primary btn-expand" title="Novo Prontuário" ${this.selectedPaciente ? '' : 'style="display:none;"'}>
+                        <span>+</span>
+                        <span class="btn-text">Novo Prontuário</span>
                     </button>
                 </div>
             </div>
@@ -336,6 +350,20 @@ export class AnamneseNutricionista {
     }
 
     attachEvents() {
+        const modalNovaAnamnese = document.getElementById('modalNovaAnamnese');
+        const abrirNovaAnamnese = () => {
+            if (modalNovaAnamnese) modalNovaAnamnese.style.display = 'flex';
+        };
+        const fecharNovaAnamnese = () => {
+            if (modalNovaAnamnese) modalNovaAnamnese.style.display = 'none';
+        };
+        document.getElementById('btnNovaAnamnese')?.addEventListener('click', abrirNovaAnamnese);
+        document.getElementById('btnFecharNovaAnamnese')?.addEventListener('click', fecharNovaAnamnese);
+        document.getElementById('btnCancelarNovaAnamnese')?.addEventListener('click', fecharNovaAnamnese);
+        modalNovaAnamnese?.addEventListener('click', (event) => {
+            if (event.target === modalNovaAnamnese) fecharNovaAnamnese();
+        });
+
         // Seletor de paciente
         const pacienteSelect = document.getElementById('pacienteSelect');
         if (pacienteSelect) {
@@ -488,7 +516,7 @@ export class AnamneseNutricionista {
                     <div><strong>Anamnese de ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.profissional || '')}</div></div>
                     <button type="button" class="btn-secondary" data-anamnese-detalhes="${this.escapeHtml(registro.id)}">${this.anamneseExpandida === registro.id ? 'Ocultar detalhes' : 'Exibir detalhes'}</button>
                 </div>
-                ${this.anamneseExpandida === registro.id ? `<div style="display:grid; gap:10px; margin-top:14px;">${this.renderDetalhes(registro)}</div>` : ''}
+                ${this.anamneseExpandida === registro.id ? `<div style="display:grid; gap:10px; margin-top:14px; max-height:55vh; overflow-y:auto; padding-right:6px;">${this.renderDetalhes(registro)}</div>` : ''}
             </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhuma anamnese registrada para este paciente.</p>';
         return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>Histórico de anamneses</h3></div>${conteudo}</section>`;
     }

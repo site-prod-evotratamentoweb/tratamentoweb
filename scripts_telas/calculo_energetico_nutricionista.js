@@ -65,7 +65,7 @@ export class CalculoEnergeticoNutricionista {
             <div class="dashboard-container" style="height: calc(100vh - 24px); max-height: calc(100vh - 24px); margin: 12px auto; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
 
-                <div class="main-content" style="flex: 1; overflow: hidden; padding: 14px 20px; min-height: 0;">
+                <div class="main-content" style="flex: 1; overflow-y: auto; padding: 14px 20px 90px; min-height: 0;">
                     <div id="pacienteInfo" class="info-section" style="margin-bottom: 24px;">
                         <div style="margin-bottom: 20px;">
                             <select id="pacienteSelect" style="width: 100%; max-width: 350px; padding: 10px 14px; border-radius: 10px; border: 2px solid #e2e8f0; background: white;">
@@ -78,7 +78,7 @@ export class CalculoEnergeticoNutricionista {
                             </select>
                         </div>
 
-                        <div class="info-grid">
+                        <div class="info-grid" style="display:none;">
                             <div class="info-card">
                                 <span class="info-label">Nome</span>
                                 <span class="info-value" id="infoNome">${this.selectedPaciente?.nome || '--'}</span>
@@ -104,6 +104,13 @@ export class CalculoEnergeticoNutricionista {
 
                     ${this.selectedPaciente ? `
                         ${this.renderHistoricoCalculos()}
+                        <div id="modalNovoCalculo" style="display:none; position:fixed; inset:0; z-index:3000; background:rgba(15,23,42,.62); padding:12px; align-items:center; justify-content:center;">
+                            <div style="background:white; width:min(96vw,1100px); height:min(94vh,900px); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 70px rgba(15,23,42,.35);">
+                                <div style="padding:14px 18px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                                    <h3 style="margin:0; color:#1a237e;">Novo Cálculo Energético</h3>
+                                    <button id="btnFecharNovoCalculo" type="button" class="btn-secondary" aria-label="Fechar">X</button>
+                                </div>
+                                <div style="flex:1; min-height:0; overflow-y:auto; padding:16px;">
                         <div class="calculo-container">
                             <div class="evaluation-section" style="margin-bottom: 24px;">
                                 <div class="section-header">
@@ -307,6 +314,13 @@ export class CalculoEnergeticoNutricionista {
                                 </div>
                             </div>
                         </div>
+                                </div>
+                                <div style="padding:12px 18px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:10px;">
+                                    <button id="btnCancelarNovoCalculo" type="button" class="btn-secondary">Cancelar</button>
+                                    <button id="saveCalculoBtn" type="button" class="btn-primary">Salvar Cálculo Energético</button>
+                                </div>
+                            </div>
+                        </div>
                     ` : `
                         <div class="empty-state" style="text-align: center; padding: 60px; background: white; border-radius: 1rem;">
                             <span class="empty-icon" style="font-size: 48px; opacity: 0.5;">🧮</span>
@@ -317,9 +331,9 @@ export class CalculoEnergeticoNutricionista {
                 </div>
 
                 <div style="position: fixed; bottom: 30px; right: 30px; z-index: 100;">
-                    <button id="saveCalculoBtn" class="btn-primary btn-expand">
-                        <span>💾</span>
-                        <span class="btn-text">Salvar Cálculo</span>
+                    <button id="btnNovoCalculo" class="btn-primary btn-expand" title="Novo Cálculo Energético" ${this.selectedPaciente ? '' : 'style="display:none;"'}>
+                        <span>+</span>
+                        <span class="btn-text">Novo Cálculo Energético</span>
                     </button>
                 </div>
             </div>
@@ -327,6 +341,20 @@ export class CalculoEnergeticoNutricionista {
     }
 
     attachEvents() {
+        const modalNovoCalculo = document.getElementById('modalNovoCalculo');
+        const abrirNovoCalculo = () => {
+            if (modalNovoCalculo) modalNovoCalculo.style.display = 'flex';
+        };
+        const fecharNovoCalculo = () => {
+            if (modalNovoCalculo) modalNovoCalculo.style.display = 'none';
+        };
+        document.getElementById('btnNovoCalculo')?.addEventListener('click', abrirNovoCalculo);
+        document.getElementById('btnFecharNovoCalculo')?.addEventListener('click', fecharNovoCalculo);
+        document.getElementById('btnCancelarNovoCalculo')?.addEventListener('click', fecharNovoCalculo);
+        modalNovoCalculo?.addEventListener('click', (event) => {
+            if (event.target === modalNovoCalculo) fecharNovoCalculo();
+        });
+
         const pacienteSelect = document.getElementById('pacienteSelect');
         if (pacienteSelect) {
             pacienteSelect.addEventListener('change', async (e) => {
@@ -664,7 +692,7 @@ export class CalculoEnergeticoNutricionista {
                     <div><strong>Cálculo de ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.objetivo || '')} · ${this.escapeHtml(registro.vet_ajustado || '--')} kcal</div></div>
                     <button type="button" class="btn-secondary" data-calculo-detalhes="${this.escapeHtml(registro.id)}">${this.calculoExpandido === registro.id ? 'Ocultar detalhes' : 'Exibir detalhes'}</button>
                 </div>
-                ${this.calculoExpandido === registro.id ? `<div style="display:grid; gap:10px; margin-top:14px;">${this.renderDetalhes(registro)}</div>` : ''}
+                ${this.calculoExpandido === registro.id ? `<div style="display:grid; gap:10px; margin-top:14px; max-height:55vh; overflow-y:auto; padding-right:6px;">${this.renderDetalhes(registro)}</div>` : ''}
             </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhum cálculo energético registrado para este paciente.</p>';
         return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>Histórico de cálculos energéticos</h3></div>${conteudo}</section>`;
     }
