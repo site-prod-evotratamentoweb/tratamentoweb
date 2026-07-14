@@ -1,7 +1,7 @@
 import { FuncoesCompartilhadas } from './0_home.js';
 import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
-import { db, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, serverTimestamp, uploadParaCloudinary, excluirDoCloudinary } from '../0_firebase_api_config.js';
+import { db, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, serverTimestamp, uploadParaCloudinary, excluirDoCloudinary, obterAcessoJaaS } from '../0_firebase_api_config.js';
 
 export class PalestrasVideosProfissional {
     constructor(userInfo, pacientesList = []) {
@@ -146,30 +146,33 @@ export class PalestrasVideosProfissional {
         const dados = { titulo:document.getElementById('palestraTitulo').value.trim(), descricao:document.getElementById('palestraDescricao').value.trim(), tipo_inicio:tipo, inicio_em:inicio.toISOString(), duracao_minutos:Number(document.getElementById('palestraDuracao').value), visibilidade, pacientes_exclusivos:visibilidade === 'exclusivo' ? pacientes : [], profissional_login:this.userInfo.login, profissional_nome:this.userInfo.nome || this.userInfo.login, profissional_cargo:this.userInfo.cargo, sala_jitsi:this.palestraEditando?.sala_jitsi || this.gerarNomeSala(), termo_responsabilidade_aceito:true, termo_responsabilidade_versao:'1.0', termo_responsabilidade_aceito_em:serverTimestamp(), atualizado_em:serverTimestamp() };
         const botao = document.getElementById('btnSalvarPalestra'); botao.disabled = true;
         try {
-            if (this.palestraEditando) await updateDoc(doc(db,'palestras_ao_vivo',this.palestraEditando.id),dados);
-            else await addDoc(collection(db,'palestras_ao_vivo'),{...dados,criado_em:serverTimestamp()});
+            const palestraAtual = this.palestraEditando;
+            let palestraId;
+            if (palestraAtual) { palestraId = palestraAtual.id; await updateDoc(doc(db,'palestras_ao_vivo',palestraId),dados); }
+            else { const referencia = await addDoc(collection(db,'palestras_ao_vivo'),{...dados,criado_em:serverTimestamp()}); palestraId = referencia.id; }
             this.fecharModalPalestra(); await this.carregarPalestras();
-            if (tipo === 'imediato') this.entrarNaSala({ ...dados, id:this.palestraEditando?.id });
+            if (tipo === 'imediato') this.entrarNaSala({ ...dados, id:palestraId });
         } catch (error) { alert(`Não foi possível salvar a palestra: ${error.message}`); }
         finally { botao.disabled = false; }
     }
 
     async excluirPalestra(id) { const p=this.palestras.find(i=>i.id===id); if(!p||!confirm(`Excluir “${p.titulo}”?`))return; try{await deleteDoc(doc(db,'palestras_ao_vivo',id));await this.carregarPalestras();}catch(error){alert(`Não foi possível excluir: ${error.message}`);} }
 
-    async carregarJitsi() {
+    async carregarJitsi(appId) {
         if (window.JitsiMeetExternalAPI) return;
-        await new Promise((resolve,reject) => { const s=document.createElement('script');s.src='https://meet.jit.si/external_api.js';s.onload=resolve;s.onerror=()=>reject(new Error('Não foi possível carregar o Jitsi Meet.'));document.head.appendChild(s); });
+        await new Promise((resolve,reject) => { const s=document.createElement('script');s.src=`https://8x8.vc/${encodeURIComponent(appId)}/external_api.js`;s.onload=resolve;s.onerror=()=>reject(new Error('Não foi possível carregar o Jitsi as a Service.'));document.head.appendChild(s); });
     }
 
     async entrarNaSala(palestra) {
         if (!palestra) return;
         try {
-            await this.carregarJitsi();
+            const acesso = await obterAcessoJaaS(palestra.id);
+            await this.carregarJitsi(acesso.appId);
             document.getElementById('tituloSalaJitsi').textContent = palestra.titulo;
             document.getElementById('modalSalaJitsi').hidden = false;
             const container=document.getElementById('jitsiContainer'); container.innerHTML='';
             this.jitsiApi?.dispose();
-            this.jitsiApi = new window.JitsiMeetExternalAPI('meet.jit.si',{ roomName:palestra.sala_jitsi, parentNode:container, width:'100%', height:'100%', lang:'pt', userInfo:{ displayName:this.userInfo.nome || this.userInfo.login }, configOverwrite:{ prejoinConfig:{enabled:true}, startWithAudioMuted:true, disableDeepLinking:true } });
+            this.jitsiApi = new window.JitsiMeetExternalAPI('8x8.vc',{ roomName:acesso.roomName, jwt:acesso.jwt, parentNode:container, width:'100%', height:'100%', lang:'pt', configOverwrite:{ prejoinConfig:{enabled:true}, startWithAudioMuted:true, disableDeepLinking:true, disableInviteFunctions:true } });
         } catch(error) { alert(error.message); }
     }
 
