@@ -115,9 +115,10 @@ async function uploadParaImgbb(imagemBase64) {
 async function apiAutenticada(caminho, options = {}) {
     const token = getSessionAuthToken();
     if (!token) throw new Error('Sessão expirada. Faça login novamente.');
+    const organizationToken = await auth?.currentUser?.getIdToken();
     const response = await fetch(`${getRenderApiBaseUrl()}${caminho}`, {
         ...options,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options.headers || {}) }
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(organizationToken ? { 'X-Organization-Token': organizationToken } : {}), ...(options.headers || {}) }
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error?.message || 'Falha na comunicação com o servidor.');
