@@ -1687,4 +1687,7 @@ body.profile-paciente .media-library-main { height:calc(100vh - 76px); min-heigh
 .media-card-footer .media-footer-description { flex:1 1 auto; min-width:0; overflow:hidden; color:#64748b; font-size:12px; white-space:nowrap; text-overflow:ellipsis; }
 .media-card-footer>small { flex:0 0 auto; margin-left:8px; white-space:nowrap; }
 .media-card-footer>div { flex:0 0 auto; }
+.lecture-responsibility { display:flex; align-items:flex-start; gap:11px; padding:13px 14px; border:1px solid #fcd34d; border-radius:11px; background:#fffbeb; cursor:pointer; }
+.lecture-responsibility input { flex:0 0 auto; margin-top:3px; accent-color:#1a237e; }
+.lecture-responsibility strong,.lecture-responsibility small { display:block; }.lecture-responsibility strong { margin-bottom:4px; color:#92400e; font-size:12px; }.lecture-responsibility small { color:#78350f; font-size:11px; font-weight:500; line-height:1.5; }
 @media (max-width:700px) { body.profile-profissional .media-library-main { padding:10px 12px 0!important; } body.profile-paciente .media-library-main { height:calc(100vh - 62px); padding:10px 12px 0!important; }.media-create-actions { right:18px; bottom:18px; }.media-library-main .media-tab-panel { padding-bottom:78px; } }
