@@ -10,6 +10,9 @@ export class AnamneseNutricionista {
         this.pacientesList = pacientesList || [];
         this.selectedPaciente = null;
         this.currentAnamnese = null;
+        this.anamnesesList = [];
+        this.anamneseExpandida = null;
+        this.historicoCarregadoLogin = null;
         this.menu = null;
         this.navegador = criarNavegador(userInfo, this.pacientesList);
     }
@@ -32,9 +35,8 @@ export class AnamneseNutricionista {
         // Atualiza a lista de pacientes no navegador
         this.navegador.pacientesList = this.pacientesList;
         
-        if (this.selectedPaciente) {
-            this.loadAnamnese();
-            this.carregarDadosAntropometricos();
+        if (this.selectedPaciente && this.historicoCarregadoLogin !== this.selectedPaciente.login) {
+            void this.loadAnamnese();
         } else if (!this.pacientesList.length) {
             void this.carregarPacientes();
         }
@@ -90,6 +92,7 @@ export class AnamneseNutricionista {
                     </div>
 
                     ${this.selectedPaciente ? `
+                        ${this.renderHistoricoAnamneses()}
                         <!-- ANAMNESE COMPLETA -->
                         <div class="anamnese-container">
                             <!-- Dados da Consulta -->
@@ -340,6 +343,10 @@ export class AnamneseNutricionista {
                 const login = e.target.value;
                 if (login) {
                     this.selectedPaciente = this.pacientesList.find(p => p.login === login);
+                    this.currentAnamnese = null;
+                    this.anamnesesList = [];
+                    this.anamneseExpandida = null;
+                    this.historicoCarregadoLogin = null;
                     await this.render();
                 } else {
                     this.selectedPaciente = null;
@@ -383,6 +390,14 @@ export class AnamneseNutricionista {
         const saveBtn = document.getElementById('saveAnamneseBtn');
         if (saveBtn) saveBtn.addEventListener('click', () => this.saveAnamnese());
 
+        document.querySelectorAll('[data-anamnese-detalhes]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const id = button.dataset.anamneseDetalhes;
+                this.anamneseExpandida = this.anamneseExpandida === id ? null : id;
+                this.render();
+            });
+        });
+
         // Data padrão
         const dataInput = document.getElementById('dataAnamnese');
         if (dataInput && !dataInput.value) {
@@ -411,28 +426,71 @@ export class AnamneseNutricionista {
 
     async loadAnamnese() {
         if (!this.selectedPaciente) return;
+        const pacienteLogin = this.selectedPaciente.login;
         
         try {
             // CORRIGIDO: usar 'db' em vez de 'window.db'
             const anamneseRef = collection(db, 'anamneses_nutricionais');
-            const q = query(anamneseRef, where('paciente_login', '==', this.selectedPaciente.login));
+            const q = query(anamneseRef, where('paciente_login', '==', pacienteLogin));
             const querySnapshot = await getDocs(q);
+            if (this.selectedPaciente?.login !== pacienteLogin) return;
             
             if (!querySnapshot.empty) {
                 // Pega a anamnese mais recente (última atualização)
-                const docs = querySnapshot.docs;
-                docs.sort((a, b) => {
-                    const dateA = a.data().data_atualizacao || a.data().data_anamnese;
-                    const dateB = b.data().data_atualizacao || b.data().data_anamnese;
-                    return new Date(dateB) - new Date(dateA);
-                });
-                this.currentAnamnese = { id: docs[0].id, ...docs[0].data() };
+                this.anamnesesList = querySnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+                this.anamnesesList.sort((a, b) => this.obterDataRegistro(b) - this.obterDataRegistro(a));
+                this.currentAnamnese = null;
             } else {
+                this.anamnesesList = [];
                 this.currentAnamnese = null;
             }
         } catch (error) {
+            this.anamnesesList = [];
             this.currentAnamnese = null;
         }
+        if (this.selectedPaciente?.login !== pacienteLogin) return;
+        this.historicoCarregadoLogin = pacienteLogin;
+        this.render();
+    }
+
+    obterDataRegistro(registro) {
+        const valor = registro?.data_criacao || registro?.data_atualizacao || registro?.data_anamnese;
+        if (valor?.toDate) return valor.toDate();
+        const data = new Date(valor || 0);
+        return Number.isNaN(data.getTime()) ? new Date(0) : data;
+    }
+
+    formatarDataHora(registro) {
+        const data = this.obterDataRegistro(registro);
+        if (!data.getTime()) return registro?.data_anamnese || 'Data não informada';
+        return data.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    escapeHtml(valor) {
+        return String(valor ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    }
+
+    renderDetalhes(registro) {
+        const ignorar = new Set(['id', 'paciente_login', 'paciente_nome', 'profissional_login', 'data_criacao', 'data_atualizacao']);
+        const renderValor = (valor) => {
+            if (valor && typeof valor === 'object' && !valor.toDate) {
+                return `<div style="display:grid; gap:8px; margin-top:6px;">${Object.entries(valor).map(([chave, item]) => `<div><strong>${this.escapeHtml(chave.replaceAll('_', ' '))}:</strong> ${renderValor(item)}</div>`).join('')}</div>`;
+            }
+            return this.escapeHtml(valor === null || valor === '' || valor === undefined ? '--' : valor);
+        };
+        return Object.entries(registro).filter(([chave]) => !ignorar.has(chave)).map(([chave, valor]) => `<div style="padding:10px; background:#f8fafc; border-radius:8px;"><strong>${this.escapeHtml(chave.replaceAll('_', ' '))}:</strong> ${renderValor(valor)}</div>`).join('');
+    }
+
+    renderHistoricoAnamneses() {
+        const conteudo = this.anamnesesList.length ? this.anamnesesList.map((registro) => `
+            <div style="border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-top:10px; background:white;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <div><strong>Anamnese de ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.profissional || '')}</div></div>
+                    <button type="button" class="btn-secondary" data-anamnese-detalhes="${this.escapeHtml(registro.id)}">${this.anamneseExpandida === registro.id ? 'Ocultar detalhes' : 'Exibir detalhes'}</button>
+                </div>
+                ${this.anamneseExpandida === registro.id ? `<div style="display:grid; gap:10px; margin-top:14px;">${this.renderDetalhes(registro)}</div>` : ''}
+            </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhuma anamnese registrada para este paciente.</p>';
+        return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>Histórico de anamneses</h3></div>${conteudo}</section>`;
     }
 
     async saveAnamnese() {
@@ -448,6 +506,7 @@ export class AnamneseNutricionista {
                 profissional: this.userInfo.nome,
                 profissional_login: this.userInfo.login,
                 data_anamnese: document.getElementById('dataAnamnese')?.value || new Date().toISOString().split('T')[0],
+                data_criacao: new Date().toISOString(),
                 data_atualizacao: new Date().toISOString(),
                 
                 historico_clinico: {
@@ -516,6 +575,7 @@ export class AnamneseNutricionista {
                 alert('✅ Anamnese criada com sucesso!');
             }
             
+            this.historicoCarregadoLogin = null;
             await this.loadAnamnese();
         } catch (error) {
             alert('❌ Erro ao salvar: ' + error.message);

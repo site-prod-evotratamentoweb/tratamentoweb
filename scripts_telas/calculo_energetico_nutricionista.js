@@ -19,6 +19,9 @@ export class CalculoEnergeticoNutricionista {
         this.pacientesList = pacientesList || [];
         this.selectedPaciente = null;
         this.currentCalculo = null;
+        this.calculosList = [];
+        this.calculoExpandido = null;
+        this.historicoCarregadoLogin = null;
         this.menu = null;
         this.navegador = criarNavegador(userInfo, this.pacientesList);
     }
@@ -39,8 +42,10 @@ export class CalculoEnergeticoNutricionista {
         
         this.attachEvents();
         if (this.selectedPaciente) {
-            this.loadCalculo();
             this.carregarDadosPaciente();
+            if (this.historicoCarregadoLogin !== this.selectedPaciente.login) {
+                void this.loadCalculo();
+            }
         } else if (!this.pacientesList.length) {
             void this.carregarPacientes();
         }
@@ -98,6 +103,7 @@ export class CalculoEnergeticoNutricionista {
                     </div>
 
                     ${this.selectedPaciente ? `
+                        ${this.renderHistoricoCalculos()}
                         <div class="calculo-container">
                             <div class="evaluation-section" style="margin-bottom: 24px;">
                                 <div class="section-header">
@@ -327,6 +333,10 @@ export class CalculoEnergeticoNutricionista {
                 const login = e.target.value;
                 if (login) {
                     this.selectedPaciente = this.pacientesList.find(p => p.login === login);
+                    this.currentCalculo = null;
+                    this.calculosList = [];
+                    this.calculoExpandido = null;
+                    this.historicoCarregadoLogin = null;
                     await this.render();
                     this.carregarDadosPaciente();
                 } else {
@@ -353,6 +363,14 @@ export class CalculoEnergeticoNutricionista {
 
         const saveBtn = document.getElementById('saveCalculoBtn');
         if (saveBtn) saveBtn.addEventListener('click', () => this.saveCalculo());
+
+        document.querySelectorAll('[data-calculo-detalhes]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const id = button.dataset.calculoDetalhes;
+                this.calculoExpandido = this.calculoExpandido === id ? null : id;
+                this.render();
+            });
+        });
     }
 
     carregarDadosPaciente() {
@@ -585,27 +603,70 @@ export class CalculoEnergeticoNutricionista {
 
     async loadCalculo() {
         if (!this.selectedPaciente) return;
+        const pacienteLogin = this.selectedPaciente.login;
         
         try {
             // ✅ CORRIGIDO: window.db → db
             const calculoRef = collection(db, 'calculos_energeticos');
-            const q = query(calculoRef, where('paciente_login', '==', this.selectedPaciente.login));
+            const q = query(calculoRef, where('paciente_login', '==', pacienteLogin));
             const querySnapshot = await getDocs(q);
+            if (this.selectedPaciente?.login !== pacienteLogin) return;
             
             if (!querySnapshot.empty) {
-                const docs = querySnapshot.docs;
-                docs.sort((a, b) => {
-                    const dateA = a.data().data_atualizacao || a.data().data_calculo;
-                    const dateB = b.data().data_atualizacao || b.data().data_calculo;
-                    return new Date(dateB) - new Date(dateA);
-                });
-                this.currentCalculo = { id: docs[0].id, ...docs[0].data() };
+                this.calculosList = querySnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+                this.calculosList.sort((a, b) => this.obterDataRegistro(b) - this.obterDataRegistro(a));
+                this.currentCalculo = null;
             } else {
+                this.calculosList = [];
                 this.currentCalculo = null;
             }
         } catch (error) {
+            this.calculosList = [];
             this.currentCalculo = null;
         }
+        if (this.selectedPaciente?.login !== pacienteLogin) return;
+        this.historicoCarregadoLogin = pacienteLogin;
+        this.render();
+    }
+
+    obterDataRegistro(registro) {
+        const valor = registro?.data_criacao || registro?.data_atualizacao || registro?.data_calculo;
+        if (valor?.toDate) return valor.toDate();
+        const data = new Date(valor || 0);
+        return Number.isNaN(data.getTime()) ? new Date(0) : data;
+    }
+
+    formatarDataHora(registro) {
+        const data = this.obterDataRegistro(registro);
+        if (!data.getTime()) return registro?.data_calculo || 'Data não informada';
+        return data.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    escapeHtml(valor) {
+        return String(valor ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    }
+
+    renderDetalhes(registro) {
+        const ignorar = new Set(['id', 'paciente_login', 'paciente_nome', 'profissional_login', 'data_criacao', 'data_atualizacao']);
+        const renderValor = (valor) => {
+            if (valor && typeof valor === 'object' && !valor.toDate) {
+                return `<div style="display:grid; gap:8px; margin-top:6px;">${Object.entries(valor).map(([chave, item]) => `<div><strong>${this.escapeHtml(chave.replaceAll('_', ' '))}:</strong> ${renderValor(item)}</div>`).join('')}</div>`;
+            }
+            return this.escapeHtml(valor === null || valor === '' || valor === undefined ? '--' : valor);
+        };
+        return Object.entries(registro).filter(([chave]) => !ignorar.has(chave)).map(([chave, valor]) => `<div style="padding:10px; background:#f8fafc; border-radius:8px;"><strong>${this.escapeHtml(chave.replaceAll('_', ' '))}:</strong> ${renderValor(valor)}</div>`).join('');
+    }
+
+    renderHistoricoCalculos() {
+        const conteudo = this.calculosList.length ? this.calculosList.map((registro) => `
+            <div style="border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-top:10px; background:white;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <div><strong>Cálculo de ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.objetivo || '')} · ${this.escapeHtml(registro.vet_ajustado || '--')} kcal</div></div>
+                    <button type="button" class="btn-secondary" data-calculo-detalhes="${this.escapeHtml(registro.id)}">${this.calculoExpandido === registro.id ? 'Ocultar detalhes' : 'Exibir detalhes'}</button>
+                </div>
+                ${this.calculoExpandido === registro.id ? `<div style="display:grid; gap:10px; margin-top:14px;">${this.renderDetalhes(registro)}</div>` : ''}
+            </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhum cálculo energético registrado para este paciente.</p>';
+        return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>Histórico de cálculos energéticos</h3></div>${conteudo}</section>`;
     }
 
     async saveCalculo() {
@@ -623,6 +684,7 @@ export class CalculoEnergeticoNutricionista {
                 profissional: this.userInfo.nome,
                 profissional_login: this.userInfo.login,
                 data_calculo: new Date().toISOString().split('T')[0],
+                data_criacao: new Date().toISOString(),
                 data_atualizacao: new Date().toISOString(),
                 
                 peso: parseFloat(document.getElementById('peso')?.value) || null,
@@ -677,6 +739,7 @@ export class CalculoEnergeticoNutricionista {
                 alert('✅ Cálculo energético salvo com sucesso!');
             }
             
+            this.historicoCarregadoLogin = null;
             await this.loadCalculo();
         } catch (error) {
             alert('❌ Erro ao salvar: ' + error.message);
