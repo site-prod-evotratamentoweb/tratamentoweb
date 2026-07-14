@@ -683,14 +683,79 @@ export class CalculoEnergeticoNutricionista {
     }
 
     renderDetalhes(registro) {
-        const ignorar = new Set(['id', 'paciente_login', 'paciente_nome', 'profissional_login', 'data_criacao', 'data_atualizacao']);
-        const renderValor = (valor) => {
-            if (valor && typeof valor === 'object' && !valor.toDate) {
-                return `<div style="display:grid; gap:8px; margin-top:6px;">${Object.entries(valor).map(([chave, item]) => `<div><strong>${this.escapeHtml(chave.replaceAll('_', ' '))}:</strong> ${renderValor(item)}</div>`).join('')}</div>`;
-            }
-            return this.escapeHtml(valor === null || valor === '' || valor === undefined ? '--' : valor);
+        const exibir = (valor, sufixo = '') => valor === null || valor === undefined || valor === ''
+            ? '--'
+            : `${this.escapeHtml(valor)}${sufixo}`;
+        const rotulos = {
+            harris_benedict: 'Harris-Benedict', mifflin: 'Mifflin-St Jeor', cunningham: 'Cunningham',
+            fao_who: 'FAO/WHO/UNU', katch_mcardle: 'Katch-McArdle', hipertrofia: 'Hipertrofia muscular',
+            emagrecimento: 'Emagrecimento', manutencao: 'Manutenção', ganho_peso: 'Ganho de peso',
+            masculino: 'Masculino', feminino: 'Feminino', g_kg: 'Gramas por kg', percentual: 'Percentual do VET'
         };
-        return Object.entries(registro).filter(([chave]) => !ignorar.has(chave)).map(([chave, valor]) => `<div style="padding:10px; background:#f8fafc; border-radius:8px;"><strong>${this.escapeHtml(chave.replaceAll('_', ' '))}:</strong> ${renderValor(valor)}</div>`).join('');
+        const rotulo = (valor) => this.escapeHtml(rotulos[valor] || valor || '--');
+        const campo = (titulo, valor, destaque = false) => `
+            <div style="padding:10px 12px; border:1px solid #e2e8f0; border-radius:8px; background:${destaque ? '#eef2ff' : 'white'};">
+                <div style="font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px;">${titulo}</div>
+                <div style="font-size:${destaque ? '20px' : '15px'}; font-weight:${destaque ? '800' : '600'}; color:${destaque ? '#1a237e' : '#334155'};">${valor}</div>
+            </div>`;
+        const secao = (titulo, subtitulo, conteudo, larguraTotal = false) => `
+            <section style="background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; ${larguraTotal ? 'grid-column:1/-1;' : ''}">
+                <div style="padding:12px 14px; border-bottom:1px solid #e2e8f0;">
+                    <h4 style="margin:0; color:#1a237e; font-size:16px;">${titulo}</h4>
+                    <p style="margin:4px 0 0; color:#64748b; font-size:13px;">${subtitulo}</p>
+                </div>
+                <div style="padding:12px; display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px;">${conteudo}</div>
+            </section>`;
+        const macro = (titulo, dados, cor, subtitulo) => `
+            <div style="background:white; border:1px solid #e2e8f0; border-top:4px solid ${cor}; border-radius:10px; padding:13px;">
+                <div style="font-size:16px; font-weight:800; color:#1e293b;">${titulo}</div>
+                <div style="font-size:12px; color:#64748b; margin:3px 0 12px;">${subtitulo}</div>
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px;">
+                    ${campo('Quantidade', exibir(dados?.gramas, ' g'))}
+                    ${campo('Energia', exibir(dados?.kcal, ' kcal'))}
+                    ${campo('Distribuição', exibir(dados?.percentual, '%'))}
+                    ${campo('Referência', dados?.metodo === 'g_kg' ? exibir(dados?.g_kg, ' g/kg') : rotulo(dados?.metodo))}
+                </div>
+            </div>`;
+
+        return `
+            <div style="display:grid; gap:14px; max-width:1400px; margin:0 auto;">
+                <section style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%); border-radius:12px; padding:16px; color:white;">
+                    <div style="font-size:13px; opacity:.82; margin-bottom:10px;">Resumo energético calculado</div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px;">
+                        ${campo('Gasto energético basal', exibir(registro.geb, ' kcal'), true)}
+                        ${campo('Gasto energético total', exibir(registro.get, ' kcal'), true)}
+                        ${campo('VET ajustado', exibir(registro.vet_ajustado, ' kcal'), true)}
+                    </div>
+                </section>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px;">
+                    ${secao('Dados antropométricos', 'Medidas utilizadas como base para o cálculo.', [
+                        campo('Peso atual', exibir(registro.peso, ' kg')),
+                        campo('Altura', exibir(registro.altura, ' m')),
+                        campo('Idade', exibir(registro.idade, ' anos')),
+                        campo('Sexo', rotulo(registro.sexo)),
+                        campo('Massa magra', exibir(registro.massa_magra, ' kg'))
+                    ].join(''))}
+                    ${secao('Método e atividade', 'Critérios aplicados ao gasto energético.', [
+                        campo('Fórmula utilizada', rotulo(registro.formula)),
+                        campo('Fator de atividade', exibir(registro.fator_atividade)),
+                        campo('Profissional', exibir(registro.profissional))
+                    ].join(''))}
+                    ${secao('Objetivo e ajustes', 'Estratégia energética definida para o paciente.', [
+                        campo('Objetivo', rotulo(registro.objetivo)),
+                        campo('Adicional energético', exibir(registro.adicional_energetico, ' kcal')),
+                        campo('Déficit energético', exibir(registro.deficit_energetico, ' kcal'))
+                    ].join(''), true)}
+                </div>
+                <section style="background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
+                    <div style="padding:12px 14px; border-bottom:1px solid #e2e8f0;"><h4 style="margin:0; color:#1a237e; font-size:16px;">Distribuição de macronutrientes</h4><p style="margin:4px 0 0; color:#64748b; font-size:13px;">Quantidades, energia e participação no valor energético total.</p></div>
+                    <div style="padding:12px; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px;">
+                        ${macro('Proteínas', registro.proteinas, '#dc2626', 'Construção e recuperação muscular')}
+                        ${macro('Carboidratos', registro.carboidratos, '#d97706', 'Principal fonte de energia')}
+                        ${macro('Lipídios', registro.lipidios, '#0f766e', 'Gorduras e suporte metabólico')}
+                    </div>
+                </section>
+            </div>`;
     }
 
     renderHistoricoCalculos() {
@@ -710,7 +775,7 @@ export class CalculoEnergeticoNutricionista {
                         <button id="btnFecharDetalhesCalculo" type="button" aria-label="Fechar" style="background:rgba(255,255,255,.18); color:white; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                     </div>
                     <div style="padding:10px; overflow-y:auto; flex:1; min-height:0; background:#f8fafc;">
-                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px;">${this.renderDetalhes(registroAberto)}</div>
+                        ${this.renderDetalhes(registroAberto)}
                     </div>
                 </div>
             </div>` : '';
