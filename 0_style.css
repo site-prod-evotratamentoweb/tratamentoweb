@@ -1121,6 +1121,14 @@ body.profile-profissional .detalhes-actions {
 }
 
 /* Plano Alimentar */
+.manual-usage-button {
+    text-decoration: none;
+    order: -1;
+}
+
+.manual-usage-button .fab-icon {
+    font-weight: 800;
+}
 body.profile-profissional .meals-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));

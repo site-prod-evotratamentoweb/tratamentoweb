@@ -1,0 +1,59 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Length 2486 >>
+stream
+BT /F1 20 Tf 52 790 Td (Manual de Uso - Plano Alimentar) Tj ET
+BT /F1 14 Tf 52 766 Td (1. Preparacao) Tj ET
+BT /F1 10 Tf 52 747 Td (Selecione o paciente no campo superior. Todo plano pertence ao paciente selecionado.) Tj ET
+BT /F1 14 Tf 52 731 Td (2. Lista de Alimentos) Tj ET
+BT /F1 10 Tf 52 712 Td (Abra Lista de Alimentos para pesquisar, criar e editar itens. Cadastre categoria,) Tj ET
+BT /F1 10 Tf 52 699 Td (unidade, gramatura, calorias, carboidratos, proteinas e gorduras. Configuracoes permite) Tj ET
+BT /F1 10 Tf 52 686 Td (revisar categorias e unidades. Atualizar TACO incorpora a base padrao. A lista pode ser) Tj ET
+BT /F1 10 Tf 52 673 Td (importada ou exportada em XLSX.) Tj ET
+BT /F1 14 Tf 52 657 Td (3. Novo Plano) Tj ET
+BT /F1 10 Tf 52 638 Td (Clique em Novo Plano Alimentar, informe a meta diaria em kcal, selecione uma refeicao,) Tj ET
+BT /F1 10 Tf 52 625 Td (escolha alimento e quantidade e use o botao +. Repita nas demais refeicoes e salve.) Tj ET
+BT /F1 14 Tf 52 609 Td (4. Refeicoes e modais) Tj ET
+BT /F1 10 Tf 52 590 Td (Obs registra orientacoes da refeicao. O olho abre detalhes nutricionais. O lapis edita.) Tj ET
+BT /F1 10 Tf 52 577 Td (O botao + cria substituicao e X remove. Os itens podem ser reorganizados.) Tj ET
+BT /F1 14 Tf 52 561 Td (5. Painel nutricional) Tj ET
+BT /F1 10 Tf 52 542 Td (Exibir Plano mostra total de calorias comparado com a meta e gramas de proteinas,) Tj ET
+BT /F1 10 Tf 52 529 Td (carboidratos, lipidios, fibras, gordura saturada e trans. Dados ausentes ficam zerados e) Tj ET
+BT /F1 10 Tf 52 516 Td (nao sao estimados. O olho de cada refeicao mostra o subtotal.) Tj ET
+BT /F1 14 Tf 52 500 Td (6. Importar e exportar) Tj ET
+BT /F1 10 Tf 52 481 Td (Importar Plano recebe XLSX compativel. Depois da importacao, confira paciente,) Tj ET
+BT /F1 10 Tf 52 468 Td (quantidades e totais. Em Exibir Plano, abra o menu e use Exportar para gerar PDF ou) Tj ET
+BT /F1 10 Tf 52 455 Td (XLSX.) Tj ET
+BT /F1 14 Tf 52 439 Td (7. Editar e plano atual) Tj ET
+BT /F1 10 Tf 52 420 Td (Use Tornar atual para indicar a prescricao vigente. Em Exibir Plano, use Editar Plano e) Tj ET
+BT /F1 10 Tf 52 407 Td (conclua a edicao. Excluir Plano e definitivo e exige confirmacao.) Tj ET
+BT /F1 14 Tf 52 391 Td (8. Check-in do paciente) Tj ET
+BT /F1 10 Tf 52 372 Td (No acesso do paciente, Refeicao realizada registra a adesao diaria. O contador mostra) Tj ET
+BT /F1 10 Tf 52 359 Td (quantas refeicoes foram concluidas. O check-in nao altera a prescricao.) Tj ET
+endstream
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 3 0 R >>
+endobj
+5 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000000136 00000 n 
+0000002674 00000 n 
+0000002800 00000 n 
+trailer
+<< /Size 6 /Root 5 0 R >>
+startxref
+2849
+%%EOF

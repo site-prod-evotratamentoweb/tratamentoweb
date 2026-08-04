@@ -160,6 +160,9 @@ export class PlanoAlimentarCliente {
                 <div class="menu-overlay" id="menuOverlay"></div>
 
                 <div class="content p-3">
+                    <a class="fab-button manual-usage-button" href="manuais/manual-plano-alimentar-paciente.pdf" download="Manual-de-Uso-Meu-Plano-Alimentar.pdf" title="Baixar Manual de Uso" aria-label="Baixar Manual de Uso" style="position:fixed;right:24px;bottom:24px;z-index:1000;">
+                        <span class="fab-icon">?</span><span class="fab-text">Manual de Uso</span>
+                    </a>
                     <div class="client-info mb-3">
                         <h3>📋 Meus Dados</h3>
                         <div class="info-card">
@@ -249,12 +252,8 @@ export class PlanoAlimentarCliente {
                     
                     ${isExpanded ? `
                         <div style="border-top: 1px solid #e2e8f0; padding: 20px; background: #f8fafc;">
-                            ${plano.breakfast ? this.renderRefeicaoCard('🌅 Café da Manhã', plano.breakfast) : ''}
-                            ${plano.morningSnack ? this.renderRefeicaoCard('🍎 Lanche da Manhã', plano.morningSnack) : ''}
-                            ${plano.lunch ? this.renderRefeicaoCard('🍽️ Almoço', plano.lunch) : ''}
-                            ${plano.afternoonSnack ? this.renderRefeicaoCard('🍌 Lanche da Tarde', plano.afternoonSnack) : ''}
-                            ${plano.dinner ? this.renderRefeicaoCard('🌙 Jantar', plano.dinner) : ''}
-                            ${plano.supper ? this.renderRefeicaoCard('⭐ Ceia', plano.supper) : ''}
+                            ${this.renderPainelDiario(plano)}
+                            ${this.getRefeicoes().map((refeicao) => this.renderRefeicaoComCheckin(plano, refeicao)).join('')}
                             
                             ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
                             ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições Alimentares', plano.restrictions) : ''}
@@ -264,6 +263,79 @@ export class PlanoAlimentarCliente {
                 </div>
             `;
         }).join('');
+    }
+
+    getRefeicoes() {
+        return [
+            { id: 'breakfast', titulo: 'Café da Manhã' }, { id: 'morningSnack', titulo: 'Lanche da Manhã' },
+            { id: 'lunch', titulo: 'Almoço' }, { id: 'afternoonSnack', titulo: 'Lanche da Tarde' },
+            { id: 'dinner', titulo: 'Jantar' }, { id: 'supper', titulo: 'Ceia' }
+        ];
+    }
+
+    resumoVazio() {
+        return { kcal: 0, carboidratos: 0, proteinas: 0, gorduras: 0, gordurasSaturadas: 0, gordurasTrans: 0, fibras: 0 };
+    }
+
+    resumoRefeicao(plano, mealId) {
+        const total = this.resumoVazio();
+        (plano.itens_plano?.[mealId] || []).forEach((item) => {
+            const opcoes = Array.isArray(item.opcoes) && item.opcoes.length ? item.opcoes : [item];
+            const opcao = opcoes[Math.max(0, Math.min(opcoes.length - 1, Number(item.opcaoVisivelIndex || 0)))];
+            Object.keys(total).forEach((campo) => { total[campo] += Number(opcao?.detalhes?.[campo] || 0); });
+        });
+        return total;
+    }
+
+    chaveCheckin(planoId) {
+        const hoje = new Date().toLocaleDateString('sv-SE');
+        return `checkinPlano:${this.userInfo.login}:${planoId}:${hoje}`;
+    }
+
+    obterCheckins(planoId) {
+        try { return JSON.parse(localStorage.getItem(this.chaveCheckin(planoId)) || '{}'); } catch { return {}; }
+    }
+
+    alternarCheckin(planoId, mealId, marcado) {
+        const estado = this.obterCheckins(planoId);
+        estado[mealId] = Boolean(marcado);
+        localStorage.setItem(this.chaveCheckin(planoId), JSON.stringify(estado));
+        this.render();
+    }
+
+    renderPainelDiario(plano) {
+        const refeicoes = this.getRefeicoes();
+        const total = refeicoes.reduce((soma, refeicao) => {
+            const parcial = this.resumoRefeicao(plano, refeicao.id);
+            Object.keys(soma).forEach((campo) => { soma[campo] += parcial[campo]; });
+            return soma;
+        }, this.resumoVazio());
+        const checkins = this.obterCheckins(plano.id);
+        const concluidas = refeicoes.filter((refeicao) => checkins[refeicao.id]).length;
+        const meta = Number(plano.meta_calorica || 0);
+        const percentualMeta = meta ? Math.min(100, total.kcal / meta * 100) : 0;
+        return `<section style="background:white;border:1px solid #c7d2fe;border-radius:12px;padding:14px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;"><strong style="color:#1a237e;">Resumo nutricional diário</strong><span>${concluidas}/${refeicoes.length} refeições concluídas</span></div>
+            <div style="margin:10px 0 12px;height:12px;background:#e2e8f0;border-radius:99px;overflow:hidden;"><div style="width:${percentualMeta}%;height:100%;background:${percentualMeta >= 95 ? '#16a34a' : '#f97316'};"></div></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;font-size:13px;">
+                <span><strong>${total.kcal.toFixed(0)}</strong> / ${meta || '--'} kcal</span><span><strong>${total.proteinas.toFixed(1)}</strong> g proteínas</span>
+                <span><strong>${total.carboidratos.toFixed(1)}</strong> g carboidratos</span><span><strong>${total.gorduras.toFixed(1)}</strong> g lipídios</span>
+                <span><strong>${total.fibras.toFixed(1)}</strong> g fibras</span><span><strong>${total.gordurasSaturadas.toFixed(1)}</strong> g saturadas</span><span><strong>${total.gordurasTrans.toFixed(1)}</strong> g trans</span>
+            </div></section>`;
+    }
+
+    renderRefeicaoComCheckin(plano, refeicao) {
+        const conteudo = plano[refeicao.id] || '';
+        const itens = plano.itens_plano?.[refeicao.id] || [];
+        if (!conteudo && !itens.length) return '';
+        const resumo = this.resumoRefeicao(plano, refeicao.id);
+        const marcado = Boolean(this.obterCheckins(plano.id)[refeicao.id]);
+        return `<div style="background:white;padding:12px;border-radius:8px;border:1px solid ${marcado ? '#86efac' : '#e2e8f0'};margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;"><strong style="color:#f97316;">${refeicao.titulo}</strong>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" ${marcado ? 'checked' : ''} onchange="window.planoClienteInstance.alternarCheckin('${plano.id}','${refeicao.id}',this.checked)"> Refeição realizada</label></div>
+            <p style="color:#475569;margin:7px 0;font-size:14px;white-space:pre-wrap;">${this.escapeHtml(conteudo)}</p>
+            <small style="color:#64748b;">${resumo.kcal.toFixed(0)} kcal · ${resumo.proteinas.toFixed(1)} g proteína · ${resumo.carboidratos.toFixed(1)} g carboidratos · ${resumo.gorduras.toFixed(1)} g lipídios · ${resumo.fibras.toFixed(1)} g fibras</small>
+        </div>`;
     }
 
     isPlanoAtual(plano) {

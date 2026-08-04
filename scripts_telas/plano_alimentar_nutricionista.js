@@ -240,6 +240,10 @@ export class PlanoAlimentarNutricionista {
     
                 <!-- Botões Flutuantes -->
                 <div class="fab-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+                    <a class="fab-button manual-usage-button" href="manuais/manual-plano-alimentar.pdf" download="Manual-de-Uso-Plano-Alimentar.pdf" title="Baixar Manual de Uso" aria-label="Baixar Manual de Uso do Plano Alimentar">
+                        <span class="fab-icon">?</span>
+                        <span class="fab-text">Manual de Uso</span>
+                    </a>
                     <button id="btnListaAlimentos" class="fab-button fab-button-green" title="Lista de Alimentos">
                         <span class="fab-icon">☷</span>
                         <span class="fab-text">Lista de Alimentos</span>
@@ -748,6 +752,8 @@ export class PlanoAlimentarNutricionista {
             carboidratos: 0,
             proteinas: 0,
             gorduras: 0,
+            gordurasSaturadas: 0,
+            gordurasTrans: 0,
             fibras: 0,
             sodio: 0
         };
@@ -802,6 +808,8 @@ export class PlanoAlimentarNutricionista {
                     <div><strong>Carboidratos:</strong> ${this.formatarNumero(resumo.carboidratos || 0)} g</div>
                     <div><strong>Proteínas:</strong> ${this.formatarNumero(resumo.proteinas || 0)} g</div>
                     <div><strong>Gorduras:</strong> ${this.formatarNumero(resumo.gorduras || 0)} g</div>
+                    <div><strong>Gordura saturada:</strong> ${this.formatarNumero(resumo.gordurasSaturadas || 0)} g</div>
+                    <div><strong>Gordura trans:</strong> ${this.formatarNumero(resumo.gordurasTrans || 0)} g</div>
                     <div><strong>Fibras:</strong> ${this.formatarNumero(resumo.fibras || 0)} g</div>
                     <div><strong>Sódio:</strong> ${this.formatarNumero(resumo.sodio || 0)} mg</div>
                 </div>
@@ -854,9 +862,19 @@ export class PlanoAlimentarNutricionista {
     }
 
     renderPlanoVisualizacao(plano) {
+        const resumo = this.calcularTotaisPlanoSalvo(plano, this.getRefeicoesPlano());
+        const meta = Number(plano.meta_calorica || 0);
+        const percentual = meta > 0 ? Math.min(100, (resumo.kcal / meta) * 100) : 0;
         return `
             <div style="height: 100%; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 8px;">
                 ${this.visualizacaoPlanoEditando ? this.renderBarraEdicaoPlanoVisualizado(plano) : ''}
+                <div style="display:grid;grid-template-columns:minmax(210px,1.2fr) repeat(6,minmax(82px,1fr));gap:7px;flex:0 0 auto;overflow-x:auto;">
+                    <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:9px;padding:8px 10px;">
+                        <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#3730a3;"><strong>Meta calórica</strong><span>${this.formatarNumero(resumo.kcal, 0)} / ${meta ? this.formatarNumero(meta, 0) : '--'} kcal</span></div>
+                        <div style="height:8px;background:#cbd5e1;border-radius:99px;margin-top:7px;overflow:hidden;"><div style="height:100%;width:${percentual}%;background:${percentual >= 95 ? '#16a34a' : '#f97316'};"></div></div>
+                    </div>
+                    ${[['Proteínas', resumo.proteinas], ['Carboidratos', resumo.carboidratos], ['Lipídios', resumo.gorduras], ['Fibras', resumo.fibras], ['Gord. saturada', resumo.gordurasSaturadas], ['Gord. trans', resumo.gordurasTrans]].map(([rotulo, valor]) => `<div style="min-width:82px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:7px;text-align:center;"><small style="display:block;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${rotulo}</small><strong style="color:#1e293b;">${this.formatarNumero(valor)} g</strong></div>`).join('')}
+                </div>
                 <div style="flex: 1; min-height: 0; overflow: hidden;">
                     ${this.renderRefeicoesPlanoSalvo(plano, this.visualizacaoPlanoEditando ? 'modal-edit' : 'modal')}
                 </div>
@@ -1253,6 +1271,8 @@ export class PlanoAlimentarNutricionista {
             carboidratos: Number(alimento.carboidratos || 0) * fator,
             proteinas: Number(alimento.proteinas || 0) * fator,
             gorduras: Number(alimento.gorduras || 0) * fator,
+            gordurasSaturadas: Number(alimento.gordurasSaturadas || alimento.gorduraSaturada || 0) * fator,
+            gordurasTrans: Number(alimento.gordurasTrans || alimento.gorduraTrans || 0) * fator,
             fibras: Number(alimento.fibras || 0) * fator,
             sodio: Number(alimento.sodio || 0) * fator
         };
@@ -1329,7 +1349,11 @@ export class PlanoAlimentarNutricionista {
                 kcal: nutrientes.kcal,
                 carboidratos: nutrientes.carboidratos,
                 proteinas: nutrientes.proteinas,
-                gorduras: nutrientes.gorduras
+                gorduras: nutrientes.gorduras,
+                gordurasSaturadas: nutrientes.gordurasSaturadas,
+                gordurasTrans: nutrientes.gordurasTrans,
+                fibras: nutrientes.fibras,
+                sodio: nutrientes.sodio
             }
         };
     }
@@ -1722,7 +1746,11 @@ export class PlanoAlimentarNutricionista {
     renderFormularioPlano() {
         return `
             <div style="display: flex; flex-direction: column; gap: 8px; height: 100%; min-height: 0; overflow: hidden;">
-                <div style="font-size: 16px; font-weight: 700; color: #1a237e; padding: 0 2px 2px;">Novo Plano Alimentar</div>
+                <div style="display:flex;align-items:center;gap:12px;font-size:16px;font-weight:700;color:#1a237e;padding:0 2px 2px;">Novo Plano Alimentar
+                    <label style="font-size:12px;color:#475569;font-weight:600;display:inline-flex;align-items:center;gap:6px;">Meta diária
+                        <input id="metaCaloricaPlano" type="number" min="1" step="50" value="${this.escapeHtml(this.planoEditando?.meta_calorica || 1800)}" style="width:90px;height:30px;padding:4px 7px;border:1px solid #cbd5e1;border-radius:7px;"> kcal
+                    </label>
+                </div>
                 ${this.renderBaseNutricional()}
                 <div style="flex: 1; min-height: 0; overflow: hidden; padding-right: 2px; padding-bottom: 2px;">
                     ${this.renderRefeicoesPlano()}
@@ -3548,6 +3576,7 @@ export class PlanoAlimentarNutricionista {
                 supper: this.obterTextoRefeicao('supper'),
                 itens_plano: this.itensPlano,
                 observacoes_refeicoes: this.observacoesRefeicoes,
+                meta_calorica: Number(document.getElementById('metaCaloricaPlano')?.value || 1800),
                 profissional_nome: this.userInfo.nome,
                 profissional_foto_url: this.userInfo.foto_perfil_url || this.userInfo.fotoPerfilUrl || this.userInfo.foto || '',
                 modelo_plano: 'base_nutricional_linhas_v2',

@@ -14,6 +14,7 @@ const copyAsIs = [
   'CNAME',
   'manifest.json',
   'imagens',
+  'manuais',
   'portfolio/grazielle_matos_imagens'
 ];
 

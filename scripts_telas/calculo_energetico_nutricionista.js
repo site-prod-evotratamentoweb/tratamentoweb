@@ -353,6 +353,8 @@ export class CalculoEnergeticoNutricionista {
             const titulo = document.getElementById('tituloModalCalculo');
             if (titulo) titulo.textContent = 'Novo Cálculo Energético';
             if (modalNovoCalculo) modalNovoCalculo.style.display = 'flex';
+            this.carregarDadosPaciente();
+            this.calcularTudo();
         };
         const fecharNovoCalculo = () => {
             if (modalNovoCalculo) modalNovoCalculo.style.display = 'none';
