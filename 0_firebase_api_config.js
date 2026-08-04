@@ -184,5 +184,6 @@ export {
 
     uploadParaImgbb,
     uploadParaCloudinary,
-    excluirDoCloudinary
+    excluirDoCloudinary,
+    apiAutenticada
 };

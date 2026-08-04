@@ -2,8 +2,8 @@
 
 import { FuncoesCompartilhadas } from './0_home.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
-import { 
-    db, collection, getDocs, doc, getDoc
+import {
+    db, collection, getDocs, doc, getDoc, apiAutenticada
 } from '../0_firebase_api_config.js';
 
 export class PlanoAlimentarCliente {
@@ -16,6 +16,8 @@ export class PlanoAlimentarCliente {
         this.planoSelecionado = null;
         this.profissionalInfo = null;
         this.pacienteData = null;
+        this.checkinsDiarios = {};
+        this.erroCheckins = '';
     }
 
     async render() {
@@ -23,6 +25,7 @@ export class PlanoAlimentarCliente {
         
         await this.carregarDadosPaciente();
         await this.carregarPlanosAlimentares();
+        await this.carregarCheckinsDiarios();
         
         app.innerHTML = this.renderHTML();
         this.attachEvents();
@@ -251,13 +254,8 @@ export class PlanoAlimentarCliente {
                     </div>
                     
                     ${isExpanded ? `
-                        <div style="border-top: 1px solid #e2e8f0; padding: 20px; background: #f8fafc;">
-                            ${this.renderPainelDiario(plano)}
-                            ${this.getRefeicoes().map((refeicao) => this.renderRefeicaoComCheckin(plano, refeicao)).join('')}
-                            
-                            ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
-                            ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições Alimentares', plano.restrictions) : ''}
-                            ${plano.goals ? this.renderInfoCard('🎯 Objetivos', plano.goals) : ''}
+                        <div data-plano-conteudo="${this.escapeHtml(plano.id)}" style="border-top: 1px solid #e2e8f0; padding: 20px; background: #f8fafc;">
+                            ${this.renderConteudoPlanoExpandido(plano)}
                         </div>
                     ` : ''}
                 </div>
@@ -288,19 +286,62 @@ export class PlanoAlimentarCliente {
     }
 
     chaveCheckin(planoId) {
-        const hoje = new Date().toLocaleDateString('sv-SE');
-        return `checkinPlano:${this.userInfo.login}:${planoId}:${hoje}`;
+        return String(planoId || '');
     }
 
     obterCheckins(planoId) {
-        try { return JSON.parse(localStorage.getItem(this.chaveCheckin(planoId)) || '{}'); } catch { return {}; }
+        return this.checkinsDiarios[this.chaveCheckin(planoId)] || {};
     }
 
-    alternarCheckin(planoId, mealId, marcado) {
-        const estado = this.obterCheckins(planoId);
+    dataLocalHoje() {
+        return new Date().toLocaleDateString('sv-SE');
+    }
+
+    async carregarCheckinsDiarios() {
+        try {
+            const registros = await apiAutenticada(`/api/meal-plan-checkins?date=${encodeURIComponent(this.dataLocalHoje())}`);
+            this.checkinsDiarios = (Array.isArray(registros) ? registros : []).reduce((estado, registro) => {
+                estado[String(registro.plano_id)] = registro.refeicoes || {};
+                return estado;
+            }, {});
+            this.erroCheckins = '';
+        } catch (error) {
+            this.erroCheckins = error.message || 'Não foi possível carregar os check-ins.';
+        }
+    }
+
+    async alternarCheckin(planoId, mealId, marcado) {
+        const anterior = { ...this.obterCheckins(planoId) };
+        const estado = { ...anterior };
         estado[mealId] = Boolean(marcado);
-        localStorage.setItem(this.chaveCheckin(planoId), JSON.stringify(estado));
-        this.render();
+        this.checkinsDiarios[this.chaveCheckin(planoId)] = estado;
+        this.atualizarPlanoExpandido(planoId);
+        try {
+            await apiAutenticada(`/api/meal-plan-checkins/${encodeURIComponent(planoId)}`, {
+                method: 'PUT',
+                body: JSON.stringify({ data: this.dataLocalHoje(), refeicoes: estado })
+            });
+            this.erroCheckins = '';
+        } catch (error) {
+            this.checkinsDiarios[this.chaveCheckin(planoId)] = anterior;
+            this.atualizarPlanoExpandido(planoId);
+            alert(error.message || 'Não foi possível salvar o check-in. Tente novamente.');
+        }
+    }
+
+    atualizarPlanoExpandido(planoId) {
+        const card = document.querySelector(`[data-plano-conteudo="${CSS.escape(String(planoId))}"]`);
+        const plano = this.planosList.find((item) => item.id === planoId);
+        if (card && plano) card.innerHTML = this.renderConteudoPlanoExpandido(plano);
+    }
+
+    renderConteudoPlanoExpandido(plano) {
+        return `${this.erroCheckins ? `<div style="padding:10px;margin-bottom:10px;border-radius:8px;background:#fff7ed;color:#9a3412;">${this.escapeHtml(this.erroCheckins)}</div>` : ''}
+            ${this.renderPainelDiario(plano)}
+            ${this.getRefeicoes().map((refeicao) => this.renderRefeicaoComCheckin(plano, refeicao)).join('')}
+            ${plano.guidelines ? this.renderInfoCard('📌 Orientações Gerais', plano.guidelines) : ''}
+            ${plano.restrictions ? this.renderInfoCard('⚠️ Restrições Alimentares', plano.restrictions) : ''}
+            ${plano.goals ? this.renderInfoCard('🎯 Objetivos', plano.goals) : ''}`;
     }
 
     renderPainelDiario(plano) {
