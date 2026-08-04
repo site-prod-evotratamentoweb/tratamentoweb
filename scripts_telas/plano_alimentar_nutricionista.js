@@ -317,7 +317,7 @@ export class PlanoAlimentarNutricionista {
                 </div>
 
                 <div id="modalDetalheAlimento" class="modal-overlay" style="display: none; z-index: 3000;">
-                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(92vw, 560px); max-width: 560px; max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
+                    <div class="modal-content" style="background: white; border-radius: 16px; width: min(94vw, 920px); max-width: 920px; max-height: calc(100vh - 24px); overflow: hidden; margin: 12px auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
                             <strong style="font-size: 15px;">Detalhes do alimento</strong>
                             <button id="btnFecharDetalheAlimento" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">✕</button>
@@ -844,7 +844,7 @@ export class PlanoAlimentarNutricionista {
                         ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
                     <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.alternarOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: ${optionWidth}; min-width: ${optionWidth}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
-                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalheOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Ver detalhes" title="Ver detalhes da opção atual" style="width: ${buttonSize}; min-width: ${buttonSize}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                    <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.abrirDetalheOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Ver detalhes de todas as opções" title="Ver detalhes de todas as opções" style="width: ${buttonSize}; min-width: ${buttonSize}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                     ${emEdicao ? `<button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.prepararAdicionarOpcaoPlanoVisualizado('${planoId}', '${mealId}', '${item.id}')" aria-label="Adicionar opção" title="Adicionar opção neste alimento" style="width: ${buttonSize}; min-width: ${buttonSize}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #dcfce7; color: #166534; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 800;">+</button>` : ''}
                     ${emEdicao ? `<button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.excluirOpcaoOuItemPlanoVisualizado('${planoId}', '${mealId}', '${item.id}')" aria-label="Remover" title="Remover opção atual" style="width: ${buttonSize}; min-width: ${buttonSize}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #fee2e2; color: #b91c1c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">X</button>` : ''}
                 </div>
@@ -1464,7 +1464,7 @@ export class PlanoAlimentarNutricionista {
                     </div>
                     <div style="display: grid; grid-template-columns: 38px 30px; grid-template-rows: repeat(2, 30px); gap: 6px;">
                         <button type="button" class="btnAlternarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
-                        <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes" title="Ver detalhes da opção atual" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
+                        <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes de todas as opções" title="Ver detalhes de todas as opções" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                         <button type="button" class="btnEditarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Editar opção" title="Editar opção atual" style="width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #ede9fe; color: #6d28d9; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✎</button>
                         <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" title="Excluir alimento" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">X</button>
                     </div>
@@ -2933,28 +2933,47 @@ export class PlanoAlimentarNutricionista {
     }
 
     abrirModalDetalheItemPlano(item, opcaoIndex = 0) {
-        const detalhes = item.detalhes;
-        const opcoes = Array.isArray(item.opcoes) ? item.opcoes : [];
+        const opcoes = Array.isArray(item.opcoes) && item.opcoes.length
+            ? item.opcoes
+            : [{ texto: item.texto, detalhes: item.detalhes || null }];
         const opcaoAtualIndex = opcoes.length ? Math.max(0, Math.min(opcoes.length - 1, Number(opcaoIndex || 0))) : 0;
-        const opcaoAtual = opcoes[opcaoAtualIndex] || null;
-        const detalhesAtuais = opcaoAtual?.detalhes || detalhes;
         const modal = document.getElementById('modalDetalheAlimento');
         const formWrapper = modal?.querySelector('[data-detalhe-alimento-form]');
         if (formWrapper) {
             formWrapper.innerHTML = `
-                <div style="display: grid; gap: 12px;">
-                    <div style="font-size: 18px; font-weight: 700; color: #1a237e;">${this.escapeHtml(detalhesAtuais?.nome || opcaoAtual?.texto || item.texto)}</div>
-                    <div style="font-size: 14px; color: #475569;">${this.escapeHtml(opcoes.length > 1 ? `${opcaoAtualIndex + 1}/${opcoes.length}` : detalhesAtuais?.quantidadeTexto || 'Sem quantidade informada')}</div>
-                    <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px; padding: 10px 12px; font-size: 15px; color: #1e293b; font-weight: 600;">
-                        ${this.escapeHtml(opcaoAtual?.texto || this.formatarTextoItemPlano(item))}
+                <div style="display:grid;gap:14px;">
+                    <div>
+                        <div style="font-size:18px;font-weight:700;color:#1a237e;">Detalhes das opções</div>
+                        <div style="font-size:13px;color:#64748b;margin-top:3px;">${opcoes.length} ${opcoes.length === 1 ? 'opção cadastrada' : 'opções cadastradas'} para este item</div>
                     </div>
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; line-height: 1.6;">
-                        <div><strong>Quantidade:</strong> ${this.escapeHtml(detalhesAtuais?.quantidadeTexto || 'Sem quantidade informada')}</div>
-                        <div><strong>Gramas:</strong> ${this.formatarNumero(detalhesAtuais?.gramas || 0, 0)} g</div>
-                        <div><strong>Energia:</strong> ${this.formatarNumero(detalhesAtuais?.kcal || 0, 0)} kcal</div>
-                        <div><strong>Carboidratos:</strong> ${this.formatarNumero(detalhesAtuais?.carboidratos || 0)} g</div>
-                        <div><strong>Proteínas:</strong> ${this.formatarNumero(detalhesAtuais?.proteinas || 0)} g</div>
-                        <div><strong>Gorduras:</strong> ${this.formatarNumero(detalhesAtuais?.gorduras || 0)} g</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;align-items:start;">
+                        ${opcoes.map((opcao, index) => {
+                            const detalhes = opcao?.detalhes || {};
+                            const ativa = index === opcaoAtualIndex;
+                            return `
+                                <section style="border:2px solid ${ativa ? '#4f46e5' : '#dbe3ef'};border-radius:12px;overflow:hidden;background:white;box-shadow:${ativa ? '0 5px 16px rgba(79,70,229,.12)' : 'none'};">
+                                    <div style="padding:9px 11px;background:${ativa ? '#eef2ff' : '#f8fafc'};display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                                        <strong style="color:${ativa ? '#3730a3' : '#334155'};">Opção ${index + 1}</strong>
+                                        ${ativa ? '<span style="font-size:11px;font-weight:700;color:#3730a3;background:#c7d2fe;border-radius:99px;padding:3px 8px;">ATIVA</span>' : ''}
+                                    </div>
+                                    <div style="padding:11px;display:grid;gap:10px;">
+                                        <div style="font-size:15px;font-weight:700;color:#1e293b;">${this.escapeHtml(detalhes.nome || opcao?.texto || 'Alimento sem nome')}</div>
+                                        <div style="font-size:13px;color:#475569;background:#f8fafc;border-radius:8px;padding:8px;">${this.escapeHtml(opcao?.texto || detalhes.quantidadeTexto || 'Sem descrição')}</div>
+                                        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;font-size:13px;line-height:1.45;">
+                                            <div><strong>Quantidade</strong><br>${this.escapeHtml(detalhes.quantidadeTexto || 'Não informada')}</div>
+                                            <div><strong>Gramas</strong><br>${this.formatarNumero(detalhes.gramas || 0, 0)} g</div>
+                                            <div><strong>Energia</strong><br>${this.formatarNumero(detalhes.kcal || 0, 0)} kcal</div>
+                                            <div><strong>Carboidratos</strong><br>${this.formatarNumero(detalhes.carboidratos || 0)} g</div>
+                                            <div><strong>Proteínas</strong><br>${this.formatarNumero(detalhes.proteinas || 0)} g</div>
+                                            <div><strong>Lipídios</strong><br>${this.formatarNumero(detalhes.gorduras || 0)} g</div>
+                                            <div><strong>Fibras</strong><br>${this.formatarNumero(detalhes.fibras || 0)} g</div>
+                                            <div><strong>Sódio</strong><br>${this.formatarNumero(detalhes.sodio || 0)} mg</div>
+                                            <div><strong>Gord. saturada</strong><br>${this.formatarNumero(detalhes.gordurasSaturadas || 0)} g</div>
+                                            <div><strong>Gord. trans</strong><br>${this.formatarNumero(detalhes.gordurasTrans || 0)} g</div>
+                                        </div>
+                                    </div>
+                                </section>`;
+                        }).join('')}
                     </div>
                 </div>
             `;
