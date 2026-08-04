@@ -705,21 +705,34 @@ export class LoginManager {
         }
 
         const activeModule = localStorage.getItem('activeModule') || userData.activeModule || 'home';
-        if (activeModule && activeModule !== 'home') {
+        if (activeModule && activeModule !== 'home' && this.isRestorableModule(activeModule, userData.cargo)) {
             try {
                 const pacientesList = userData.cargo === 'paciente'
                     ? []
                     : await FuncoesCompartilhadas.loadPacientesList(userData.login);
                 const navegador = criarNavegador(userData, pacientesList);
-                await navegador.navegarPara(activeModule);
-                return;
+                const navegou = await navegador.navegarPara(activeModule);
+                if (navegou === true) return;
+                localStorage.setItem('activeModule', 'home');
             } catch (error) {
                 localStorage.setItem('activeModule', 'home');
             }
+        } else if (activeModule !== 'home') {
+            localStorage.setItem('activeModule', 'home');
         }
 
         const homeManager = new HomeManager(userData);
         homeManager.render();
+    }
+
+    isRestorableModule(module, cargo) {
+        const comuns = new Set(['home', 'cadastro_cliente', 'shopping_nutri', 'palestras_videos']);
+        const porCargo = {
+            nutricionista: new Set(['anamnese', 'plano_alimentar', 'calculo_energetico']),
+            psicologo: new Set(['avaliacao_psicologica']),
+            paciente: new Set(['minhas_avaliacoes', 'meu_plano_alimentar', 'minha_anamnese'])
+        };
+        return comuns.has(module) || Boolean(porCargo[cargo]?.has(module));
     }
 }
 

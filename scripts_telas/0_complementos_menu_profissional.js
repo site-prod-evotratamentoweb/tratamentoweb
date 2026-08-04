@@ -191,10 +191,12 @@ export class MenuProfissional {
             item.addEventListener('click', async (e) => {
                 const module = item.getAttribute('data-module');
                 closeMenuFunc();
-                localStorage.setItem('activeModule', module);
-                
+
                 // Usa o navegador centralizado
-                await this.navegador.navegarPara(module);
+                const navegou = await this.navegador.navegarPara(module);
+                if (navegou === true) {
+                    localStorage.setItem('activeModule', module);
+                }
             });
         });
     }
