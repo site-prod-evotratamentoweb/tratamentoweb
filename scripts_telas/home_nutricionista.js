@@ -119,14 +119,6 @@ export class HomeNutricionista {
                         </div>
                     </div>
     
-                    ${this.modoAvaliacao ? `<!-- BOTÃO NOVA AVALIAÇÃO -->
-                    <div style="position: fixed; bottom: 30px; right: 30px; z-index: 100;">
-                        <button id="novaAvaliacaoBtn" class="btn-primary btn-expand">
-                            <span>➕</span>
-                            <span class="btn-text">Nova Antropometria</span>
-                        </button>
-                    </div>
-                    ` : ''}
                     ` : `
                     <!-- MENSAGEM PARA PACIENTE - ACESSO RESTRITO -->
                     <div style="display: flex; justify-content: center; align-items: center; height: 80vh;">
@@ -311,6 +303,7 @@ export class HomeNutricionista {
             <section style="margin-bottom:16px;background:white;border:1px solid #dbe3ef;border-radius:12px;padding:12px 14px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
                     <div><h2 style="margin:0;color:#1a237e;font-size:21px;">Avaliação Nutricional</h2><p style="margin:3px 0 0;color:#64748b;font-size:13px;">Informações clínicas organizadas por etapa da consulta.</p></div>
+                    <button id="novaAvaliacaoBtn" type="button" style="padding:9px 14px;border:none;border-radius:8px;background:#1a237e;color:white;font-weight:700;cursor:pointer;">Registrar antropometria</button>
                 </div>
                 <nav style="display:flex;gap:8px;flex-wrap:wrap;" aria-label="Seções da avaliação nutricional">
                     <button id="abaAnamneses" type="button" style="padding:9px 14px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#334155;font-weight:700;cursor:pointer;">Anamnese Clínica</button>
