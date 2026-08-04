@@ -728,7 +728,7 @@ export class LoginManager {
     isRestorableModule(module, cargo) {
         const comuns = new Set(['home', 'cadastro_cliente', 'shopping_nutri', 'palestras_videos']);
         const porCargo = {
-            nutricionista: new Set(['anamnese', 'plano_alimentar', 'calculo_energetico']),
+            nutricionista: new Set(['avaliacao_nutricional', 'anamnese', 'medidas_fisicas', 'exames_nutricionais', 'medidas_consumo', 'plano_alimentar', 'calculo_energetico']),
             psicologo: new Set(['avaliacao_psicologica']),
             paciente: new Set(['minhas_avaliacoes', 'meu_plano_alimentar', 'minha_anamnese'])
         };

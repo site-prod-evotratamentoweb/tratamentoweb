@@ -56,6 +56,18 @@ export class NavegadorNutricionista extends NavegadorBase {
         
         // Tenta navegar pelos módulos do nutricionista primeiro
         switch(moduloLower) {
+            case 'avaliacao_nutricional':
+                await this.irParaAvaliacaoNutricional();
+                return true;
+            case 'medidas_fisicas':
+                await this.irParaMedidasFisicas();
+                return true;
+            case 'exames_nutricionais':
+                await this.irParaSecaoClinica('exames');
+                return true;
+            case 'medidas_consumo':
+                await this.irParaSecaoClinica('consumo');
+                return true;
             case 'plano_alimentar':
                 await this.irParaPlanoAlimentar();
                 return true;
@@ -100,8 +112,24 @@ export class NavegadorNutricionista extends NavegadorBase {
 
     async irParaAnamnese() {
         const { AnamneseNutricionista } = await import('./anamnese_nutricionista.js');
-        const anamneseScreen = new AnamneseNutricionista(this.userInfo, this.pacientesList);
+        const anamneseScreen = new AnamneseNutricionista(this.userInfo, this.pacientesList, 'anamnese');
         anamneseScreen.render();
+    }
+
+    async irParaAvaliacaoNutricional() {
+        await this.irParaSecaoClinica('anamnese');
+    }
+
+    async irParaMedidasFisicas() {
+        const { HomeNutricionista } = await import('./home_nutricionista.js');
+        const tela = new HomeNutricionista(this.userInfo, true);
+        tela.render();
+    }
+
+    async irParaSecaoClinica(secao) {
+        const { AnamneseNutricionista } = await import('./anamnese_nutricionista.js');
+        const tela = new AnamneseNutricionista(this.userInfo, this.pacientesList, secao);
+        tela.render();
     }
 
     async irParaCalculoEnergetico() {

@@ -3,8 +3,9 @@ import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
 
 export class HomeNutricionista {
-    constructor(userInfo) {
+    constructor(userInfo, modoAvaliacao = false) {
         this.userInfo = userInfo;
+        this.modoAvaliacao = Boolean(modoAvaliacao);
         this.funcoes = FuncoesCompartilhadas;
         this.currentEvaluations = [];
         this.pacientesList = [];
@@ -23,6 +24,7 @@ export class HomeNutricionista {
     }
 
     render() {
+        if (this.modoAvaliacao) localStorage.setItem('activeModule', 'medidas_fisicas');
         const app = document.getElementById('app');
         app.innerHTML = this.renderHTML();
         
@@ -30,7 +32,7 @@ export class HomeNutricionista {
         this.navegador.pacientesList = this.pacientesList;
         
         // Inicializa o menu
-        this.menu = new MenuProfissional(this.userInfo, (module) => this.navegador.navegarPara(module), 'home');
+        this.menu = new MenuProfissional(this.userInfo, (module) => this.navegador.navegarPara(module), this.modoAvaliacao ? 'avaliacao_nutricional' : 'home');
         const menuHtml = this.menu.render();
         const menuContainer = document.getElementById('menuContainer');
         if (menuContainer) {
@@ -50,6 +52,7 @@ export class HomeNutricionista {
                 <div id="menuContainer"></div>
     
                 <div class="main-content" style="flex: 1; overflow: hidden; padding: 14px 20px; min-height: 0;">
+                    ${this.modoAvaliacao ? this.renderNavegacaoAvaliacao() : ''}
                     
                     ${!isPaciente ? `
                     <!-- INFORMAÇÕES DO PACIENTE (com seletor dentro) - APENAS PARA PROFISSIONAIS -->
@@ -116,13 +119,14 @@ export class HomeNutricionista {
                         </div>
                     </div>
     
-                    <!-- BOTÃO NOVA AVALIAÇÃO -->
+                    ${this.modoAvaliacao ? `<!-- BOTÃO NOVA AVALIAÇÃO -->
                     <div style="position: fixed; bottom: 30px; right: 30px; z-index: 100;">
                         <button id="novaAvaliacaoBtn" class="btn-primary btn-expand">
                             <span>➕</span>
-                            <span class="btn-text">Nova Avaliação Nutricional</span>
+                            <span class="btn-text">Nova Antropometria</span>
                         </button>
                     </div>
+                    ` : ''}
                     ` : `
                     <!-- MENSAGEM PARA PACIENTE - ACESSO RESTRITO -->
                     <div style="display: flex; justify-content: center; align-items: center; height: 80vh;">
@@ -138,11 +142,11 @@ export class HomeNutricionista {
             </div>
     
             <!-- MODAL NOVA AVALIAÇÃO - SÓ APARECE PARA PROFISSIONAIS -->
-            ${!isPaciente ? `
+            ${!isPaciente && this.modoAvaliacao ? `
             <div id="avaliacaoModal" class="modal" style="display: none;">
                 <div class="modal-content" style="max-width: 700px;">
                     <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="margin: 0;">📝 Nova Avaliação Nutricional</h3>
+                        <h3 style="margin: 0;">📏 Nova Avaliação Antropométrica</h3>
                         <button class="close-modal" style="background: none; border: none; font-size: 28px; cursor: pointer;">&times;</button>
                     </div>
                     <form id="nutritionalForm">
@@ -175,18 +179,10 @@ export class HomeNutricionista {
                                 <label>🧈 Gordura (%)</label>
                                 <input type="number" id="bodyFat" step="0.1" placeholder="Opcional">
                             </div>
-                            <div class="form-field">
-                                <label>🩸 Glicemia (mg/dL)</label>
-                                <input type="number" id="glucose" placeholder="Opcional">
-                            </div>
-                            <div class="form-field">
-                                <label>🩸 Colesterol (mg/dL)</label>
-                                <input type="number" id="cholesterol" placeholder="Opcional">
-                            </div>
                         </div>
                         <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
                             <button type="button" class="btn-secondary" id="cancelarModalBtn">Cancelar</button>
-                            <button type="submit" class="btn-primary">💾 Salvar Avaliação</button>
+                            <button type="submit" class="btn-primary">💾 Salvar Medidas</button>
                         </div>
                     </form>
                 </div>
@@ -220,6 +216,11 @@ export class HomeNutricionista {
             return; // 🔒 SAI AQUI - Não carrega eventos de profissional
         }
         
+        document.getElementById('abaAnamneses')?.addEventListener('click', () => this.navegador.navegarPara('avaliacao_nutricional'));
+        document.getElementById('abaMedidasFisicas')?.addEventListener('click', () => {});
+        document.getElementById('abaExames')?.addEventListener('click', () => this.navegador.navegarPara('exames_nutricionais'));
+        document.getElementById('abaConsumo')?.addEventListener('click', () => this.navegador.navegarPara('medidas_consumo'));
+
         // Seletor de paciente
         const pacienteSelect = document.getElementById('pacienteSelect');
         if (pacienteSelect) {
@@ -303,6 +304,21 @@ export class HomeNutricionista {
             weightInput.addEventListener('input', calculateFields);
             heightInput.addEventListener('input', calculateFields);
         }
+    }
+
+    renderNavegacaoAvaliacao() {
+        return `
+            <section style="margin-bottom:16px;background:white;border:1px solid #dbe3ef;border-radius:12px;padding:12px 14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+                    <div><h2 style="margin:0;color:#1a237e;font-size:21px;">Avaliação Nutricional</h2><p style="margin:3px 0 0;color:#64748b;font-size:13px;">Informações clínicas organizadas por etapa da consulta.</p></div>
+                </div>
+                <nav style="display:flex;gap:8px;flex-wrap:wrap;" aria-label="Seções da avaliação nutricional">
+                    <button id="abaAnamneses" type="button" style="padding:9px 14px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#334155;font-weight:700;cursor:pointer;">Anamnese Clínica</button>
+                    <button id="abaMedidasFisicas" type="button" style="padding:9px 14px;border:1px solid #1a237e;border-radius:8px;background:#1a237e;color:white;font-weight:700;cursor:pointer;">Avaliação Antropométrica</button>
+                    <button id="abaExames" type="button" style="padding:9px 14px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#334155;font-weight:700;cursor:pointer;">Exames Laboratoriais</button>
+                    <button id="abaConsumo" type="button" style="padding:9px 14px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#334155;font-weight:700;cursor:pointer;">Consumo Alimentar</button>
+                </nav>
+            </section>`;
     }
 
     limparInfoPaciente() {
@@ -465,8 +481,8 @@ export class HomeNutricionista {
                     gordura_corporal: parseFloat(document.getElementById('bodyFat').value) || null
                 },
                 exames_laboratoriais: {
-                    glicemia: parseFloat(document.getElementById('glucose').value) || null,
-                    colesterol_total: parseFloat(document.getElementById('cholesterol').value) || null
+                    glicemia: null,
+                    colesterol_total: null
                 }
             });
             alert('✅ Avaliação salva com sucesso!');

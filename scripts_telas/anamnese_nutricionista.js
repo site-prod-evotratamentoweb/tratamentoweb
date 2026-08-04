@@ -4,8 +4,9 @@ import { criarNavegador } from './0_complementos_menu_navegacao.js';
 import { db, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from '../0_firebase_api_config.js';
 
 export class AnamneseNutricionista {
-    constructor(userInfo, pacientesList) {
+    constructor(userInfo, pacientesList, secaoAtiva = 'anamnese') {
         this.userInfo = userInfo;
+        this.secaoAtiva = ['anamnese', 'exames', 'consumo'].includes(secaoAtiva) ? secaoAtiva : 'anamnese';
         this.funcoes = FuncoesCompartilhadas;
         this.pacientesList = pacientesList || [];
         this.selectedPaciente = null;
@@ -18,11 +19,13 @@ export class AnamneseNutricionista {
     }
 
     render() {
+        const modulos = { anamnese: 'avaliacao_nutricional', exames: 'exames_nutricionais', consumo: 'medidas_consumo' };
+        localStorage.setItem('activeModule', modulos[this.secaoAtiva]);
         const app = document.getElementById('app');
         app.innerHTML = this.renderHTML();
         
         // Inicializa o menu e insere no container
-        this.menu = new MenuProfissional(this.userInfo, (module) => this.navegador.navegarPara(module), 'anamnese');
+        this.menu = new MenuProfissional(this.userInfo, (module) => this.navegador.navegarPara(module), 'avaliacao_nutricional');
         const menuHtml = this.menu.render();
         const menuContainer = document.getElementById('menuContainer');
         if (menuContainer) {
@@ -57,6 +60,7 @@ export class AnamneseNutricionista {
                 <div id="menuContainer"></div>
 
                 <div class="main-content" style="flex: 1; overflow-y: auto; padding: 14px 20px 90px; min-height: 0;">
+                    ${this.renderNavegacaoAvaliacao()}
                     <!-- INFORMAÇÕES DO PACIENTE (com seletor dentro) -->
                     <div id="pacienteInfo" class="info-section" style="margin-bottom: 24px;">
                         <!-- SELETOR DE PACIENTE DENTRO DO CARD -->
@@ -96,7 +100,7 @@ export class AnamneseNutricionista {
                         <div id="modalNovaAnamnese" style="display:none; position:fixed; inset:0; z-index:3000; background:rgba(15,23,42,.62); padding:12px; align-items:center; justify-content:center;">
                             <div style="background:white; width:min(96vw,1100px); height:min(94vh,900px); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 70px rgba(15,23,42,.35);">
                                 <div style="padding:14px 18px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                                    <h3 id="tituloModalAnamnese" style="margin:0; color:#1a237e;">Novo Prontuário</h3>
+                                    <h3 id="tituloModalAnamnese" style="margin:0; color:#1a237e;">${this.getSecaoConfig().novo}</h3>
                                     <button id="btnFecharNovaAnamnese" type="button" aria-label="Fechar" style="background:rgba(26,35,126,.12); color:#1a237e; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                                 </div>
                                 <div style="flex:1; min-height:0; overflow-y:auto; padding:16px;">
@@ -109,7 +113,7 @@ export class AnamneseNutricionista {
                                 </div>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                                     <div class="form-field">
-                                        <label>📅 Data da Anamnese</label>
+                                        <label>📅 Data do Registro</label>
                                         <input type="date" id="dataAnamnese" class="form-control" style="padding: 12px 14px; border-radius: 10px; border: 2px solid #e2e8f0;">
                                     </div>
                                     <div class="form-field">
@@ -120,7 +124,7 @@ export class AnamneseNutricionista {
                             </div>
 
                             <!-- 1. HISTÓRICO CLÍNICO -->
-                            <div class="evaluation-section" style="margin-bottom: 24px;">
+                            <div class="evaluation-section" style="margin-bottom:24px;${this.secaoAtiva === 'anamnese' ? '' : 'display:none;'}">
                                 <div class="section-header">
                                     <h3>🏥 1. Histórico Clínico</h3>
                                 </div>
@@ -141,13 +145,21 @@ export class AnamneseNutricionista {
                                         <label>🩺 Histórico Familiar</label>
                                         <textarea id="historico_familiar" class="form-control" rows="3" placeholder="Doenças na família (pais, irmãos)..." style="resize: vertical;">${this.currentAnamnese?.historico_clinico?.historico_familiar || ''}</textarea>
                                     </div>
+                                    <div class="form-field">
+                                        <label>🩺 Achados do Exame Físico</label>
+                                        <textarea id="achados_exame_fisico" class="form-control" rows="3" placeholder="Estado geral, pele, cabelos, unhas, edema ou sinais de depleção..." style="resize:vertical;">${this.currentAnamnese?.exame_fisico?.achados_gerais || ''}</textarea>
+                                    </div>
+                                    <div class="form-field">
+                                        <label>🗣️ Sinais, Sintomas e Funções</label>
+                                        <textarea id="sintomas_funcoes" class="form-control" rows="3" placeholder="Sintomas gastrointestinais, mastigação, deglutição ou outras alterações..." style="resize:vertical;">${this.currentAnamnese?.exame_fisico?.sintomas_funcionais || ''}</textarea>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- 2. HISTÓRICO ALIMENTAR -->
-                            <div class="evaluation-section" style="margin-bottom: 24px;">
+                            <!-- CONSUMO ALIMENTAR -->
+                            <div class="evaluation-section" style="margin-bottom:24px;${this.secaoAtiva === 'consumo' ? '' : 'display:none;'}">
                                 <div class="section-header">
-                                    <h3>🍽️ 2. Histórico Alimentar</h3>
+                                    <h3>🍽️ Consumo Alimentar</h3>
                                 </div>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                                     <div class="form-field">
@@ -174,7 +186,7 @@ export class AnamneseNutricionista {
                             </div>
 
                             <!-- 3. AVALIAÇÃO ANTROPOMÉTRICA -->
-                            <div class="evaluation-section" style="margin-bottom: 24px;">
+                            <div class="evaluation-section" style="display:none;margin-bottom:24px;">
                                 <div class="section-header">
                                     <h3>📏 3. Avaliação Antropométrica</h3>
                                 </div>
@@ -207,7 +219,7 @@ export class AnamneseNutricionista {
                             </div>
 
                             <!-- 4. COMPOSIÇÃO CORPORAL (BIOIMPEDÂNCIA) -->
-                            <div class="evaluation-section" style="margin-bottom: 24px;">
+                            <div class="evaluation-section" style="display:none;margin-bottom:24px;">
                                 <div class="section-header">
                                     <h3>💪 4. Composição Corporal</h3>
                                 </div>
@@ -240,7 +252,7 @@ export class AnamneseNutricionista {
                             </div>
 
                             <!-- 5. EXAMES LABORATORIAIS -->
-                            <div class="evaluation-section" style="margin-bottom: 24px;">
+                            <div class="evaluation-section" style="margin-bottom:24px;${this.secaoAtiva === 'exames' ? '' : 'display:none;'}">
                                 <div class="section-header">
                                     <h3>🩸 5. Exames Laboratoriais</h3>
                                 </div>
@@ -281,7 +293,7 @@ export class AnamneseNutricionista {
                             </div>
 
                             <!-- 6. ESTILO DE VIDA -->
-                            <div class="evaluation-section" style="margin-bottom: 24px;">
+                            <div class="evaluation-section" style="margin-bottom:24px;${this.secaoAtiva === 'anamnese' ? '' : 'display:none;'}">
                                 <div class="section-header">
                                     <h3>🏃 6. Estilo de Vida</h3>
                                 </div>
@@ -312,7 +324,7 @@ export class AnamneseNutricionista {
                             </div>
 
                             <!-- 7. OBSERVAÇÕES GERAIS -->
-                            <div class="evaluation-section" style="margin-bottom: 24px;">
+                            <div class="evaluation-section" style="margin-bottom:24px;${this.secaoAtiva === 'anamnese' ? '' : 'display:none;'}">
                                 <div class="section-header">
                                     <h3>📝 7. Observações e Condutas</h3>
                                 </div>
@@ -325,7 +337,7 @@ export class AnamneseNutricionista {
                                 </div>
                                 <div style="padding:12px 18px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:10px;">
                                     <button id="btnCancelarNovaAnamnese" type="button" class="btn-secondary">Cancelar</button>
-                                    <button id="saveAnamneseBtn" type="button" class="btn-primary">Salvar Prontuário</button>
+                                    <button id="saveAnamneseBtn" type="button" class="btn-primary">${this.getSecaoConfig().salvar}</button>
                                 </div>
                             </div>
                         </div>
@@ -333,16 +345,16 @@ export class AnamneseNutricionista {
                         <div class="empty-state" style="text-align: center; padding: 60px; background: white; border-radius: 1rem;">
                             <span class="empty-icon" style="font-size: 48px; opacity: 0.5;">👆</span>
                             <h3 style="margin-top: 16px;">Selecione um paciente</h3>
-                            <p style="color: #64748b;">Escolha um paciente para realizar a anamnese nutricional</p>
+                            <p style="color: #64748b;">Escolha um paciente para consultar ${this.getSecaoConfig().descricao}.</p>
                         </div>
                     `}
                 </div>
 
                 <!-- BOTÃO SALVAR ANAMNESE (flutuante) -->
                 <div style="position: fixed; bottom: 30px; right: 30px; z-index: 100;">
-                    <button id="btnNovaAnamnese" class="btn-primary btn-expand" title="Novo Prontuário" ${this.selectedPaciente ? '' : 'style="display:none;"'}>
+                    <button id="btnNovaAnamnese" class="btn-primary btn-expand" title="${this.getSecaoConfig().novo}" ${this.selectedPaciente ? '' : 'style="display:none;"'}>
                         <span>+</span>
-                        <span class="btn-text">Novo Prontuário</span>
+                        <span class="btn-text">${this.getSecaoConfig().novo}</span>
                     </button>
                 </div>
             </div>
@@ -350,6 +362,16 @@ export class AnamneseNutricionista {
     }
 
     attachEvents() {
+        document.getElementById('abaMedidasFisicas')?.addEventListener('click', () => this.navegador.navegarPara('medidas_fisicas'));
+        document.getElementById('abaAnamneses')?.addEventListener('click', () => {
+            if (this.secaoAtiva !== 'anamnese') this.navegador.navegarPara('avaliacao_nutricional');
+        });
+        document.getElementById('abaExames')?.addEventListener('click', () => {
+            if (this.secaoAtiva !== 'exames') this.navegador.navegarPara('exames_nutricionais');
+        });
+        document.getElementById('abaConsumo')?.addEventListener('click', () => {
+            if (this.secaoAtiva !== 'consumo') this.navegador.navegarPara('medidas_consumo');
+        });
         const modalNovaAnamnese = document.getElementById('modalNovaAnamnese');
         const abrirNovaAnamnese = () => {
             this.currentAnamnese = null;
@@ -357,7 +379,7 @@ export class AnamneseNutricionista {
                 campo.value = '';
             });
             const titulo = document.getElementById('tituloModalAnamnese');
-            if (titulo) titulo.textContent = 'Novo Prontuário';
+            if (titulo) titulo.textContent = this.getSecaoConfig().novo;
             if (modalNovaAnamnese) modalNovaAnamnese.style.display = 'flex';
         };
         const fecharNovaAnamnese = () => {
@@ -485,7 +507,9 @@ export class AnamneseNutricionista {
             
             if (!querySnapshot.empty) {
                 // Pega a anamnese mais recente (última atualização)
-                this.anamnesesList = querySnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+                this.anamnesesList = querySnapshot.docs
+                    .map((item) => ({ id: item.id, ...item.data() }))
+                    .filter((registro) => this.registroPertenceSecao(registro));
                 this.anamnesesList.sort((a, b) => this.obterDataRegistro(b) - this.obterDataRegistro(a));
                 this.currentAnamnese = null;
             } else {
@@ -501,11 +525,42 @@ export class AnamneseNutricionista {
         this.render();
     }
 
+    renderNavegacaoAvaliacao() {
+        const botao = (id, rotulo, ativo) => `<button id="${id}" type="button" style="padding:9px 14px;border:1px solid ${ativo ? '#1a237e' : '#cbd5e1'};border-radius:8px;background:${ativo ? '#1a237e' : 'white'};color:${ativo ? 'white' : '#334155'};font-weight:700;cursor:pointer;">${rotulo}</button>`;
+        return `
+            <section style="margin-bottom:16px;background:white;border:1px solid #dbe3ef;border-radius:12px;padding:12px 14px;">
+                <div style="margin-bottom:10px;"><h2 style="margin:0;color:#1a237e;font-size:21px;">Avaliação Nutricional</h2><p style="margin:3px 0 0;color:#64748b;font-size:13px;">Informações clínicas organizadas por etapa da consulta.</p></div>
+                <nav style="display:flex;gap:8px;flex-wrap:wrap;" aria-label="Seções da avaliação nutricional">
+                    ${botao('abaAnamneses', 'Anamnese Clínica', this.secaoAtiva === 'anamnese')}
+                    ${botao('abaMedidasFisicas', 'Avaliação Antropométrica', false)}
+                    ${botao('abaExames', 'Exames Laboratoriais', this.secaoAtiva === 'exames')}
+                    ${botao('abaConsumo', 'Consumo Alimentar', this.secaoAtiva === 'consumo')}
+                </nav>
+            </section>`;
+    }
+
+    getSecaoConfig() {
+        return {
+            anamnese: { novo: 'Nova Anamnese Clínica', salvar: 'Salvar Anamnese', descricao: 'a anamnese clínica', historico: 'Histórico de anamneses clínicas' },
+            exames: { novo: 'Novo Registro de Exames', salvar: 'Salvar Exames', descricao: 'os exames laboratoriais', historico: 'Histórico de exames laboratoriais' },
+            consumo: { novo: 'Novo Registro de Consumo', salvar: 'Salvar Consumo Alimentar', descricao: 'o consumo alimentar', historico: 'Histórico de consumo alimentar' }
+        }[this.secaoAtiva];
+    }
+
     obterDataRegistro(registro) {
         const valor = registro?.data_criacao || registro?.data_atualizacao || registro?.data_anamnese;
         if (valor?.toDate) return valor.toDate();
         const data = new Date(valor || 0);
         return Number.isNaN(data.getTime()) ? new Date(0) : data;
+    }
+
+    registroPertenceSecao(registro) {
+        if (registro.tipo_registro) return registro.tipo_registro === this.secaoAtiva;
+        if (this.secaoAtiva === 'anamnese') return true;
+        const grupos = this.secaoAtiva === 'exames'
+            ? [registro.exames_laboratoriais]
+            : [registro.historico_alimentar];
+        return grupos.some((grupo) => Object.values(grupo || {}).some((valor) => valor !== null && valor !== undefined && String(valor).trim() !== ''));
     }
 
     formatarDataHora(registro) {
@@ -524,18 +579,18 @@ export class AnamneseNutricionista {
         const secao = (icone, titulo, subtitulo, campos, classe = '') => `<section class="anamnese-detail-section ${classe}"><header class="anamnese-detail-section-header"><span class="anamnese-detail-icon" aria-hidden="true">${icone}</span><div><h3>${titulo}</h3><p>${subtitulo}</p></div></header><div class="anamnese-detail-grid">${campos.join('')}</div></section>`;
         const clinico = registro.historico_clinico || {};
         const alimentar = registro.historico_alimentar || {};
+        const exameFisico = registro.exame_fisico || {};
         const antropometria = registro.antropometria || {};
         const composicao = registro.composicao_corporal || {};
         const exames = registro.exames_laboratoriais || {};
         const estilo = registro.estilo_vida || {};
         return `<div class="anamnese-detail-summary">${campo('Data da anamnese', registro.data_anamnese)}${campo('Profissional responsável', registro.profissional)}${campo('Paciente', registro.paciente_nome || this.selectedPaciente?.nome)}</div><div class="anamnese-detail-sections">
-            ${secao('✚', 'Histórico clínico', 'Condições de saúde e antecedentes', [campo('Doenças preexistentes', clinico.doencas_preexistentes), campo('Medicamentos em uso', clinico.medicamentos), campo('Cirurgias prévias', clinico.cirurgias), campo('Histórico familiar', clinico.historico_familiar)])}
-            ${secao('◉', 'Histórico alimentar', 'Rotina, preferências e restrições', [campo('Hábitos alimentares', alimentar.habitos_alimentares), campo('Consumo de água', alimentar.consumo_agua, 'ml/dia'), campo('Restrições alimentares', alimentar.restricoes), campo('Preferências alimentares', alimentar.preferencias), campo('Suplementos', alimentar.suplementos)])}
-            ${secao('↔', 'Avaliação antropométrica', 'Medidas e objetivo corporal', [campo('Peso atual', antropometria.peso_atual, 'kg'), campo('Altura', antropometria.altura, 'm'), campo('Peso habitual', antropometria.peso_habitual, 'kg'), campo('Peso desejado', antropometria.peso_desejado, 'kg'), campo('IMC', antropometria.imc), campo('Classificação do IMC', antropometria.classificacao_imc)], 'is-compact')}
-            ${secao('◇', 'Composição corporal', 'Indicadores de bioimpedância e medidas', [campo('Massa muscular', composicao.massa_muscular, 'kg'), campo('Gordura corporal', composicao.gordura_corporal, '%'), campo('Água corporal', composicao.agua_corporal, '%'), campo('Massa óssea', composicao.massa_ossea, 'kg'), campo('Metabolismo basal', composicao.metabolismo_basal, 'kcal'), campo('Circunferência abdominal', composicao.circunferencia_abdominal, 'cm')], 'is-compact')}
-            ${secao('⌁', 'Exames laboratoriais', 'Principais marcadores bioquímicos', [campo('Glicemia', exames.glicemia, 'mg/dL'), campo('Colesterol total', exames.colesterol_total, 'mg/dL'), campo('HDL', exames.hdl, 'mg/dL'), campo('LDL', exames.ldl, 'mg/dL'), campo('Triglicerídeos', exames.triglicerideos, 'mg/dL'), campo('Hemoglobina glicada', exames.hemoglobina_glicada, '%'), campo('Vitamina D', exames.vitamina_d, 'ng/mL'), campo('Ferritina', exames.ferritina, 'ng/mL')], 'is-compact')}
-            ${secao('☀', 'Estilo de vida', 'Atividade, descanso e bem-estar', [campo('Atividade física', estilo.atividade_fisica), campo('Qualidade do sono', estilo.sono), campo('Hábitos', estilo.habitos), campo('Nível de estresse', estilo.nivel_estresse)])}
-            ${secao('✎', 'Observações profissionais', 'Considerações complementares da consulta', [campo('Observações', registro.observacoes)], 'is-full')}
+            ${this.secaoAtiva === 'anamnese' ? secao('✚', 'Histórico clínico', 'Condições de saúde e antecedentes', [campo('Doenças preexistentes', clinico.doencas_preexistentes), campo('Medicamentos em uso', clinico.medicamentos), campo('Cirurgias prévias', clinico.cirurgias), campo('Histórico familiar', clinico.historico_familiar)]) : ''}
+            ${this.secaoAtiva === 'anamnese' ? secao('🩺', 'Exame físico nutricional', 'Sinais e sintomas observados durante a consulta', [campo('Achados do exame físico', exameFisico.achados_gerais), campo('Sinais, sintomas e funções', exameFisico.sintomas_funcionais)]) : ''}
+            ${this.secaoAtiva === 'consumo' ? secao('◉', 'Consumo alimentar', 'Rotina, hidratação, preferências e restrições', [campo('Hábitos alimentares', alimentar.habitos_alimentares), campo('Consumo de água', alimentar.consumo_agua, 'ml/dia'), campo('Restrições alimentares', alimentar.restricoes), campo('Preferências alimentares', alimentar.preferencias), campo('Suplementos', alimentar.suplementos)]) : ''}
+            ${this.secaoAtiva === 'exames' ? secao('⌁', 'Exames laboratoriais', 'Principais marcadores bioquímicos', [campo('Glicemia', exames.glicemia, 'mg/dL'), campo('Colesterol total', exames.colesterol_total, 'mg/dL'), campo('HDL', exames.hdl, 'mg/dL'), campo('LDL', exames.ldl, 'mg/dL'), campo('Triglicerídeos', exames.triglicerideos, 'mg/dL'), campo('Hemoglobina glicada', exames.hemoglobina_glicada, '%'), campo('Vitamina D', exames.vitamina_d, 'ng/mL'), campo('Ferritina', exames.ferritina, 'ng/mL')], 'is-compact') : ''}
+            ${this.secaoAtiva === 'anamnese' ? secao('☀', 'Estilo de vida', 'Atividade, descanso e bem-estar', [campo('Atividade física', estilo.atividade_fisica), campo('Qualidade do sono', estilo.sono), campo('Hábitos', estilo.habitos), campo('Nível de estresse', estilo.nivel_estresse)]) : ''}
+            ${this.secaoAtiva === 'anamnese' ? secao('✎', 'Observações profissionais', 'Considerações complementares da consulta', [campo('Observações', registro.observacoes)], 'is-full') : ''}
         </div>`;
     }
 
@@ -544,19 +599,19 @@ export class AnamneseNutricionista {
         const conteudo = this.anamnesesList.length ? this.anamnesesList.map((registro) => `
             <div class="plano-card" style="background:white; border:2px solid #e2e8f0; border-radius:12px; margin-bottom:16px; overflow:hidden; transition:all .3s ease;">
                 <div style="padding:12px 14px; display:flex; align-items:center; justify-content:flex-start; gap:12px; flex-wrap:wrap;">
-                    <div><strong>Anamnese de ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.profissional || '')}</div></div>
+                    <div><strong>${this.getSecaoConfig().historico.replace('Histórico de ', '')} · ${this.escapeHtml(this.formatarDataHora(registro))}</strong><div style="color:#64748b; font-size:13px; margin-top:3px;">${this.escapeHtml(registro.profissional || '')}</div></div>
                     <div style="display:flex; align-items:center; gap:8px; margin-left:4px; flex-wrap:wrap;">
                         <button type="button" data-anamnese-detalhes="${this.escapeHtml(registro.id)}" title="Exibir detalhes" aria-label="Exibir detalhes" style="height:36px; padding:0 14px; background:#1a237e; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Exibir Detalhes</button>
                         <button type="button" data-anamnese-editar="${this.escapeHtml(registro.id)}" style="height:36px; padding:0 14px; background:#e0e7ff; color:#1a237e; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Editar</button>
                         <button type="button" data-anamnese-excluir="${this.escapeHtml(registro.id)}" style="height:36px; padding:0 14px; background:#fee2e2; color:#b91c1c; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Excluir</button>
                     </div>
                 </div>
-            </div>`).join('') : '<p style="color:#64748b; margin:12px 0 0;">Nenhuma anamnese registrada para este paciente.</p>';
+            </div>`).join('') : `<p style="color:#64748b; margin:12px 0 0;">Nenhum registro em ${this.getSecaoConfig().historico.toLowerCase()} para este paciente.</p>`;
         const modal = registroAberto ? `
             <div id="modalDetalhesAnamnese" class="anamnese-detail-modal" role="dialog" aria-modal="true" aria-labelledby="tituloDetalhesAnamnese">
                 <div class="anamnese-detail-dialog">
                     <div class="anamnese-detail-modal-header">
-                        <div><span class="anamnese-detail-eyebrow">Prontuário nutricional</span><h2 id="tituloDetalhesAnamnese">Detalhes da anamnese</h2><p>${this.escapeHtml(this.formatarDataHora(registroAberto))} · ${this.escapeHtml(registroAberto.paciente_nome || this.selectedPaciente?.nome || '')}</p></div>
+                        <div><span class="anamnese-detail-eyebrow">Prontuário nutricional</span><h2 id="tituloDetalhesAnamnese">${this.getSecaoConfig().historico}</h2><p>${this.escapeHtml(this.formatarDataHora(registroAberto))} · ${this.escapeHtml(registroAberto.paciente_nome || this.selectedPaciente?.nome || '')}</p></div>
                         <button id="btnFecharDetalhesAnamnese" type="button" aria-label="Fechar detalhes da anamnese">×</button>
                     </div>
                     <div class="anamnese-detail-body">
@@ -564,7 +619,7 @@ export class AnamneseNutricionista {
                     </div>
                 </div>
             </div>` : '';
-        return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>Histórico de anamneses</h3></div>${conteudo}</section>${modal}`;
+        return `<section class="evaluation-section" style="margin-bottom:24px;"><div class="section-header"><h3>${this.getSecaoConfig().historico}</h3></div>${conteudo}</section>${modal}`;
     }
 
     editarAnamnese(id) {
@@ -573,7 +628,7 @@ export class AnamneseNutricionista {
         this.currentAnamnese = registro;
         this.render();
         const titulo = document.getElementById('tituloModalAnamnese');
-        if (titulo) titulo.textContent = 'Editar Prontuário';
+        if (titulo) titulo.textContent = `Editar — ${this.getSecaoConfig().historico}`;
         const salvar = document.getElementById('saveAnamneseBtn');
         if (salvar) salvar.textContent = 'Salvar Ajustes';
         const dataAnamnese = document.getElementById('dataAnamnese');
@@ -587,7 +642,7 @@ export class AnamneseNutricionista {
 
     async excluirAnamnese(id) {
         const registro = this.anamnesesList.find((item) => item.id === id);
-        if (!registro || !confirm(`Excluir a anamnese de ${this.formatarDataHora(registro)}?\n\nEsta ação não pode ser desfeita.`)) return;
+        if (!registro || !confirm(`Excluir este registro de ${this.getSecaoConfig().historico.toLowerCase()} (${this.formatarDataHora(registro)})?\n\nEsta ação não pode ser desfeita.`)) return;
         try {
             await deleteDoc(doc(db, 'anamneses_nutricionais', id));
             if (this.currentAnamnese?.id === id) this.currentAnamnese = null;
@@ -607,6 +662,7 @@ export class AnamneseNutricionista {
         try {
             const agora = new Date().toISOString();
             const anamneseData = {
+                tipo_registro: this.currentAnamnese?.tipo_registro || this.secaoAtiva,
                 paciente_login: this.selectedPaciente.login,
                 paciente_nome: this.selectedPaciente.nome,
                 profissional: this.userInfo.nome,
@@ -628,6 +684,11 @@ export class AnamneseNutricionista {
                     restricoes: document.getElementById('restricoes')?.value || '',
                     preferencias: document.getElementById('preferencias')?.value || '',
                     suplementos: document.getElementById('suplementos')?.value || ''
+                },
+
+                exame_fisico: {
+                    achados_gerais: document.getElementById('achados_exame_fisico')?.value ?? this.currentAnamnese?.exame_fisico?.achados_gerais ?? '',
+                    sintomas_funcionais: document.getElementById('sintomas_funcoes')?.value ?? this.currentAnamnese?.exame_fisico?.sintomas_funcionais ?? ''
                 },
                 
                 antropometria: {
@@ -675,10 +736,10 @@ export class AnamneseNutricionista {
             if (this.currentAnamnese?.id) {
                 const anamneseDoc = doc(db, 'anamneses_nutricionais', this.currentAnamnese.id);
                 await updateDoc(anamneseDoc, anamneseData);
-                alert('✅ Anamnese atualizada com sucesso!');
+                alert('✅ Registro atualizado com sucesso!');
             } else {
                 await addDoc(anamneseRef, anamneseData);
-                alert('✅ Anamnese criada com sucesso!');
+                alert('✅ Registro criado com sucesso!');
             }
             
             this.historicoCarregadoLogin = null;

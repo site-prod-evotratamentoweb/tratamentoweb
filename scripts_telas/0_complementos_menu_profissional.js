@@ -91,9 +91,9 @@ export class MenuProfissional {
         // Menu específico para nutricionista
         if (this.userInfo.cargo === 'nutricionista') {
             items.push(`
-                <button class="menu-item ${this.currentModule === 'anamnese' ? 'active' : ''}" data-module="anamnese">
+                <button class="menu-item ${['avaliacao_nutricional', 'anamnese', 'medidas_fisicas', 'exames_nutricionais', 'medidas_consumo'].includes(this.currentModule) ? 'active' : ''}" data-module="avaliacao_nutricional">
                     <span class="menu-icon">📋</span>
-                    <span>Anamnese</span>
+                    <span>Avaliação Nutricional</span>
                 </button>
                 <button class="menu-item ${this.currentModule === 'plano_alimentar' ? 'active' : ''}" data-module="plano_alimentar">
                     <span class="menu-icon">🍽️</span>
