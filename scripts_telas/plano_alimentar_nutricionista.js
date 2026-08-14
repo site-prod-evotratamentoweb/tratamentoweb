@@ -284,7 +284,7 @@ export class PlanoAlimentarNutricionista {
 
                 <div id="modalListaAlimentos" class="modal-overlay" style="display: none;">
                     <div class="modal-content" style="position: relative; background: white; border-radius: 16px; width: min(99vw, calc(100vw - 12px)); max-width: calc(100vw - 12px); height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
-                        <button onclick="document.getElementById('modalListaAlimentos').style.display='none'"
+                        <button id="btnFecharListaAlimentos" type="button"
                                 style="position: absolute; top: 12px; right: 12px; z-index: 5; background: rgba(15,23,42,0.14); color: #334155; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">
                             X
                         </button>
@@ -2297,6 +2297,7 @@ export class PlanoAlimentarNutricionista {
     }
 
     attachEvents() {
+        this.attachModalCloseEvents();
         const pacienteSelect = document.getElementById('pacienteSelect');
         if (pacienteSelect) {
             pacienteSelect.addEventListener('change', async (e) => {
@@ -2426,6 +2427,60 @@ export class PlanoAlimentarNutricionista {
         document.getElementById('btnConfirmarExportarPlano')?.addEventListener('click', () => this.confirmarExportarPlano());
 
         window.planoAlimentarInstance = this;
+    }
+
+    attachModalCloseEvents() {
+        const app = document.getElementById('app');
+        if (!app || app.dataset.modalCloseEventsAttached === '1') return;
+        app.dataset.modalCloseEventsAttached = '1';
+
+        const fecharDetalhe = () => {
+            const modal = document.getElementById('modalDetalheAlimento');
+            if (modal) modal.style.display = 'none';
+        };
+        const fecharLista = () => {
+            const modal = document.getElementById('modalListaAlimentos');
+            if (modal) modal.style.display = 'none';
+        };
+        const acoesPorBotao = {
+            btnFecharPlano: () => this.fecharModal(),
+            btnFecharListaAlimentos: fecharLista,
+            btnFecharConfigAlimentos: () => this.fecharModalConfigAlimentos(),
+            btnFecharNovoAlimento: () => this.fecharModalNovoAlimento(),
+            btnFecharDetalheAlimento: fecharDetalhe,
+            btnFecharSelecaoAlimento: () => this.fecharModalSelecaoAlimentos(),
+            btnFecharObservacaoRefeicao: () => this.fecharModalObservacaoRefeicao(),
+            btnFecharVisualizarPlano: () => this.fecharModalVisualizarPlano(),
+            btnFecharEditarOpcaoPlano: () => this.fecharModalEditarOpcaoPlano(),
+            btnFecharExportarPlano: () => this.fecharModalExportarPlano()
+        };
+        const acoesPorFundo = {
+            modalPlano: () => this.fecharModal(),
+            modalListaAlimentos: fecharLista,
+            modalConfigAlimentos: () => this.fecharModalConfigAlimentos(),
+            modalNovoAlimento: () => this.fecharModalNovoAlimento(),
+            modalDetalheAlimento: fecharDetalhe,
+            foodSelectDropdown: () => this.fecharModalSelecaoAlimentos(),
+            modalObservacaoRefeicao: () => this.fecharModalObservacaoRefeicao(),
+            modalVisualizarPlano: () => this.fecharModalVisualizarPlano(),
+            modalEditarOpcaoPlano: () => this.fecharModalEditarOpcaoPlano(),
+            modalExportarPlano: () => this.fecharModalExportarPlano()
+        };
+
+        app.addEventListener('click', (event) => {
+            const botao = event.target.closest('button[id^="btnFechar"]');
+            if (botao && acoesPorBotao[botao.id]) {
+                event.preventDefault();
+                event.stopPropagation();
+                acoesPorBotao[botao.id]();
+                return;
+            }
+            if (event.target === event.currentTarget) return;
+            const fecharFundo = acoesPorFundo[event.target.id];
+            if (fecharFundo && event.target.classList.contains('modal-overlay')) {
+                fecharFundo();
+            }
+        }, true);
     }
 
     attachNutritionEvents() {
