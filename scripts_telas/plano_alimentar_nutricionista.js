@@ -926,7 +926,7 @@ export class PlanoAlimentarNutricionista {
                 <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.toggleMenuAcoesPlano()" title="Menu do plano" aria-label="Menu do plano" style="height: 34px; padding: 0 12px; background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 18px;">☰</button>
                 <div id="menuAcoesPlano" style="display: none; position: absolute; right: 0; top: 40px; width: 190px; background: white; color: #334155; border: 1px solid #dbe3ef; border-radius: 8px; box-shadow: 0 12px 28px rgba(15,23,42,0.18); overflow: hidden; z-index: 10000;">
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Detalhes do Plano</button>
-                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.alternarEdicaoPlanoVisualizado('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Editar Plano</button>
+                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.editarPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Editar Plano</button>
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.exportarPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Exportar</button>
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.excluirPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #b91c1c; text-align: left; cursor: pointer; font-size: 14px;">Excluir Plano</button>
                 </div>
@@ -1763,7 +1763,7 @@ export class PlanoAlimentarNutricionista {
     renderFormularioPlano() {
         return `
             <div style="display: flex; flex-direction: column; gap: 8px; height: 100%; min-height: 0; overflow: hidden;">
-                <div style="display:flex;align-items:center;gap:12px;font-size:16px;font-weight:700;color:#1a237e;padding:0 2px 2px;">Novo Plano Alimentar
+                <div style="display:flex;align-items:center;gap:12px;font-size:16px;font-weight:700;color:#1a237e;padding:0 2px 2px;">${this.planoEditando?.id ? 'Editar Plano Alimentar' : 'Novo Plano Alimentar'}
                     <label style="font-size:12px;color:#475569;font-weight:600;display:inline-flex;align-items:center;gap:6px;">Meta diária
                         <input id="metaCaloricaPlano" type="number" min="1" step="50" value="${this.escapeHtml(this.planoEditando?.meta_calorica || 1800)}" style="width:90px;height:30px;padding:4px 7px;border:1px solid #cbd5e1;border-radius:7px;"> kcal
                     </label>
@@ -2894,7 +2894,7 @@ export class PlanoAlimentarNutricionista {
             `).join('');
 
         return `
-            <div class="editar-opcao-plano-row" data-opcao-index="${index}" style="display: grid; grid-template-columns: 1fr 96px 34px; gap: 8px; align-items: end; padding: 10px; border: 1px solid #dbe3ef; border-radius: 10px; background: #f8fafc;">
+            <div class="editar-opcao-plano-row" data-opcao-index="${index}" style="display: grid; grid-template-columns: 1fr 96px 150px 34px; gap: 8px; align-items: end; padding: 10px; border: 1px solid #dbe3ef; border-radius: 10px; background: #f8fafc;">
                 <label style="font-size: 12px; color: #475569; font-weight: 600;">Opção ${index + 1}
                     <select class="editarOpcaoPlanoAlimento" style="width: 100%; margin-top: 5px; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
                         <option value="">Selecione um alimento</option>
@@ -2903,6 +2903,11 @@ export class PlanoAlimentarNutricionista {
                 </label>
                 <label style="font-size: 12px; color: #475569; font-weight: 600;">Qtd.
                     <input class="editarOpcaoPlanoQuantidade" type="number" min="1" max="9999" step="1" value="${this.escapeHtml(quantidade)}" style="width: 100%; margin-top: 5px; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                </label>
+                <label style="font-size: 12px; color: #475569; font-weight: 600;">Unidade
+                    <select class="editarOpcaoPlanoUnidade" style="width:100%;margin-top:5px;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:white;">
+                        ${this.renderSelectOptions(this.unidadesAlimentos, opcao?.detalhes?.unidade || alimentoAtual?.unidadePadrao || '')}
+                    </select>
                 </label>
                 <button type="button" class="btnRemoverOpcaoPlanoModal" title="Remover esta opção" aria-label="Remover opção" style="width: 34px; height: 34px; border: none; border-radius: 8px; background: #fee2e2; color: #b91c1c; cursor: pointer;">X</button>
             </div>
@@ -2932,9 +2937,13 @@ export class PlanoAlimentarNutricionista {
         return rows.map((row) => {
             const foodId = row.querySelector('.editarOpcaoPlanoAlimento')?.value || '';
             const quantidade = Math.max(1, Number(row.querySelector('.editarOpcaoPlanoQuantidade')?.value || 1));
+            const unidade = row.querySelector('.editarOpcaoPlanoUnidade')?.value || '';
             if (!foodId) return permitirVazio ? { foodId: '', quantidade } : null;
             const alimento = this.alimentosBase.find((item) => item.id === foodId);
-            return alimento ? { foodId, quantidade, opcao: this.criarOpcaoItemPlano(alimento, quantidade) } : null;
+            const alimentoPrescrito = alimento && unidade && unidade !== alimento.unidadePadrao
+                ? { ...alimento, unidadePadrao: unidade, gramasPorUnidade: 0 }
+                : alimento;
+            return alimentoPrescrito ? { foodId, quantidade, unidade, opcao: this.criarOpcaoItemPlano(alimentoPrescrito, quantidade) } : null;
         }).filter((item) => permitirVazio || item?.opcao);
     }
 
@@ -3692,8 +3701,8 @@ export class PlanoAlimentarNutricionista {
         const plano = this.planosList.find(p => p.id === planoId);
         if (plano) {
             this.planoEditando = { ...plano };
-            delete this.planoEditando.id;
             this.planoExpandido = null;
+            this.fecharModalVisualizarPlano();
             this.abrirModal();
         }
     }
@@ -3749,11 +3758,23 @@ export class PlanoAlimentarNutricionista {
             const nutricionistaLogin = this.userInfo.login;
             const pacienteLogin = this.selectedPaciente.login;
 
-            // Caminho: planos_alimentares > nutricionista > paciente > documento
-            await this.desmarcarPlanosAtuais();
-            await setDoc(doc(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin, documentoId), mealPlanData);
-            
-            alert(`✅ Plano criado com sucesso!\n📅 ${this.formatarDataExibicao(documentoId)}`);
+            const planoIdEditando = this.planoEditando?.id;
+            if (planoIdEditando) {
+                const payloadEdicao = {
+                    ...mealPlanData,
+                    atual: Boolean(this.planoEditando.atual),
+                    criado_por: this.planoEditando.criado_por || this.userInfo.login,
+                    data_criacao: this.planoEditando.data_criacao || agora.toISOString(),
+                    data_atualizacao: agora.toISOString(),
+                    atualizado_por: this.userInfo.login
+                };
+                await updateDoc(doc(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin, planoIdEditando), payloadEdicao);
+                alert('✅ Plano atualizado com sucesso!');
+            } else {
+                await this.desmarcarPlanosAtuais();
+                await setDoc(doc(db, 'planos_alimentares', nutricionistaLogin, pacienteLogin, documentoId), mealPlanData);
+                alert(`✅ Plano criado com sucesso!\n📅 ${this.formatarDataExibicao(documentoId)}`);
+            }
             
             this.fecharModal();
             await this.loadPlanos();
