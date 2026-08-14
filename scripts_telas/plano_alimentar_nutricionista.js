@@ -888,11 +888,16 @@ export class PlanoAlimentarNutricionista {
         const alimentos = this.filtrarAlimentos(termo);
         const destino = this.visualizacaoOpcaoDestino;
         return `
-            <div style="background: white; border: 1px solid #dbe3ef; border-radius: 10px; padding: 8px; flex: 0 0 auto; display: grid; grid-template-columns: 190px minmax(180px, 260px) 66px 1fr; gap: 8px; align-items: end;">
+            <div style="background: white; border: 1px solid #dbe3ef; border-radius: 10px; padding: 8px; flex: 0 0 auto; display: grid; grid-template-columns: 190px 130px minmax(180px, 260px) 66px 1fr; gap: 8px; align-items: end;">
                 <label style="font-size: 12px; color: #475569; font-weight: 700;">Refeição
                     <select id="visualMealSelect" onchange="window.planoAlimentarInstance.visualizacaoMealSelecionada = this.value" style="width: 100%; margin-top: 4px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;">
                         ${this.getRefeicoesPlano().map((refeicao) => `<option value="${refeicao.id}" ${this.visualizacaoMealSelecionada === refeicao.id ? 'selected' : ''}>${refeicao.titulo}</option>`).join('')}
                     </select>
+                </label>
+                <label style="font-size: 12px; color: #475569; font-weight: 700;">Meta diária
+                    <span style="display:flex;align-items:center;gap:5px;margin-top:4px;">
+                        <input id="visualMetaCalorica" type="number" min="1" step="50" value="${this.escapeHtml(plano.meta_calorica || 1800)}" onchange="window.planoAlimentarInstance.atualizarMetaPlanoVisualizado('${plano.id}', this.value)" style="width:92px;padding:8px;border:1px solid #cbd5e1;border-radius:8px;"> kcal
+                    </span>
                 </label>
                 <label style="font-size: 12px; color: #475569; font-weight: 700;">Pesquisar alimento
                     <input id="visualFoodSearch" autocomplete="off" value="${this.escapeHtml(termo)}" oninput="window.planoAlimentarInstance.atualizarModalVisualizarPlano()" style="width: 100%; margin-top: 4px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;">
@@ -3367,6 +3372,7 @@ export class PlanoAlimentarNutricionista {
         if (!plano || !this.selectedPaciente) return;
 
         const payload = {
+            meta_calorica: Math.max(1, Number(plano.meta_calorica || 1800)),
             breakfast: this.obterTextoRefeicaoImportada(plano.itens_plano, 'breakfast'),
             morningSnack: this.obterTextoRefeicaoImportada(plano.itens_plano, 'morningSnack'),
             lunch: this.obterTextoRefeicaoImportada(plano.itens_plano, 'lunch'),
@@ -3380,6 +3386,17 @@ export class PlanoAlimentarNutricionista {
 
         await updateDoc(doc(db, 'planos_alimentares', this.userInfo.login, this.selectedPaciente.login, planoId), payload);
         Object.assign(plano, payload);
+    }
+
+    async atualizarMetaPlanoVisualizado(planoId, valor) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        const meta = Math.max(1, Number(valor || 0));
+        if (!plano || !Number.isFinite(meta)) return;
+
+        plano.meta_calorica = meta;
+        await this.salvarPlanoVisualizado(planoId);
+        this.abrirModalVisualizarPlano(planoId);
+        this.renderizarPlanosContainer();
     }
 
     async editarObservacaoPlanoSalvo(planoId, mealId) {
