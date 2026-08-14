@@ -369,7 +369,7 @@ export class PlanoAlimentarNutricionista {
                                 <strong id="obsModalTitulo" style="font-size: 15px;">Observações da refeição</strong>
                                 <span id="obsModalSubtitulo" style="font-size: 12px; opacity: 0.9;">Digite a observação</span>
                             </div>
-                            <button id="btnFecharObservacaoRefeicao" type="button" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
+                            <button id="btnFecharObservacaoRefeicao" type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance?.fecharModalObservacaoRefeicao()" style="background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px;">X</button>
                         </div>
                         <div style="padding: 16px; display: grid; gap: 12px;">
                             <textarea id="obsModalTexto" rows="6" style="width: 100%; min-height: 140px; resize: vertical; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; line-height: 1.5;"></textarea>
