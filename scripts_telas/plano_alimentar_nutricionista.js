@@ -328,7 +328,7 @@ export class PlanoAlimentarNutricionista {
                     </div>
                 </div>
 
-                <div id="foodSelectDropdown" class="modal-overlay" style="display: none; z-index: 3100; padding: 14px;">
+                <div id="foodSelectDropdown" class="modal-overlay" style="display: none; z-index: 15000; padding: 14px;">
                     <div class="modal-content" style="background: white; border-radius: 16px; width: min(94vw, 1320px); max-width: calc(100vw - 12px); height: min(92vh, 860px); max-height: calc(100vh - 28px); overflow: hidden; margin: 0 auto; display: flex; flex-direction: column;">
                         <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: 0 0 auto;">
                             <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
@@ -1495,7 +1495,7 @@ export class PlanoAlimentarNutricionista {
                         <span style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Pesquisar Alimento</span>
                         <span style="display: grid; grid-template-columns: minmax(0, 1fr) 58px; gap: 5px; position: relative;">
                             <input id="foodSearch" autocomplete="off" placeholder="Digite o alimento" style="width: 100%; min-width: 0; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 8px; height: 30px; font-size: 13px;" value="${this.escapeHtml(termo)}">
-                            <button id="btnAbrirSelecaoAlimento" type="button" title="Selecionar alimentos na lista" aria-label="Selecionar alimentos na lista" style="width: 58px; height: 30px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer; font-size: 12px; font-weight: 700;">Lista</button>
+                            <button id="btnAbrirSelecaoAlimento" type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance?.abrirModalSelecaoAlimentos()" title="Selecionar alimentos na lista" aria-label="Selecionar alimentos na lista" style="width: 58px; height: 30px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer; font-size: 12px; font-weight: 700;">Lista</button>
                         </span>
                     </label>
                     <div id="foodResults" style="min-width: 0; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 0 0 8px 0; align-items: flex-start; min-height: 0; height: 100%; scrollbar-gutter: stable;">
@@ -2489,7 +2489,6 @@ export class PlanoAlimentarNutricionista {
     attachNutritionEvents() {
         const search = document.getElementById('foodSearch');
         const results = document.getElementById('foodResults');
-        const btnAbrirSelecao = document.getElementById('btnAbrirSelecaoAlimento');
         const quantidade = document.getElementById('foodQuantidade');
         const refreshResults = () => {
             if (!results) return;
@@ -2498,7 +2497,6 @@ export class PlanoAlimentarNutricionista {
         };
 
         search?.addEventListener('input', refreshResults);
-        btnAbrirSelecao?.addEventListener('click', () => this.abrirModalSelecaoAlimentos());
         quantidade?.addEventListener('input', refreshResults);
         this.attachMealEditorEvents();
         this.attachFoodResultButtons();
