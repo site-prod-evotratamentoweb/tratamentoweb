@@ -1474,7 +1474,7 @@ export class PlanoAlimentarNutricionista {
                         ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
                     <div style="display: grid; grid-template-columns: 38px 30px 30px; gap: 6px; width: 110px; min-width: 110px;">
-                        <button type="button" class="btnAlternarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
+                        <button type="button" class="btnAlternarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" onclick="event.stopPropagation(); window.planoAlimentarInstance?.alternarOpcaoVisivelItemPlano('${mealId}', '${item.id}')" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
                         <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes de todas as opções" title="Ver detalhes de todas as opções" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                         <button type="button" class="btnEditarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Editar opção" title="Editar opção atual" style="width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #ede9fe; color: #6d28d9; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✎</button>
                     </div>
@@ -2536,9 +2536,6 @@ export class PlanoAlimentarNutricionista {
         });
         document.querySelectorAll('.btnEditarOpcaoItemPlano').forEach((button) => {
             button.addEventListener('click', () => this.abrirModalEditarOpcaoPlano(button.dataset.mealId, button.dataset.itemId));
-        });
-        document.querySelectorAll('.btnAlternarOpcaoItemPlano').forEach((button) => {
-            button.addEventListener('click', () => this.alternarOpcaoVisivelItemPlano(button.dataset.mealId, button.dataset.itemId));
         });
         document.querySelectorAll('.btnObservacaoRefeicao').forEach((button) => {
             button.addEventListener('click', (event) => {
