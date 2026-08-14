@@ -841,7 +841,7 @@ export class PlanoAlimentarNutricionista {
         return `
             <div ${dragAttrs} style="border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 7px; padding: ${itemPadding}; background: #f8fafc; min-height: ${itemMinHeight}; overflow: hidden; cursor: ${emEdicao ? 'grab' : 'default'};">
                 <div style="display: grid; grid-template-columns: 1fr auto auto ${emEdicao ? 'auto auto' : ''}; gap: 5px; align-items: start;">
-                    <div style="min-width: 0; color: #334155; font-size: ${itemFont}; line-height: ${itemLineHeight}; max-height: ${itemTextMaxHeight}; overflow: hidden;">
+                    <div title="${this.escapeHtml(opcaoVisivel.texto)}" style="min-width: 0; color: #334155; font-size: ${itemFont}; line-height: ${itemLineHeight}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
                     <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.alternarOpcaoPlanoSalvo('${planoId}', '${mealId}', '${item.id}')" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: ${optionWidth}; min-width: ${optionWidth}; height: ${buttonSize}; padding: 0; border: none; border-radius: 6px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
@@ -926,7 +926,7 @@ export class PlanoAlimentarNutricionista {
                 <button type="button" onclick="event.stopPropagation(); window.planoAlimentarInstance.toggleMenuAcoesPlano()" title="Menu do plano" aria-label="Menu do plano" style="height: 34px; padding: 0 12px; background: rgba(255,255,255,0.18); color: white; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 18px;">☰</button>
                 <div id="menuAcoesPlano" style="display: none; position: absolute; right: 0; top: 40px; width: 190px; background: white; color: #334155; border: 1px solid #dbe3ef; border-radius: 8px; box-shadow: 0 12px 28px rgba(15,23,42,0.18); overflow: hidden; z-index: 10000;">
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.abrirDetalhesNutricionaisPlanoSalvo('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Detalhes do Plano</button>
-                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.editarPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Editar Plano</button>
+                    <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.editarPlanoNoModal('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Editar Plano</button>
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.exportarPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #334155; text-align: left; cursor: pointer; font-size: 14px;">Exportar</button>
                     <button type="button" onclick="window.planoAlimentarInstance.toggleMenuAcoesPlano(false); window.planoAlimentarInstance.excluirPlano('${planoId}')" style="width: 100%; padding: 10px 12px; border: none; background: white; color: #b91c1c; text-align: left; cursor: pointer; font-size: 14px;">Excluir Plano</button>
                 </div>
@@ -1469,15 +1469,14 @@ export class PlanoAlimentarNutricionista {
 
         return `
             <div class="meal-item-row" draggable="true" data-meal-id="${mealId}" data-item-id="${item.id}" style="position: relative; overflow: hidden; border: 1px solid #dbe3ef; border-left: 4px solid #1a237e; border-radius: 8px; padding: 6px; background: #f8fafc; min-height: 44px;">
-                <div style="display: grid; grid-template-columns: 1fr 76px; gap: 7px; align-items: start;">
-                    <div style="min-width: 0; color: #334155; font-size: 12px; line-height: 1.25;">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 7px; align-items: center;">
+                    <div title="${this.escapeHtml(opcaoVisivel.texto)}" style="min-width: 0; color: #334155; font-size: 12px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         ${this.escapeHtml(opcaoVisivel.texto)}
                     </div>
-                    <div style="display: grid; grid-template-columns: 38px 30px; grid-template-rows: repeat(2, 30px); gap: 6px;">
+                    <div style="display: grid; grid-template-columns: 38px 30px 30px; gap: 6px; width: 110px; min-width: 110px;">
                         <button type="button" class="btnAlternarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Alternar opção" title="${opcoes.length > 1 ? `Ver opção ${proximaOpcaoIndex + 1} de ${opcoes.length}` : 'Opção única'}" style="width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fef3c7; color: #92400e; cursor: ${opcoes.length > 1 ? 'pointer' : 'default'}; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${opcaoVisivelIndex + 1}/${opcoes.length}</button>
                         <button type="button" class="btnDetalhesItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Exibir detalhes de todas as opções" title="Ver detalhes de todas as opções" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #e0f2fe; color: #0369a1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">&#128065;</button>
                         <button type="button" class="btnEditarOpcaoItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Editar opção" title="Editar opção atual" style="width: 38px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #ede9fe; color: #6d28d9; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✎</button>
-                        <button type="button" class="btnExcluirItemPlano" data-meal-id="${mealId}" data-item-id="${item.id}" aria-label="Excluir item" title="Excluir alimento" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 7px; background: #fee2e2; color: #b91c1c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">X</button>
                     </div>
                 </div>
             </div>
@@ -2420,7 +2419,11 @@ export class PlanoAlimentarNutricionista {
         document.getElementById('btnFecharEditarOpcaoPlano')?.addEventListener('click', () => this.fecharModalEditarOpcaoPlano());
         document.getElementById('btnFecharVisualizarPlano')?.addEventListener('click', () => this.fecharModalVisualizarPlano());
         document.getElementById('btnConcluirEdicaoPlanoVisualizado')?.addEventListener('click', () => {
-            if (this.planoExpandido) this.alternarEdicaoPlanoVisualizado(this.planoExpandido);
+            if (this.planoEditando?.id && this.planoEditando.id === this.planoExpandido) {
+                void this.saveMealPlan();
+            } else if (this.planoExpandido) {
+                this.alternarEdicaoPlanoVisualizado(this.planoExpandido);
+            }
         });
         document.getElementById('btnFecharExportarPlano')?.addEventListener('click', () => this.fecharModalExportarPlano());
         document.getElementById('btnCancelarExportarPlano')?.addEventListener('click', () => this.fecharModalExportarPlano());
@@ -2922,7 +2925,10 @@ export class PlanoAlimentarNutricionista {
                     ${opcoes.map((opcao, index) => this.renderLinhaEditarOpcaoPlano(opcao, index)).join('')}
                 </div>
                 <div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-                    <button id="btnAdicionarOpcaoPlanoModal" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Adicionar outra opção</button>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button id="btnAdicionarOpcaoPlanoModal" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #0f766e; color: white; cursor: pointer; font-weight: 600;">Adicionar outra opção</button>
+                        <button id="btnExcluirAlimentoPlanoModal" type="button" style="padding:10px 14px;border:none;border-radius:8px;background:#fee2e2;color:#b91c1c;cursor:pointer;font-weight:700;">Excluir alimento</button>
+                    </div>
                     <div style="display: flex; gap: 8px;">
                         <button id="btnCancelarEditarOpcaoPlano" type="button" style="padding: 10px 14px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer;">Cancelar</button>
                         <button id="btnSalvarEditarOpcaoPlano" type="button" style="padding: 10px 16px; border: none; border-radius: 8px; background: #1a237e; color: white; cursor: pointer; font-weight: 600;">Salvar</button>
@@ -2950,6 +2956,7 @@ export class PlanoAlimentarNutricionista {
     anexarEventosModalEditarOpcaoPlano() {
         document.getElementById('btnCancelarEditarOpcaoPlano')?.addEventListener('click', () => this.fecharModalEditarOpcaoPlano());
         document.getElementById('btnSalvarEditarOpcaoPlano')?.addEventListener('click', () => this.salvarEdicaoOpcaoPlano());
+        document.getElementById('btnExcluirAlimentoPlanoModal')?.addEventListener('click', () => this.excluirAlimentoPeloModalEdicao());
         document.getElementById('btnAdicionarOpcaoPlanoModal')?.addEventListener('click', () => {
             const opcoesAtuais = this.coletarOpcoesEditadasPlano(true).map((item) => item?.opcao || {});
             opcoesAtuais.push({});
@@ -3022,6 +3029,21 @@ export class PlanoAlimentarNutricionista {
         item.opcaoVisivelIndex = Math.max(0, Math.min(opcoesEditadas.length - 1, Number(opcaoIndex || 0)));
         item.texto = this.formatarTextoItemPlano(item);
         item.detalhes = opcoesEditadas[0]?.detalhes || null;
+        this.fecharModalEditarOpcaoPlano();
+        this.renderizarRefeicoesPlano();
+    }
+
+    excluirAlimentoPeloModalEdicao() {
+        if (!this.itemOpcaoEditando) return;
+        const { mealId, itemId } = this.itemOpcaoEditando;
+        const item = (this.itensPlano[mealId] || []).find((registro) => registro.id === itemId);
+        const nome = item?.opcoes?.[Number(item.opcaoVisivelIndex || 0)]?.texto || item?.texto || 'este alimento';
+        if (!item || !confirm(`Excluir este alimento e todas as suas opções?\n\n${nome}`)) return;
+
+        this.itensPlano[mealId] = (this.itensPlano[mealId] || []).filter((registro) => registro.id !== itemId);
+        if (this.opcaoDestinoPlano?.mealId === mealId && this.opcaoDestinoPlano?.itemId === itemId) {
+            this.opcaoDestinoPlano = null;
+        }
         this.fecharModalEditarOpcaoPlano();
         this.renderizarRefeicoesPlano();
     }
@@ -3346,6 +3368,18 @@ export class PlanoAlimentarNutricionista {
             alert('Nao foi possivel carregar a base nutricional. Verifique as permissoes do Firestore.');
         }
 
+        try {
+            await this.carregarConfiguracoesAlimentos();
+        } catch (_error) {
+            this.categoriasAlimentos = this.obterCategoriasDerivadas();
+            this.unidadesAlimentos = this.obterUnidadesDerivadas();
+            this.configAlimentosCarregada = true;
+        }
+
+        if (!this.unidadesAlimentos.length) {
+            this.unidadesAlimentos = mesclarListaPadrao(UNIDADES_ALIMENTOS_PADRAO, this.obterUnidadesDerivadas());
+        }
+
         const modal = document.getElementById('modalPlano');
         if (modal) {
             const formWrapper = modal.querySelector('[data-plano-form]');
@@ -3400,6 +3434,7 @@ export class PlanoAlimentarNutricionista {
         if (concluirButton) concluirButton.style.display = 'none';
         this.visualizacaoPlanoEditando = false;
         this.visualizacaoOpcaoDestino = null;
+        if (this.planoEditando?.id === this.planoExpandido) this.planoEditando = null;
     }
 
     toggleMenuAcoesPlano(forcarEstado = null) {
@@ -3705,6 +3740,49 @@ export class PlanoAlimentarNutricionista {
             this.fecharModalVisualizarPlano();
             this.abrirModal();
         }
+    }
+
+    async editarPlanoNoModal(planoId) {
+        const plano = this.planosList.find((registro) => registro.id === planoId);
+        if (!plano) return;
+
+        this.planoEditando = { ...plano };
+        this.itensPlano = this.criarEstadoItensPlano(plano);
+        this.observacoesRefeicoes = this.criarEstadoObservacoesRefeicoes(plano);
+        this.refeicaoSelecionada = 'breakfast';
+        this.visualizacaoPlanoEditando = false;
+        this.visualizacaoOpcaoDestino = null;
+
+        try {
+            await this.carregarBaseAlimentos();
+            await this.carregarConfiguracoesAlimentos();
+        } catch (_error) {
+            this.categoriasAlimentos = this.obterCategoriasDerivadas();
+            this.unidadesAlimentos = this.obterUnidadesDerivadas();
+        }
+        if (!this.unidadesAlimentos.length) {
+            this.unidadesAlimentos = mesclarListaPadrao(UNIDADES_ALIMENTOS_PADRAO, this.obterUnidadesDerivadas());
+        }
+
+        const modal = document.getElementById('modalVisualizarPlano');
+        const titulo = document.getElementById('modalVisualizarPlanoTitulo');
+        const formWrapper = modal?.querySelector('[data-visualizar-plano-form]');
+        const actionsWrapper = modal?.querySelector('[data-visualizar-plano-actions]');
+        const concluirButton = document.getElementById('btnConcluirEdicaoPlanoVisualizado');
+        if (titulo) titulo.textContent = 'Editar Plano Alimentar';
+        if (actionsWrapper) actionsWrapper.innerHTML = '';
+        if (concluirButton) {
+            concluirButton.textContent = 'Salvar';
+            concluirButton.style.display = 'inline-flex';
+        }
+        if (formWrapper) {
+            formWrapper.innerHTML = this.renderFormularioPlano();
+            formWrapper.style.overflowY = 'auto';
+            formWrapper.style.webkitOverflowScrolling = 'touch';
+            this.attachNutritionEvents();
+        }
+        if (modal) modal.style.display = 'flex';
+        setTimeout(() => document.getElementById('foodSearch')?.focus(), 50);
     }
 
     async excluirPlano(planoId) {
