@@ -201,7 +201,7 @@ export class PlanoAlimentarNutricionista {
     renderHTML() {
         const termoLista = '';
         return `
-            <div class="dashboard-container" style="height: calc(100vh - 12px); max-height: calc(100vh - 12px); margin: 6px auto; display: flex; flex-direction: column;">
+            <div class="dashboard-container plano-alimentar-dashboard" style="height: calc(100vh - 12px); max-height: calc(100vh - 12px); margin: 6px auto; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
     
                 <div class="main-content" style="flex: 1; overflow: hidden; padding: 8px 12px; min-height: 0;">
@@ -265,7 +265,7 @@ export class PlanoAlimentarNutricionista {
     
                 <!-- Modal para Criar/Editar Plano -->
                 <div id="modalPlano" class="modal-overlay" style="display: none;">
-                    <div class="modal-content" style="position: relative; background: white; border-radius: 16px; width: min(99vw, calc(100vw - 12px)); max-width: calc(100vw - 12px); height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
+                    <div class="modal-content plano-editor-dialog" style="position: relative; background: white; border-radius: 16px; width: min(99vw, calc(100vw - 12px)); max-width: calc(100vw - 12px); height: 96vh; max-height: calc(100vh - 16px); overflow: hidden; margin: 8px auto; display: flex; flex-direction: column;">
                         <div data-plano-form style="padding: 8px 12px; flex: 1; overflow: hidden;">
                             ${this.renderFormularioPlano()}
                         </div>
@@ -340,7 +340,7 @@ export class PlanoAlimentarNutricionista {
                             </div>
                         </div>
                         <div style="padding: 14px 12px 10px; display: grid; gap: 10px; flex: 0 0 auto;">
-                            <div style="display: grid; grid-template-columns: minmax(240px, 1fr) auto auto; gap: 10px; align-items: end;">
+                            <div class="food-selection-toolbar" style="display: grid; grid-template-columns: minmax(240px, 1fr) auto auto; gap: 10px; align-items: end;">
                                 <label style="font-size: 12px; color: #475569; font-weight: 600; display: flex; flex-direction: column;">Pesquisar na lista
                                     <input id="foodSelectSearch" autocomplete="off" placeholder="Pesquisar alimento" value="${this.escapeHtml(termoLista)}" style="width: 100%; margin-top: 6px; height: 36px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
                                 </label>
@@ -1490,8 +1490,8 @@ export class PlanoAlimentarNutricionista {
         const alimentos = this.filtrarAlimentos(termo);
         const alimentosLista = this.listarAlimentosSelecao(termoLista);
         return `
-            <div style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 4px 8px; margin-bottom: 6px; flex: 0 0 auto; overflow: visible; height: 66px; box-sizing: border-box; position: relative; z-index: 20;">
-                <div style="display: grid; grid-template-columns: minmax(260px, 1.25fr) minmax(0, 3.75fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
+            <div class="plan-food-toolbar" style="background: #f8fafc; border: 1px solid #dbe3ef; border-radius: 12px; padding: 4px 8px; margin-bottom: 6px; flex: 0 0 auto; overflow: visible; height: 66px; box-sizing: border-box; position: relative; z-index: 20;">
+                <div class="plan-food-toolbar-grid" style="display: grid; grid-template-columns: minmax(260px, 1.25fr) minmax(0, 3.75fr); gap: 8px; align-items: start; min-width: 0; height: 100%;">
                     <label style="display: grid; grid-template-rows: 16px 30px; gap: 4px; min-width: 0; align-items: start;">
                         <span style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Pesquisar Alimento</span>
                         <span style="display: grid; grid-template-columns: minmax(0, 1fr) 58px; gap: 5px; position: relative;">
@@ -1525,7 +1525,7 @@ export class PlanoAlimentarNutricionista {
         }
 
         return `
-            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-content: start;">
+            <div class="food-selection-grid" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-content: start;">
                 ${alimentos.map((alimento) => this.renderCardSelecaoAlimento(alimento)).join('')}
             </div>
         `;
@@ -1576,7 +1576,7 @@ export class PlanoAlimentarNutricionista {
             const quantidadeValor = Number(document.getElementById(quantidadeId)?.value || 1);
             const unidadeSelecionada = document.querySelector(`[data-food-inline-unit="${alimento.id}"]`)?.value || alimento.unidadePadrao || '';
             return `
-                <div style="box-sizing: border-box; min-width: 0; flex: 0 0 calc((100% - 8px) / 2); height: 50px; overflow: hidden; display: grid; grid-template-columns: minmax(96px, 1fr) 52px minmax(96px, .7fr) 30px 30px; grid-template-rows: 16px 30px; gap: 4px 5px; align-items: start; padding-left: 8px; border-left: 2px solid #cbd5e1;">
+                <div class="plan-food-result-card" style="box-sizing: border-box; min-width: 0; flex: 0 0 calc((100% - 8px) / 2); height: 50px; overflow: hidden; display: grid; grid-template-columns: minmax(96px, 1fr) 52px minmax(96px, .7fr) 30px 30px; grid-template-rows: 16px 30px; gap: 4px 5px; align-items: start; padding-left: 8px; border-left: 2px solid #cbd5e1;">
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">Nome do Alimento</div>
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">QTD.</div>
                     <div style="font-size: 11px; color: #334155; font-weight: 700; line-height: 1; white-space: nowrap;">UNID.</div>

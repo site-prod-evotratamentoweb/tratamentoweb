@@ -13,6 +13,7 @@ const copyAsIs = [
   '.nojekyll',
   'CNAME',
   'manifest.json',
+  'service-worker.js',
   'imagens',
   'manuais',
   'portfolio/grazielle_matos_imagens'

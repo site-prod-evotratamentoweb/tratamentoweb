@@ -1696,3 +1696,167 @@ body.profile-paciente .media-library-main { height:calc(100vh - 76px); min-heigh
 .lecture-responsibility input { flex:0 0 auto; margin-top:3px; accent-color:#1a237e; }
 .lecture-responsibility strong,.lecture-responsibility small { display:block; }.lecture-responsibility strong { margin-bottom:4px; color:#92400e; font-size:12px; }.lecture-responsibility small { color:#78350f; font-size:11px; font-weight:500; line-height:1.5; }
 @media (max-width:700px) { body.profile-profissional .media-library-main { padding:10px 12px 0!important; } body.profile-paciente .media-library-main { height:calc(100vh - 62px); padding:10px 12px 0!important; }.media-create-actions { right:18px; bottom:18px; }.media-library-main .media-tab-panel { padding-bottom:78px; } }
+
+/* Plano alimentar: editor único responsivo e modo PWA */
+@media (max-width: 768px) {
+    body.profile-profissional {
+        padding: 0 !important;
+    }
+
+    body.profile-profissional .plano-alimentar-dashboard {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    .plano-alimentar-dashboard > .main-content {
+        padding: 8px !important;
+        overflow-y: auto !important;
+    }
+
+    .plano-alimentar-dashboard .fab-container {
+        right: max(12px, env(safe-area-inset-right)) !important;
+        bottom: max(12px, env(safe-area-inset-bottom)) !important;
+        gap: 8px !important;
+    }
+
+    .plano-alimentar-dashboard .fab-button {
+        min-height: 44px;
+        max-width: calc(100vw - 24px);
+    }
+
+    .plano-alimentar-dashboard .modal-overlay {
+        padding: 0 !important;
+        align-items: stretch !important;
+    }
+
+    .plano-alimentar-dashboard .modal-overlay > .modal-content,
+    .plano-alimentar-dashboard .modal-overlay > div {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    .plano-editor-dialog > [data-plano-form] {
+        padding: max(8px, env(safe-area-inset-top)) 8px max(76px, env(safe-area-inset-bottom)) !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .plano-editor-dialog > [data-plano-form] > div {
+        height: auto !important;
+        min-height: 100% !important;
+        overflow: visible !important;
+    }
+
+    .plan-food-toolbar {
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 8px !important;
+        position: static !important;
+    }
+
+    .plan-food-toolbar-grid {
+        grid-template-columns: 1fr !important;
+        height: auto !important;
+    }
+
+    #foodResults {
+        height: auto !important;
+        min-height: 58px !important;
+        padding-bottom: 6px !important;
+    }
+
+    .plan-food-result-card {
+        flex-basis: min(390px, calc(100vw - 34px)) !important;
+    }
+
+    #mealItemsGrid {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: none !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    #mealItemsGrid .meal-editor-card {
+        min-height: 250px !important;
+        height: auto !important;
+    }
+
+    #mealItemsGrid .meal-items-scroll {
+        max-height: 330px;
+        min-height: 170px !important;
+    }
+
+    .food-selection-toolbar {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .food-selection-toolbar > label {
+        grid-column: 1 / -1;
+    }
+
+    .food-selection-toolbar button {
+        width: 100%;
+        min-height: 44px;
+        padding-inline: 8px !important;
+    }
+
+    .food-selection-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .btnCardSelecaoAlimento {
+        grid-template-columns: minmax(0, 1fr) 72px minmax(105px, .75fr) !important;
+        min-height: 72px !important;
+    }
+
+    [data-editar-opcao-plano-form] .editar-opcao-plano-row {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    [data-editar-opcao-plano-form] .editar-opcao-plano-row > label:first-child {
+        grid-column: 1 / -1;
+    }
+
+    [data-editar-opcao-plano-form] .btnRemoverOpcaoPlanoModal {
+        width: 100% !important;
+        min-height: 42px;
+    }
+
+    #modalObservacaoRefeicao .modal-content {
+        height: auto !important;
+        min-height: 0 !important;
+        margin-top: auto !important;
+        border-radius: 16px 16px 0 0 !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+
+    input, select, textarea, button {
+        touch-action: manipulation;
+    }
+}
+
+@media (max-width: 390px) {
+    .btnCardSelecaoAlimento {
+        grid-template-columns: 1fr 70px !important;
+    }
+
+    .btnCardSelecaoAlimento > strong {
+        grid-column: 1 / -1;
+    }
+
+    .food-selection-toolbar {
+        grid-template-columns: 1fr !important;
+    }
+
+    .food-selection-toolbar > * {
+        grid-column: 1 !important;
+    }
+}
