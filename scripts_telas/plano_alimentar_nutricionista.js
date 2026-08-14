@@ -133,6 +133,7 @@ export class PlanoAlimentarNutricionista {
         this.visualizacaoOpcaoDestino = null;
         this.planoExportandoId = null;
         this.modalSelecaoAlimentosMealId = null;
+        this.modalSelecaoAlimentosPlanoId = null;
         this.selecoesAlimentosModal = {};
         this.modalObservacaoContext = null;
         this.observacaoModalValorInicial = '';
@@ -887,7 +888,7 @@ export class PlanoAlimentarNutricionista {
         const alimentos = this.filtrarAlimentos(termo);
         const destino = this.visualizacaoOpcaoDestino;
         return `
-            <div style="background: white; border: 1px solid #dbe3ef; border-radius: 10px; padding: 8px; flex: 0 0 auto; display: grid; grid-template-columns: 190px minmax(180px, 260px) 1fr; gap: 8px; align-items: start;">
+            <div style="background: white; border: 1px solid #dbe3ef; border-radius: 10px; padding: 8px; flex: 0 0 auto; display: grid; grid-template-columns: 190px minmax(180px, 260px) 66px 1fr; gap: 8px; align-items: end;">
                 <label style="font-size: 12px; color: #475569; font-weight: 700;">Refeição
                     <select id="visualMealSelect" onchange="window.planoAlimentarInstance.visualizacaoMealSelecionada = this.value" style="width: 100%; margin-top: 4px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;">
                         ${this.getRefeicoesPlano().map((refeicao) => `<option value="${refeicao.id}" ${this.visualizacaoMealSelecionada === refeicao.id ? 'selected' : ''}>${refeicao.titulo}</option>`).join('')}
@@ -896,12 +897,16 @@ export class PlanoAlimentarNutricionista {
                 <label style="font-size: 12px; color: #475569; font-weight: 700;">Pesquisar alimento
                     <input id="visualFoodSearch" autocomplete="off" value="${this.escapeHtml(termo)}" oninput="window.planoAlimentarInstance.atualizarModalVisualizarPlano()" style="width: 100%; margin-top: 4px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;">
                 </label>
+                <button type="button" onclick="window.planoAlimentarInstance.abrirModalSelecaoAlimentos(window.planoAlimentarInstance.visualizacaoMealSelecionada, '${plano.id}')" style="height:34px;border:none;border-radius:8px;background:#e2e8f0;color:#334155;cursor:pointer;font-size:12px;font-weight:700;">Lista</button>
                 <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; min-height: 58px;">
                     ${destino ? `<div style="flex: 0 0 auto; align-self: center; font-size: 12px; color: #1a237e; font-weight: 700;">Adicionando opção</div>` : ''}
                     ${alimentos.map((alimento) => `
-                        <div style="flex: 0 0 260px; display: grid; grid-template-columns: 1fr 54px 34px; gap: 6px; align-items: end; border-left: 2px solid #cbd5e1; padding-left: 8px;">
+                        <div style="flex: 0 0 390px; display: grid; grid-template-columns: 1fr 54px 120px 34px; gap: 6px; align-items: end; border-left: 2px solid #cbd5e1; padding-left: 8px;">
                             <div style="font-size: 13px; color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${this.escapeHtml(alimento.nome)}">${this.escapeHtml(alimento.nome)}</div>
                             <input id="visualQtd_${this.escapeHtml(alimento.id)}" type="number" min="1" max="9999" step="1" value="1" style="width: 54px; padding: 7px 5px; border: 1px solid #cbd5e1; border-radius: 7px;">
+                            <select id="visualUnidade_${this.escapeHtml(alimento.id)}" aria-label="Unidade de ${this.escapeHtml(alimento.nome)}" style="width:120px;height:34px;border:1px solid #cbd5e1;border-radius:7px;background:white;padding:0 5px;font-size:12px;">
+                                ${this.renderSelectOptions(this.unidadesAlimentos, alimento.unidadePadrao || '')}
+                            </select>
                             <button type="button" onclick="window.planoAlimentarInstance.adicionarAlimentoPlanoVisualizado('${plano.id}', '${this.escapeHtml(alimento.id)}')" title="Adicionar" aria-label="Adicionar" style="width: 34px; height: 34px; border: none; border-radius: 8px; background: #16a34a; color: white; cursor: pointer;">+</button>
                         </div>
                     `).join('')}
@@ -2539,9 +2544,18 @@ export class PlanoAlimentarNutricionista {
         });
     }
 
-    abrirModalSelecaoAlimentos(mealId = null) {
+    async abrirModalSelecaoAlimentos(mealId = null, planoId = null) {
         this.modalSelecaoAlimentosMealId = mealId || this.obterRefeicaoSelecionada();
+        this.modalSelecaoAlimentosPlanoId = planoId;
         this.selecoesAlimentosModal = {};
+
+        if (!this.unidadesAlimentos.length) {
+            try {
+                await this.carregarConfiguracoesAlimentos();
+            } catch (_error) {
+                this.unidadesAlimentos = this.obterUnidadesDerivadas();
+            }
+        }
 
         const modal = document.getElementById('foodSelectDropdown');
         if (!modal) return;
@@ -2558,6 +2572,7 @@ export class PlanoAlimentarNutricionista {
         const modal = document.getElementById('foodSelectDropdown');
         if (modal) modal.style.display = 'none';
         this.modalSelecaoAlimentosMealId = null;
+        this.modalSelecaoAlimentosPlanoId = null;
         this.selecoesAlimentosModal = {};
     }
 
@@ -2638,8 +2653,9 @@ export class PlanoAlimentarNutricionista {
         }
     }
 
-    confirmarSelecaoAlimentosModal() {
+    async confirmarSelecaoAlimentosModal() {
         const mealId = this.modalSelecaoAlimentosMealId || this.obterRefeicaoSelecionada();
+        const planoId = this.modalSelecaoAlimentosPlanoId;
         const selecionados = Object.entries(this.selecoesAlimentosModal || {})
             .map(([foodId, dados]) => ({
                 foodId,
@@ -2657,6 +2673,17 @@ export class PlanoAlimentarNutricionista {
 
         if (!selecionados.length) {
             alert('Selecione ao menos um alimento.');
+            return;
+        }
+
+        if (planoId) {
+            for (const item of selecionados) {
+                await this.adicionarAlimentoPlanoVisualizado(planoId, item.foodId, item.quantidade, item.unidade, false);
+            }
+            await this.salvarPlanoVisualizado(planoId);
+            this.fecharModalSelecaoAlimentos();
+            this.abrirModalVisualizarPlano(planoId);
+            this.renderizarPlanosContainer();
             return;
         }
 
@@ -3432,13 +3459,17 @@ export class PlanoAlimentarNutricionista {
         this.fecharModalObservacaoRefeicao();
     }
 
-    async adicionarAlimentoPlanoVisualizado(planoId, foodId) {
+    async adicionarAlimentoPlanoVisualizado(planoId, foodId, quantidadeInformada = null, unidadeInformada = '', salvarERenderizar = true) {
         const plano = this.planosList.find((registro) => registro.id === planoId);
         const alimento = this.alimentosBase.find((item) => item.id === foodId);
         if (!plano || !alimento) return;
 
-        const quantidade = Math.max(1, Number(document.getElementById(`visualQtd_${foodId}`)?.value || 1));
-        const opcao = this.criarOpcaoItemPlano(alimento, quantidade);
+        const quantidade = Math.max(0.01, Number(quantidadeInformada ?? document.getElementById(`visualQtd_${foodId}`)?.value ?? 1));
+        const unidade = unidadeInformada || document.getElementById(`visualUnidade_${foodId}`)?.value || alimento.unidadePadrao || '';
+        const alimentoPrescrito = unidade !== alimento.unidadePadrao
+            ? { ...alimento, unidadePadrao: unidade, gramasPorUnidade: 0 }
+            : alimento;
+        const opcao = this.criarOpcaoItemPlano(alimentoPrescrito, quantidade);
         plano.itens_plano = this.criarEstadoItensPlano(plano);
 
         if (this.visualizacaoOpcaoDestino) {
@@ -3468,9 +3499,11 @@ export class PlanoAlimentarNutricionista {
             });
         }
 
-        await this.salvarPlanoVisualizado(planoId);
-        this.abrirModalVisualizarPlano(planoId);
-        this.renderizarPlanosContainer();
+        if (salvarERenderizar) {
+            await this.salvarPlanoVisualizado(planoId);
+            this.abrirModalVisualizarPlano(planoId);
+            this.renderizarPlanosContainer();
+        }
     }
 
     prepararAdicionarOpcaoPlanoVisualizado(planoId, mealId, itemId) {
