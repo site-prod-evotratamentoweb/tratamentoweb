@@ -3411,8 +3411,10 @@ export class PlanoAlimentarNutricionista {
         const modal = document.getElementById('modalVisualizarPlano');
         const titulo = document.getElementById('modalVisualizarPlanoTitulo');
         const formWrapper = modal?.querySelector('[data-visualizar-plano-form]');
+        const formCriacaoOculto = document.querySelector('#modalPlano [data-plano-form]');
         const actionsWrapper = modal?.querySelector('[data-visualizar-plano-actions]');
         const concluirButton = document.getElementById('btnConcluirEdicaoPlanoVisualizado');
+        if (formCriacaoOculto) formCriacaoOculto.innerHTML = '';
         if (titulo) titulo.textContent = `Plano alimentar - ${this.formatarDataExibicao(plano.id)}`;
         if (actionsWrapper) actionsWrapper.innerHTML = this.renderAcoesPlanoVisualizacao(plano.id);
         if (concluirButton) concluirButton.style.display = this.visualizacaoPlanoEditando ? 'inline-flex' : 'none';
