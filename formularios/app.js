@@ -29,9 +29,9 @@ const db = getFirestore(firebaseApp);
    CATÁLOGO DE FORMULÁRIOS
 
    Para criar um novo formulário futuramente:
-   1. Crie a coleção correspondente no Firestore pelas regras.
-   2. Adicione uma nova configuração aqui, por exemplo "2".
-   3. Crie uma nova função renderFormulario2().
+   1. Crie a coleção correspondente no Firestore.
+   2. Adicione uma nova configuração aqui.
+   3. Crie as funções de renderização, coleta e validação.
    ============================================================ */
 const FORMULARIOS = {
   "1": {
