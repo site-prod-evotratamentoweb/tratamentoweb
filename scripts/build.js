@@ -16,6 +16,7 @@ const copyAsIs = [
   'service-worker.js',
   'imagens',
   'manuais',
+  'formularios',
   'portfolio/grazielle_matos_imagens'
 ];
 
