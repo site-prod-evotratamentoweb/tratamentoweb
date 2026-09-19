@@ -1,7 +1,8 @@
 import { FuncoesCompartilhadas } from './0_home.js';
 import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
-import { db, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, uploadParaCloudinary, apiAutenticada } from '../0_firebase_api_config.js';
+import { db, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, uploadParaCloudinary } from '../0_firebase_api_config.js';
+import { analisarExameConfirmadoLocal, lerExameComIA } from './0_ia_tensorflowjs.js';
 
 export class AnamneseNutricionista {
     constructor(userInfo, pacientesList, secaoAtiva = 'anamnese') {
@@ -840,9 +841,8 @@ export class AnamneseNutricionista {
                     category: 'exames',
                     patientLogin: this.selectedPaciente?.login || ''
                 }),
-                apiAutenticada('/api/lab-exams/extract', {
-                    method: 'POST',
-                    body: JSON.stringify({ file: { name: file.name, mimeType: file.type, dataUrl } })
+                lerExameComIA(file, dataUrl, (percentual, mensagem) => {
+                    this.setExameStatus(`${mensagem} ${percentual}%`);
                 })
             ]);
             this.exameWorkflow.attachment = {
@@ -888,27 +888,9 @@ export class AnamneseNutricionista {
         try {
             const resultados = this.obterResultadosExameDoFormulario();
             this.exameWorkflow.extraction.resultados = resultados;
-            const response = await apiAutenticada('/api/lab-exams/analyze', {
-                method: 'POST',
-                body: JSON.stringify({
-                    confirmed: true,
-                    collectionDate: this.exameWorkflow.extraction?.data_coleta || '',
-                    patient: {
-                        age: this.funcoes.calcularIdade(this.selectedPaciente?.dataNascimento),
-                        sex: this.selectedPaciente?.sexo || ''
-                    },
-                    results: resultados.map((item) => ({
-                        name: item.nome,
-                        value: item.valor_texto,
-                        unit: item.unidade,
-                        reference: item.referencia,
-                        status: item.status
-                    }))
-                })
-            });
-            this.exameWorkflow.analysis = response.analysis;
-            this.exameWorkflow.analysisModel = response.model;
-            this.exameWorkflow.analyzedAt = response.analyzedAt;
+            this.exameWorkflow.analysis = analisarExameConfirmadoLocal(resultados);
+            this.exameWorkflow.analysisModel = 'tensorflow-coco-ssd+tesseract-ocr-browser-v1';
+            this.exameWorkflow.analyzedAt = new Date().toISOString();
             this.atualizarPainelExame();
             this.setExameStatus('Análise concluída e pronta para sua revisão.', 'success');
         } catch (error) {
