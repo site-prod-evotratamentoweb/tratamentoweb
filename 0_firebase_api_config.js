@@ -125,8 +125,14 @@ async function apiAutenticada(caminho, options = {}) {
     return result;
 }
 
-async function uploadParaCloudinary(file, onProgress = null) {
-    const assinatura = await apiAutenticada('/api/uploads/cloudinary/signature', { method: 'POST', body: '{}' });
+async function uploadParaCloudinary(file, onProgress = null, options = {}) {
+    const assinatura = await apiAutenticada('/api/uploads/cloudinary/signature', {
+        method: 'POST',
+        body: JSON.stringify({
+            category: options.category || 'palestras',
+            patientLogin: options.patientLogin || ''
+        })
+    });
     const formData = new FormData();
     formData.append('file', file);
     formData.append('api_key', assinatura.apiKey);
