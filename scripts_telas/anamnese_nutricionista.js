@@ -2,7 +2,7 @@ import { FuncoesCompartilhadas } from './0_home.js';
 import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
 import { db, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, uploadParaCloudinary } from '../0_firebase_api_config.js';
-import { analisarExameConfirmadoLocal, lerExameComIA } from './0_ia_tensorflowjs.js';
+import { analisarExameConfirmado, lerExameComIA } from './0_ia_tensorflowjs_exames.js';
 
 export class AnamneseNutricionista {
     constructor(userInfo, pacientesList, secaoAtiva = 'anamnese') {
@@ -888,8 +888,8 @@ export class AnamneseNutricionista {
         try {
             const resultados = this.obterResultadosExameDoFormulario();
             this.exameWorkflow.extraction.resultados = resultados;
-            this.exameWorkflow.analysis = analisarExameConfirmadoLocal(resultados);
-            this.exameWorkflow.analysisModel = 'tensorflow-coco-ssd+tesseract-ocr-browser-v1';
+            this.exameWorkflow.analysis = analisarExameConfirmado(resultados);
+            this.exameWorkflow.analysisModel = 'tensorflow-coco-ssd+tesseract-ocr-exames-v1';
             this.exameWorkflow.analyzedAt = new Date().toISOString();
             this.atualizarPainelExame();
             this.setExameStatus('Análise concluída e pronta para sua revisão.', 'success');

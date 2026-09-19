@@ -1,251 +1,70 @@
-// 0_ia_tensorflowjs.js
-// Arquivo centralizado para gerenciar a IA do TensorFlow.js
+// 0_ia_tensorflowjs_exames.js
+// IA exclusiva para exames: modelos carregados online e executados no navegador.
 
-let modeloIA = null;
-let modeloCarregado = false;
-let carregando = false;
-let filaEspera = [];
+let modeloVisual = null;
+let carregandoModeloVisual = null;
 let tesseractCarregado = false;
 let pdfJsCarregado = false;
 
-// Configuração das palavras-chave para cada categoria
-export const PALAVRAS_CHAVE_IA = {
-    'refeicao': ['sandwich', 'pizza', 'cake', 'donut', 'carrot', 'broccoli', 'apple', 'orange', 'banana', 'hot dog', 'bowl', 'food', 'dining table'],
-    'exercicio': ['person', 'sports ball', 'skateboard', 'surfboard', 'snowboard', 'frisbee', 'baseball bat', 'baseball glove', 'tennis racket', 'gym', 'weight'],
-    'selfie': ['person', 'face', 'head', 'hair', 'eyes', 'mouth'],
-    'prato_feito': ['sandwich', 'pizza', 'bowl', 'cake', 'donut', 'hot dog', 'carrot', 'broccoli', 'plate', 'dining table'],
-    'agua': ['bottle', 'cup', 'glass', 'water', 'drink'],
-    'fruta': ['apple', 'orange', 'banana', 'carrot', 'fruit'],
-    'amigo': ['person', 'face', 'head', 'hair', 'people', 'group'],
-    'documento_exame': ['book', 'cell phone', 'laptop', 'tv']
-};
-
-// Carregar scripts dinamicamente
 function carregarScript(src) {
     return new Promise((resolve, reject) => {
-        // Verificar se o script já existe
-        const scriptExistente = document.querySelector(`script[src="${src}"]`);
-        if (scriptExistente) {
+        const existente = document.querySelector(`script[src="${src}"]`);
+        if (existente?.dataset.loaded === 'true') {
             resolve();
             return;
         }
-        
+        if (existente) {
+            existente.addEventListener('load', resolve, { once: true });
+            existente.addEventListener('error', reject, { once: true });
+            return;
+        }
         const script = document.createElement('script');
         script.src = src;
-        script.onload = resolve;
-        script.onerror = reject;
+        script.onload = () => {
+            script.dataset.loaded = 'true';
+            resolve();
+        };
+        script.onerror = () => reject(new Error('Não foi possível carregar um componente da leitura online.'));
         document.head.appendChild(script);
     });
 }
 
-// Carregar o modelo de IA
-export async function carregarModeloIA(onProgress, onError) {
-    // Se já está carregado, resolve imediatamente
-    if (modeloCarregado && modeloIA) {
-        if (onProgress) onProgress(100, 'Modelo já carregado!');
-        return modeloIA;
-    }
-    
-    // Se já está carregando, adiciona à fila
-    if (carregando) {
-        return new Promise((resolve, reject) => {
-            filaEspera.push({ resolve, reject });
-        });
-    }
-    
-    carregando = true;
-    
+async function carregarModeloVisual(onProgress) {
+    if (modeloVisual) return modeloVisual;
+    if (carregandoModeloVisual) return carregandoModeloVisual;
+    carregandoModeloVisual = (async () => {
+        if (!window.tf) {
+            if (onProgress) onProgress(3, 'Carregando TensorFlow.js...');
+            await carregarScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js');
+        }
+        if (!window.cocoSsd) {
+            if (onProgress) onProgress(8, 'Carregando modelo de identificação de imagem...');
+            await carregarScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js');
+        }
+        modeloVisual = await window.cocoSsd.load();
+        return modeloVisual;
+    })();
     try {
-        if (onProgress) onProgress(10, 'Carregando TensorFlow.js...');
-        await carregarScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js');
-        
-        if (onProgress) onProgress(40, 'Carregando modelo COCO-SSD...');
-        await carregarScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js');
-        
-        // Aguardar um pouco para os scripts serem processados
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        if (onProgress) onProgress(70, 'Inicializando IA...');
-        modeloIA = await cocoSsd.load();
-        modeloCarregado = true;
-        
-        if (onProgress) onProgress(100, 'IA carregada com sucesso!');
-        
-        // Processar fila de espera
-        filaEspera.forEach(item => item.resolve(modeloIA));
-        filaEspera = [];
-        
-        return modeloIA;
-        
-    } catch (error) {
-        if (onError) onError(error);
-        
-        filaEspera.forEach(item => item.reject(error));
-        filaEspera = [];
-        throw error;
-        
+        return await carregandoModeloVisual;
     } finally {
-        carregando = false;
+        carregandoModeloVisual = null;
     }
 }
 
-// Analisar imagem com IA
-export async function analisarImagemComIA(imagemDataUrl, categoria, onProgress) {
-    if (!modeloCarregado || !modeloIA) {
-        await carregarModeloIA(onProgress);
-    }
-    
+async function detectarObjetos(imagemDataUrl, onProgress) {
     try {
-        if (onProgress) onProgress(20, 'Processando imagem...');
-        
-        // Converter base64 para blob
-        const blob = await dataURLtoBlob(imagemDataUrl);
-        const imagemUrl = URL.createObjectURL(blob);
-        
-        const img = new Image();
-        await new Promise((resolve) => {
-            img.onload = resolve;
-            img.src = imagemUrl;
+        const modelo = await carregarModeloVisual(onProgress);
+        const imagem = new Image();
+        await new Promise((resolve, reject) => {
+            imagem.onload = resolve;
+            imagem.onerror = reject;
+            imagem.src = imagemDataUrl;
         });
-        
-        if (onProgress) onProgress(60, 'Analisando com IA...');
-        
-        // Detectar objetos na imagem
-        const predictions = await modeloIA.detect(img);
-        URL.revokeObjectURL(imagemUrl);
-        
-        if (onProgress) onProgress(90, 'Gerando resultado...');
-        
-        // Processar análise baseada na categoria
-        const resultado = processarAnalisePorCategoria(predictions, categoria);
-        
-        if (onProgress) onProgress(100, 'Análise concluída!');
-        
-        return resultado;
-        
-    } catch (error) {
-        return {
-            aprovado: false,
-            confianca: 0,
-            objetosEncontrados: [],
-            mensagem: 'Erro na análise automática. Foto será enviada para avaliação manual.',
-            predictions: []
-        };
+        const predicoes = await modelo.detect(imagem);
+        return predicoes.map((item) => item.class);
+    } catch (_error) {
+        return [];
     }
-}
-
-// Processar análise baseada na categoria
-function processarAnalisePorCategoria(predictions, categoria) {
-    const palavrasChave = PALAVRAS_CHAVE_IA;
-    let totalPessoas = 0;
-    let pontuacao = 0;
-    const objetosMatch = [];
-    
-    // Contar pessoas (útil para categoria amigo)
-    if (categoria === 'amigo') {
-        totalPessoas = predictions.filter(pred => 
-            pred.class.toLowerCase().includes('person') || 
-            pred.class.toLowerCase().includes('face')
-        ).length;
-    }
-    
-    const palavras = palavrasChave[categoria] || palavrasChave['refeicao'];
-    
-    for (const pred of predictions) {
-        const classe = pred.class.toLowerCase();
-        if (palavras.some(p => classe.includes(p.toLowerCase()))) {
-            pontuacao += pred.score;
-            objetosMatch.push(pred.class);
-        }
-    }
-    
-    // Lógica específica para categoria amigo
-    if (categoria === 'amigo') {
-        if (totalPessoas >= 2) {
-            return {
-                aprovado: true,
-                confianca: 0.9,
-                objetosEncontrados: [...new Set(objetosMatch.slice(0, 5)), `${totalPessoas} pessoas`],
-                mensagem: '🎉 Legal! Foto com amigo identificada! Pontos creditados!',
-                predictions: predictions,
-                totalPessoas: totalPessoas
-            };
-        } else if (totalPessoas === 1) {
-            return {
-                aprovado: false,
-                confianca: 0.3,
-                objetosEncontrados: [...new Set(objetosMatch.slice(0, 5)), `1 pessoa (sozinho)`],
-                mensagem: '👤 Só tem 1 pessoa na imagem, para valer chame um amigo!',
-                predictions: predictions,
-                totalPessoas: totalPessoas
-            };
-        } else {
-            return {
-                aprovado: false,
-                confianca: 0,
-                objetosEncontrados: [...new Set(objetosMatch.slice(0, 5)), `0 pessoas`],
-                mensagem: '👥 Nenhuma pessoa identificada na foto. Lembre-se: o desafio é tirar foto com um amigo!',
-                predictions: predictions,
-                totalPessoas: totalPessoas
-            };
-        }
-    }
-    
-    // Lógica para outras categorias
-    if (pontuacao >= 0.9) {
-        return {
-            aprovado: true,
-            confianca: 0.9,
-            objetosEncontrados: [...new Set(objetosMatch.slice(0, 5))],
-            mensagem: 'Excelente! Foto corresponde perfeitamente ao desafio.',
-            predictions: predictions
-        };
-    } else if (pontuacao >= 0.7) {
-        return {
-            aprovado: true,
-            confianca: 0.7,
-            objetosEncontrados: [...new Set(objetosMatch.slice(0, 5))],
-            mensagem: 'Boa! Foto reconhecida como relacionada ao desafio.',
-            predictions: predictions
-        };
-    } else if (pontuacao >= 0.4) {
-        return {
-            aprovado: false,
-            confianca: pontuacao,
-            objetosEncontrados: [...new Set(objetosMatch.slice(0, 5))],
-            mensagem: 'Possível correspondência detectada, mas com baixa confiança. Enviando para análise.',
-            predictions: predictions
-        };
-    } else if (predictions.length === 0) {
-        return {
-            aprovado: false,
-            confianca: 0,
-            objetosEncontrados: [],
-            mensagem: 'Nenhum objeto reconhecido. A foto pode não estar relacionada ao desafio.',
-            predictions: predictions
-        };
-    } else {
-        return {
-            aprovado: false,
-            confianca: pontuacao,
-            objetosEncontrados: [...new Set(objetosMatch.slice(0, 5))],
-            mensagem: 'Conteúdo não identificado como relacionado ao desafio.',
-            predictions: predictions
-        };
-    }
-}
-
-// Função auxiliar para converter DataURL para Blob
-function dataURLtoBlob(dataURL) {
-    const partes = dataURL.split(',');
-    const byteString = atob(partes[1]);
-    const mimeString = partes[0].split(':')[1].split(';')[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([ab], { type: mimeString });
 }
 
 const MARCADORES_EXAMES = [
@@ -387,7 +206,10 @@ export function estruturarTextoExame(texto, objetosDetectados = []) {
 }
 
 async function carregarTesseract() {
-    if (tesseractCarregado && window.Tesseract) return;
+    if (window.Tesseract) {
+        tesseractCarregado = true;
+        return;
+    }
     await carregarScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
     tesseractCarregado = true;
 }
@@ -405,7 +227,10 @@ async function reconhecerTextoImagem(origem, onProgress, inicio = 0, faixa = 100
 }
 
 async function carregarPdfJs() {
-    if (pdfJsCarregado && window.pdfjsLib) return;
+    if (window.pdfjsLib) {
+        pdfJsCarregado = true;
+        return;
+    }
     await carregarScript('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js');
     window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
     pdfJsCarregado = true;
@@ -453,20 +278,17 @@ export async function lerExameComIA(file, imagemDataUrl, onProgress) {
     if (file.type === 'application/pdf') {
         texto = await extrairTextoPdf(file, onProgress);
     } else {
-        const identificacao = await analisarImagemComIA(imagemDataUrl, 'documento_exame', (progresso, mensagem) => {
-            if (onProgress) onProgress(Math.round(progresso * 0.2), mensagem);
-        });
-        objetosDetectados = identificacao.predictions?.map((item) => item.class) || [];
-        texto = await reconhecerTextoImagem(imagemDataUrl, onProgress, 20, 80);
+        objetosDetectados = await detectarObjetos(imagemDataUrl, onProgress);
+        texto = await reconhecerTextoImagem(imagemDataUrl, onProgress, 10, 90);
     }
     if (onProgress) onProgress(100, 'Leitura online concluída.');
     return {
         extraction: estruturarTextoExame(texto, objetosDetectados),
-        model: 'tensorflow-coco-ssd+tesseract-ocr-browser-v1'
+        model: 'tensorflow-coco-ssd+tesseract-ocr-exames-v1'
     };
 }
 
-export function analisarExameConfirmadoLocal(resultados) {
+export function analisarExameConfirmado(resultados) {
     const preenchidos = (resultados || []).filter((item) => item.nome && item.valor_texto !== '');
     const alterados = preenchidos.filter((item) => ['alto', 'baixo', 'critico'].includes(item.status));
     const indefinidos = preenchidos.filter((item) => item.status === 'indefinido');
@@ -492,19 +314,4 @@ export function analisarExameConfirmadoLocal(resultados) {
         alertas: indefinidos.length ? [`${indefinidos.length} resultado(s) não possuem faixa de referência suficiente para classificação automática.`] : [],
         aviso_profissional: 'Análise feita no navegador, baseada apenas nos valores e referências confirmados. Não constitui diagnóstico ou prescrição.'
     };
-}
-
-// Verificar se o modelo está carregado
-export function isModeloCarregado() {
-    return modeloCarregado && modeloIA !== null;
-}
-
-// Resetar modelo (útil para debugging)
-export function resetarModelo() {
-    modeloIA = null;
-    modeloCarregado = false;
-    carregando = false;
-    filaEspera = [];
-    tesseractCarregado = false;
-    pdfJsCarregado = false;
 }

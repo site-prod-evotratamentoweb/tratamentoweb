@@ -4,7 +4,7 @@ import {
     db, collection, addDoc, getDocs, query, where, 
     doc, updateDoc, getDoc, setDoc, uploadParaImgbb
 } from '../0_firebase_api_config.js';
-import { carregarModeloIA, analisarImagemComIA, isModeloCarregado } from './0_ia_tensorflowjs.js';
+import { carregarModeloIA, analisarImagemComIA, isModeloCarregado } from './0_ia_tensorflowjs_game.js';
 
 export class ShoppingNutriCliente {
     constructor(userInfo) {
