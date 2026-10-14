@@ -262,13 +262,16 @@ export class LoginManager {
             }
 
             const userData = userDoc.data();
-            if (userData.status_ativo === false || !this.isCargoValido(userData.cargo)) {
+            if (!this.isCargoValido(userData.cargo)) {
                 throw new Error('Conta desativada. Contate o administrador.');
             }
 
             const currentUser = this.montarUsuarioSessao(userData, sessionUser);
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            void updateDoc(userRef, { ultimo_login: serverTimestamp() }).catch(() => {});
+            void updateDoc(userRef, {
+                ultimo_login: serverTimestamp(),
+                status_ativo: deleteField()
+            }).catch(() => {});
         } catch (error) {
             await this.signOutAll().catch(() => {});
             this.clearSessionState();
@@ -292,6 +295,7 @@ export class LoginManager {
         delete sanitized.codigo_expiracao;
         delete sanitized.reset_token;
         delete sanitized.reset_token_expiracao;
+        delete sanitized.status_ativo;
         return sanitized;
     }
 
@@ -404,12 +408,6 @@ export class LoginManager {
 
             const userData = userDoc.data();
 
-            if (userData.status_ativo === false) {
-                await this.signOutAll();
-                this.showError('Conta desativada. Contate o administrador.');
-                return;
-            }
-
             if (!this.isCargoValido(userData.cargo)) {
                 await this.signOutAll();
                 this.showError(this.getMensagemCargoInvalido(userData.cargo));
@@ -450,7 +448,10 @@ export class LoginManager {
                 return;
             }
 
-            void updateDoc(userRef, { ultimo_login: serverTimestamp() }).catch(() => {});
+            void updateDoc(userRef, {
+                ultimo_login: serverTimestamp(),
+                status_ativo: deleteField()
+            }).catch(() => {});
 
             const sessionExpiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
             const sessionUser = this.montarUsuarioSessao(userData, {
@@ -601,6 +602,7 @@ export class LoginManager {
                     ultimo_login: serverTimestamp(),
                     codigo_temporario: deleteField(),
                     codigo_expiracao: deleteField(),
+                    status_ativo: deleteField(),
                     email: this.tempData.email
                 }).catch(() => {});
 

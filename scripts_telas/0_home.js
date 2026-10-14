@@ -4,6 +4,7 @@ import {
     getDocs, 
     doc, 
     setDoc, 
+    deleteDoc,
     getDoc, 
     addDoc, 
     auth, 
@@ -12,7 +13,8 @@ import {
     serverTimestamp,
     updateDoc,
     query,
-    where
+    where,
+    apiAutenticada
 } from '../0_firebase_api_config.js';
 import { deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { HomeCliente } from './home_cliente.js';
@@ -163,7 +165,7 @@ export class FuncoesCompartilhadas {
                     nome: pacienteNome,
                     cargo: 'paciente',
                     perfil: 'operador',
-                    status_ativo: true,
+                    status_ativo_login: false,
                     hasUltimoLogin: false
                 };
 
@@ -173,6 +175,10 @@ export class FuncoesCompartilhadas {
                     
                     if (pacienteDoc.exists()) {
                         const pacienteData = pacienteDoc.data();
+                        if (Object.prototype.hasOwnProperty.call(pacienteData, 'status_ativo')) {
+                            void updateDoc(pacienteRef, { status_ativo: deleteField() }).catch(() => {});
+                        }
+
                         pacientesList.push({
                             ...pacienteBase,
                             login: pacienteLogin,
@@ -180,7 +186,6 @@ export class FuncoesCompartilhadas {
                             email: pacienteData.email,
                             dataNascimento: pacienteData.dataNascimento,
                             sexo: pacienteData.sexo,
-                            status_ativo: pacienteData.status_ativo,
                             cargo: pacienteData.cargo,
                             perfil: pacienteData.perfil,
                             dataHoraCadastro: pacienteData.dataHoraCadastro,
@@ -200,6 +205,14 @@ export class FuncoesCompartilhadas {
                 }
             }
             
+            if (pacientesList.length > 0) {
+                const logins = pacientesList.map(({ login }) => login).join(',');
+                const { statuses = {} } = await apiAutenticada(`/api/patients/statuses?logins=${encodeURIComponent(logins)}`);
+                pacientesList.forEach((paciente) => {
+                    paciente.status_ativo_login = statuses[paciente.login] === true;
+                });
+            }
+
             return pacientesList;
             
         } catch (error) {
@@ -218,7 +231,8 @@ export class FuncoesCompartilhadas {
     }
     
     static async registerPaciente(pacienteData) {
-        const { nome, login, dataNascimento, sexo } = pacienteData;
+        const { nome, dataNascimento, sexo } = pacienteData;
+        const login = String(pacienteData.login || '').trim().toLowerCase();
         
         if (!nome || !login || !dataNascimento || !sexo) {
             throw new Error('Preencha todos os campos!');
@@ -245,6 +259,14 @@ export class FuncoesCompartilhadas {
         
         try {
             const pacienteRef = doc(db, "logins", login);
+            const profissionalRef = doc(db, "logins", currentUser.login);
+            const profissionalDoc = await getDoc(profissionalRef);
+
+            if (!profissionalDoc.exists()) {
+                throw new Error('Profissional não encontrado.');
+            }
+
+            const pacientesAnteriores = profissionalDoc.data().pacientes || {};
             
             const pacienteDataToSave = {
                 nome: nome.toUpperCase(),
@@ -253,13 +275,38 @@ export class FuncoesCompartilhadas {
                 sexo: sexo,
                 cargo: "paciente",
                 perfil: "operador",
-                status_ativo: true,
-                dataHoraCadastro: this.formatarDataHoraCadastro(),
+                profissionais_vinculados: {
+                    [currentUser.login]: {
+                        cargo: currentUser.cargo,
+                        nome: currentUser.nome
+                    }
+                },
+                dataHoraCadastro: serverTimestamp(),
                 codigo_temporario: codigo,
                 codigo_expiracao: dataExpiracao.toISOString()
             };
             
             await setDoc(pacienteRef, pacienteDataToSave);
+
+            try {
+                await updateDoc(profissionalRef, {
+                    pacientes: {
+                        ...pacientesAnteriores,
+                        [login]: pacienteDataToSave.nome
+                    }
+                });
+
+                await apiAutenticada('/api/patients', {
+                    method: 'POST',
+                    body: JSON.stringify({ login })
+                });
+            } catch (error) {
+                await Promise.allSettled([
+                    deleteDoc(pacienteRef),
+                    updateDoc(profissionalRef, { pacientes: pacientesAnteriores })
+                ]);
+                throw error;
+            }
             
             return { 
                 success: true, 
@@ -456,10 +503,26 @@ export class FuncoesCompartilhadas {
     static async updatePaciente(login, data) {
         try {
             const userRef = doc(db, "logins", login);
-            await updateDoc(userRef, data);
+            const { status_ativo_login, status_ativo: _legacyStatus, login: _login, ...dadosPaciente } = data;
+
+            if (typeof status_ativo_login === 'boolean') {
+                await apiAutenticada(`/api/patients/${encodeURIComponent(login)}/status`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status_ativo_login })
+                });
+            }
+
+            if (Object.keys(dadosPaciente).length > 0) {
+                await updateDoc(userRef, {
+                    ...dadosPaciente,
+                    status_ativo: deleteField()
+                });
+            } else {
+                void updateDoc(userRef, { status_ativo: deleteField() }).catch(() => {});
+            }
             return { success: true };
         } catch (error) {
-            throw new Error('Erro ao atualizar dados do paciente');
+            throw new Error(error.message || 'Erro ao atualizar dados do paciente');
         }
     }
     

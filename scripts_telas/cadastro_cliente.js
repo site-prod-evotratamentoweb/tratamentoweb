@@ -203,9 +203,9 @@ export class CadastroCliente {
         }
         
         if (this.currentFilter === 'ativos') {
-            filteredList = filteredList.filter(c => c.status_ativo !== false);
+            filteredList = filteredList.filter(c => c.status_ativo_login === true);
         } else if (this.currentFilter === 'inativos') {
-            filteredList = filteredList.filter(c => c.status_ativo === false);
+            filteredList = filteredList.filter(c => c.status_ativo_login !== true);
         }
         
         if (filteredList.length === 0) {
@@ -227,7 +227,7 @@ export class CadastroCliente {
                 <td>${this.escapeHtml(c.whatsapp || c.telefone || c.email || '--')}</td>
                 <td>${this.escapeHtml(this.funcoes.formatDateToDisplay(c.dataNascimento) || '--')}</td>
                 <td>${this.funcoes.calcularIdade(c.dataNascimento) ?? '--'}${this.funcoes.calcularIdade(c.dataNascimento) !== null ? ' anos' : ''}</td>
-                <td><span class="status-badge ${c.status_ativo !== false ? 'active' : 'inactive'}">${c.status_ativo !== false ? 'Ativo' : 'Inativo'}</span></td>
+                <td><span class="status-badge ${c.status_ativo_login === true ? 'active' : 'inactive'}">${c.status_ativo_login === true ? 'Ativo' : 'Inativo'}</span></td>
                 <td class="actions">
                     <button class="btn-icon view-cliente" data-login="${c.login}" title="Ver Detalhes">👁️</button>
                     <button class="btn-icon edit-cliente" data-login="${c.login}" title="Editar">✏️</button>
@@ -237,7 +237,7 @@ export class CadastroCliente {
                         `<button class="btn-icon codigo-acesso" data-login="${c.login}" title="Código de Acesso">📱</button>` :
                         `<button class="btn-icon reset-senha" data-login="${c.login}" title="Resetar Senha">🔑</button>`
                     }
-                    ${c.status_ativo !== false ? 
+                    ${c.status_ativo_login === true ? 
                         `<button class="btn-icon suspend-cliente" data-login="${c.login}" title="Suspender">⏸️</button>` :
                         `<button class="btn-icon activate-cliente" data-login="${c.login}" title="Ativar">▶️</button>`
                     }
@@ -460,7 +460,7 @@ export class CadastroCliente {
                     <div class="info-row"><span class="info-label">💬 WhatsApp:</span><span>${cliente.whatsapp || 'N/I'}</span></div>
                     <div class="info-row"><span class="info-label">📧 E-mail:</span><span>${cliente.email || 'N/I'}</span></div>
                     <div class="info-row"><span class="info-label">📍 Endereço:</span><span>${cliente.endereco || 'N/I'}</span></div>
-                    <div class="info-row"><span class="info-label">📊 Status:</span><span class="status-badge ${cliente.status_ativo !== false ? 'active' : 'inactive'}">${cliente.status_ativo !== false ? 'Ativo' : 'Inativo'}</span></div>
+                    <div class="info-row"><span class="info-label">📊 Status:</span><span class="status-badge ${cliente.status_ativo_login === true ? 'active' : 'inactive'}">${cliente.status_ativo_login === true ? 'Ativo' : 'Inativo'}</span></div>
                     <div class="info-row"><span class="info-label">📅 Cadastro:</span><span>${cliente.dataHoraCadastro || 'N/I'}</span></div>
                 </div>
                 <div class="detalhes-actions">
@@ -520,7 +520,7 @@ export class CadastroCliente {
     async suspendCliente(login) {
         if (!confirm(`Suspender cliente ${login}?`)) return;
         try {
-            await this.funcoes.updatePaciente(login, { status_ativo: false });
+            await this.funcoes.updatePaciente(login, { status_ativo_login: false });
             alert(`✅ Cliente suspenso!`);
             await this.loadClientes();
         } catch (error) {
@@ -531,7 +531,7 @@ export class CadastroCliente {
     async activateCliente(login) {
         if (!confirm(`Reativar cliente ${login}?`)) return;
         try {
-            await this.funcoes.updatePaciente(login, { status_ativo: true });
+            await this.funcoes.updatePaciente(login, { status_ativo_login: true });
             alert(`✅ Cliente reativado!`);
             await this.loadClientes();
         } catch (error) {
