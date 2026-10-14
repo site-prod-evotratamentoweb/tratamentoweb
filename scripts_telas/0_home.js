@@ -21,6 +21,11 @@ import { HomeCliente } from './home_cliente.js';
 import { HomeNutricionista } from './home_nutricionista.js';
 import { HomePsicologo } from './home_psicologo.js';
 
+const MIGRACOES_LOGIN_LEGADO = [
+    { loginAntigo: 'Geron01', nome: 'ADENICE FIGUEIREDO', loginNovo: 'adenice.figueiredo' },
+    { loginAntigo: 'Geron02', nome: 'MARIA LUIZA ALMEIDA COSTA', loginNovo: 'maria.costa' }
+];
+
 // ==================== FUNÇÕES COMPARTILHADAS ====================
 
 export class FuncoesCompartilhadas {
@@ -42,6 +47,19 @@ export class FuncoesCompartilhadas {
         }
 
         return `${loginNormalizado}@tratamentoweb.com`;
+    }
+
+    static gerarLoginPorNome(nome) {
+        const partes = String(nome || '')
+            .trim()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .split(/[^a-z0-9]+/)
+            .filter(Boolean);
+
+        if (partes.length < 2) return '';
+        return `${partes[0]}.${partes[partes.length - 1]}`;
     }
     
     static formatDateToDisplay(dateString) {
@@ -146,6 +164,8 @@ export class FuncoesCompartilhadas {
             if (!profissionalLogin) {
                 profissionalLogin = currentUser.login;
             }
+
+            await this.migrarCheckinsLegadosOrganizacao(currentUser);
             
             const profissionalRef = doc(db, "logins", profissionalLogin);
             const profissionalDoc = await getDoc(profissionalRef);
@@ -155,7 +175,10 @@ export class FuncoesCompartilhadas {
             }
             
             const profissionalData = profissionalDoc.data();
-            const pacientesMap = profissionalData.pacientes || {};
+            const pacientesMap = await this.migrarLoginsLegados(
+                profissionalLogin,
+                profissionalData.pacientes || {}
+            );
             
             const pacientesList = [];
             
@@ -219,6 +242,95 @@ export class FuncoesCompartilhadas {
             return [];
         }
     }
+
+    static async migrarCheckinsLegadosOrganizacao(currentUser) {
+        if (currentUser.perfil !== 'gerente') return;
+
+        try {
+            const registros = await apiAutenticada('/api/meal-plan-checkins/legacy/organization');
+            for (const registro of Array.isArray(registros) ? registros : []) {
+                if (!registro.id || !registro.paciente_login || !registro.plano_id || !registro.data) continue;
+
+                const {
+                    id,
+                    organization: _organization,
+                    data_atualizacao_backend: _legacyUpdatedAt,
+                    ...dadosOperacionais
+                } = registro;
+                await setDoc(doc(db, 'checkins_plano_alimentar', id), {
+                    ...dadosOperacionais,
+                    data_atualizacao: serverTimestamp()
+                }, { merge: true });
+                await apiAutenticada(`/api/meal-plan-checkins/legacy/organization/${encodeURIComponent(id)}`, {
+                    method: 'DELETE'
+                });
+            }
+        } catch (_error) {
+            // A migração é retomada no próximo acesso do gerente sem bloquear a lista de pacientes.
+        }
+    }
+
+    static async migrarLoginsLegados(profissionalLogin, pacientesMap) {
+        let pacientesAtualizados = { ...pacientesMap };
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        if (currentUser.perfil !== 'gerente') return pacientesAtualizados;
+
+        const profissionalRef = doc(db, 'logins', profissionalLogin);
+
+        for (const migracao of MIGRACOES_LOGIN_LEGADO) {
+            const chaveAntigaNoMapa = Object.keys(pacientesAtualizados).find(
+                (login) => login.toLowerCase() === migracao.loginAntigo.toLowerCase()
+            );
+            const chaveAntiga = chaveAntigaNoMapa || migracao.loginAntigo;
+
+            const loginAntigoRef = doc(db, 'logins', chaveAntiga);
+            const loginNovoRef = doc(db, 'logins', migracao.loginNovo);
+            const [loginAntigoDoc, loginNovoDoc] = await Promise.all([
+                getDoc(loginAntigoRef),
+                getDoc(loginNovoRef)
+            ]);
+
+            if (!loginAntigoDoc.exists()) continue;
+
+            const dadosAntigos = loginAntigoDoc.data();
+            if (this.gerarLoginPorNome(dadosAntigos.nome) !== migracao.loginNovo) continue;
+            if (Object.prototype.hasOwnProperty.call(dadosAntigos, 'ultimo_login')) {
+                throw new Error(`O login ${chaveAntiga} já foi utilizado e precisa de migração assistida.`);
+            }
+            if (loginNovoDoc.exists() && this.gerarLoginPorNome(loginNovoDoc.data().nome) !== migracao.loginNovo) {
+                throw new Error(`O login ${migracao.loginNovo} já pertence a outro paciente.`);
+            }
+
+            const { status_ativo: _statusLegado, ...dadosMigrados } = dadosAntigos;
+            await setDoc(loginNovoRef, {
+                ...dadosMigrados,
+                nome: migracao.nome,
+                email: this.gerarEmailPorLogin(migracao.loginNovo, currentUser.organizacao),
+                profissionais_vinculados: {
+                    ...(dadosMigrados.profissionais_vinculados || {}),
+                    [profissionalLogin]: {
+                        cargo: currentUser.cargo,
+                        nome: currentUser.nome
+                    }
+                }
+            }, { merge: true });
+
+            await apiAutenticada(`/api/patients/${encodeURIComponent(chaveAntiga)}/rename`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    novo_login: migracao.loginNovo,
+                    nome: migracao.nome
+                })
+            });
+
+            if (chaveAntigaNoMapa) delete pacientesAtualizados[chaveAntigaNoMapa];
+            pacientesAtualizados[migracao.loginNovo] = migracao.nome;
+            await updateDoc(profissionalRef, { pacientes: pacientesAtualizados });
+            await deleteDoc(loginAntigoRef);
+        }
+
+        return pacientesAtualizados;
+    }
     
     static async verificarLoginExistente(login) {
         try {
@@ -232,10 +344,14 @@ export class FuncoesCompartilhadas {
     
     static async registerPaciente(pacienteData) {
         const { nome, dataNascimento, sexo } = pacienteData;
-        const login = String(pacienteData.login || '').trim().toLowerCase();
+        const login = this.gerarLoginPorNome(nome);
         
-        if (!nome || !login || !dataNascimento || !sexo) {
+        if (!nome || !dataNascimento || !sexo) {
             throw new Error('Preencha todos os campos!');
+        }
+
+        if (!login) {
+            throw new Error('Informe o nome e o sobrenome do paciente.');
         }
         
         if (login.includes(' ')) {
@@ -298,7 +414,7 @@ export class FuncoesCompartilhadas {
 
                 await apiAutenticada('/api/patients', {
                     method: 'POST',
-                    body: JSON.stringify({ login })
+                    body: JSON.stringify({ login, nome })
                 });
             } catch (error) {
                 await Promise.allSettled([

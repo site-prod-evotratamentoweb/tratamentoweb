@@ -3,8 +3,10 @@
 import { FuncoesCompartilhadas } from './0_home.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
 import {
-    db, collection, getDocs, doc, getDoc, apiAutenticada
+    db, collection, getDocs, doc, getDoc, query, where, setDoc, serverTimestamp, apiAutenticada
 } from '../0_firebase_api_config.js';
+
+const CHECKINS_COLLECTION = 'checkins_plano_alimentar';
 
 export class PlanoAlimentarCliente {
     constructor(userInfo) {
@@ -297,10 +299,46 @@ export class PlanoAlimentarCliente {
         return new Date().toLocaleDateString('sv-SE');
     }
 
+    async idDocumentoCheckin(planoId, data) {
+        const origem = `${this.userInfo.organizacao}|${this.userInfo.login}|${planoId}|${data}`;
+        const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(origem));
+        return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    async salvarCheckinNaOrganizacao(registro) {
+        const id = await this.idDocumentoCheckin(registro.plano_id, registro.data);
+        await setDoc(doc(db, CHECKINS_COLLECTION, id), {
+            paciente_login: this.userInfo.login,
+            plano_id: registro.plano_id,
+            data: registro.data,
+            refeicoes: registro.refeicoes || {},
+            data_atualizacao: serverTimestamp()
+        }, { merge: true });
+        return id;
+    }
+
+    async migrarCheckinsLegados() {
+        const registrosLegados = await apiAutenticada('/api/meal-plan-checkins');
+        for (const registro of Array.isArray(registrosLegados) ? registrosLegados : []) {
+            await this.salvarCheckinNaOrganizacao(registro);
+            await apiAutenticada(`/api/meal-plan-checkins/legacy/${encodeURIComponent(registro.id)}`, {
+                method: 'DELETE'
+            });
+        }
+    }
+
     async carregarCheckinsDiarios() {
         try {
-            const registros = await apiAutenticada(`/api/meal-plan-checkins?date=${encodeURIComponent(this.dataLocalHoje())}`);
-            this.checkinsDiarios = (Array.isArray(registros) ? registros : []).reduce((estado, registro) => {
+            await this.migrarCheckinsLegados();
+            const snapshot = await getDocs(query(
+                collection(db, CHECKINS_COLLECTION),
+                where('paciente_login', '==', this.userInfo.login)
+            ));
+            const hoje = this.dataLocalHoje();
+            const registros = snapshot.docs
+                .map((documento) => ({ id: documento.id, ...documento.data() }))
+                .filter((registro) => registro.data === hoje);
+            this.checkinsDiarios = registros.reduce((estado, registro) => {
                 estado[String(registro.plano_id)] = registro.refeicoes || {};
                 return estado;
             }, {});
@@ -317,9 +355,10 @@ export class PlanoAlimentarCliente {
         this.checkinsDiarios[this.chaveCheckin(planoId)] = estado;
         this.atualizarPlanoExpandido(planoId);
         try {
-            await apiAutenticada(`/api/meal-plan-checkins/${encodeURIComponent(planoId)}`, {
-                method: 'PUT',
-                body: JSON.stringify({ data: this.dataLocalHoje(), refeicoes: estado })
+            await this.salvarCheckinNaOrganizacao({
+                plano_id: planoId,
+                data: this.dataLocalHoje(),
+                refeicoes: estado
             });
             this.erroCheckins = '';
         } catch (error) {

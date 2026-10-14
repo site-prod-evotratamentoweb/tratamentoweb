@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tratamentoweb-v1';
+const CACHE_NAME = 'tratamentoweb-v2';
 const APP_SHELL = ['./', './index.html', './manifest.json', './imagens/logo_cel.png'];
 
 self.addEventListener('install', (event) => {

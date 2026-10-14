@@ -112,8 +112,8 @@ export class CadastroCliente {
                                 </div>
                                 <div class="form-field">
                                     <label>🔑 Login *</label>
-                                    <input type="text" id="login" required placeholder="Ex: maria.silva">
-                                    <small>Único e não pode ser alterado</small>
+                                    <input type="text" id="login" required readonly placeholder="Gerado pelo nome completo">
+                                    <small>Gerado automaticamente com o primeiro e o último nome</small>
                                 </div>
                             </div>
                             <div class="form-row">
@@ -260,6 +260,14 @@ export class CadastroCliente {
             });
         }
 
+        const nomeInput = document.getElementById('nome');
+        const loginInput = document.getElementById('login');
+        if (nomeInput && loginInput) {
+            nomeInput.addEventListener('input', () => {
+                if (!this.isEditing) loginInput.value = this.funcoes.gerarLoginPorNome(nomeInput.value);
+            });
+        }
+
         // Filter
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -292,6 +300,7 @@ export class CadastroCliente {
                 this.editingLogin = null;
                 document.getElementById('modalTitle').textContent = '📝 Cadastrar Cliente';
                 document.getElementById('login').disabled = false;
+                document.getElementById('login').readOnly = true;
                 modal.style.display = 'flex';
             };
         }
@@ -371,6 +380,7 @@ export class CadastroCliente {
                     this.editingLogin = null;
                     document.getElementById('modalTitle').textContent = '📝 Cadastrar Cliente';
                     document.getElementById('login').disabled = false;
+                    document.getElementById('login').readOnly = true;
                     document.getElementById('clienteModal').style.display = 'flex';
                 };
             }
@@ -390,11 +400,15 @@ export class CadastroCliente {
 
     async saveCliente() {
         try {
-            const login = document.getElementById('login').value;
+            const nome = document.getElementById('nome').value;
+            const login = this.isEditing
+                ? this.editingLogin
+                : this.funcoes.gerarLoginPorNome(nome);
+            document.getElementById('login').value = login;
             const existingCliente = this.clientesList.find(c => c.login === login);
             
             const clienteData = {
-                nome: document.getElementById('nome').value,
+                nome,
                 login: login,
                 dataNascimento: document.getElementById('dataNascimento').value,
                 sexo: document.getElementById('sexo').value,
