@@ -220,7 +220,7 @@ async function build() {
   const styles = await buildStyles();
 
   const replacements = {
-    'scripts_telas/login.js?v=welcome-routes-20261014': appEntry,
+    'scripts_telas/login.js?v=landing-experience-20261014': appEntry,
     '0_style.css': styles['0_style.css'],
     'grazielle_matos.css': `../${styles['portfolio/grazielle_matos.css']}`,
     'grazielle_matos.js': `../${portfolioEntry}`
