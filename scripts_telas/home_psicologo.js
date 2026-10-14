@@ -316,8 +316,8 @@ export class HomePsicologo {
             
             if (!hasPrimeiroAcesso) {
                 html += `
-                    <button class="btn-ver-codigo" data-login="${paciente.login}" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 8px; margin-right: 8px; cursor: pointer;">👁️ Ver Código</button>
-                    <button class="btn-regerar-codigo" data-login="${paciente.login}" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer;">🔄 Gerar Código</button>
+                    <button class="btn-ver-codigo" data-login="${paciente.login}" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 8px; margin-right: 8px; cursor: pointer;">👁️ Ver Senha Inicial</button>
+                    <button class="btn-regerar-codigo" data-login="${paciente.login}" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer;">🔄 Restaurar Senha Inicial</button>
                 `;
             } else {
                 html += `
@@ -336,17 +336,17 @@ export class HomePsicologo {
     async visualizarCodigo(login) {
         try {
             const result = await this.funcoes.visualizarCodigoPaciente(login);
-            alert(`🔑 CÓDIGO DE ACESSO\n\nPaciente: ${result.nome}\nLogin: ${result.login}\nCódigo: ${result.codigo}\n\nExpira em: ${new Date(result.expiracao).toLocaleString('pt-BR')}`);
+            alert(`🔑 SENHA DE PRIMEIRO ACESSO\n\nPaciente: ${result.nome}\nLogin: ${result.login}\nSenha: ${result.codigo}\n\nFormato: DDMMAAAA`);
         } catch (error) {
             alert(error.message);
         }
     }
 
     async regenerarCodigo(login) {
-        if (!confirm('⚠️ Gerar NOVO código? O anterior será invalidado.')) return;
+        if (!confirm('⚠️ Restaurar a senha inicial para a data de nascimento (DDMMAAAA)?')) return;
         try {
             const result = await this.funcoes.regenerarCodigoPaciente(login);
-            alert(`✅ NOVO CÓDIGO GERADO!\n\nPaciente: ${result.nome}\nLogin: ${result.login}\nNovo Código: ${result.codigo}`);
+            alert(`✅ SENHA INICIAL RESTAURADA!\n\nPaciente: ${result.nome}\nLogin: ${result.login}\nSenha: ${result.codigo}`);
             await this.carregarListaPacientes();
         } catch (error) {
             alert(error.message);
@@ -389,7 +389,7 @@ export class HomePsicologo {
                 dataNascimento: document.getElementById('regDataNascimento').value,
                 sexo: document.getElementById('regSexo').value
             });
-            alert(`${result.message}\n\n📋 Login: ${result.login}\n🔑 Código: ${result.codigo}`);
+            alert(`${result.message}\n\n📋 Login: ${result.login}\n🔑 Senha de primeiro acesso: ${result.codigo}`);
             this.funcoes.closeModal('registerModal');
             await this.loadPacientesList();
         } catch (error) {

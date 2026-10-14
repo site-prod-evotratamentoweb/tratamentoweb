@@ -72,12 +72,15 @@ export class LoginManager {
                             </div>
                             <div class="input-field">
                                 <input type="password" id="password" placeholder=" " autocomplete="current-password">
-                                <label>Senha / Codigo</label>
+                                <label>Senha</label>
                             </div>
                             <div class="input-icon password-toggle" id="togglePassword">
                                 <i class="bi bi-eye-slash"></i>
                             </div>
                         </div>
+                        <small style="display:block; margin:-10px 0 14px 54px; color:#5f6368; line-height:1.35;">
+                            Primeiro acesso: digite apenas os 8 números da sua data de nascimento (DDMMAAAA).
+                        </small>
 
                         <div class="login-options">
                             <label class="checkbox-custom">
@@ -417,13 +420,6 @@ export class LoginManager {
             const hasPrimeiroAcesso = Object.prototype.hasOwnProperty.call(userData, 'ultimo_login');
 
             if (isPaciente && !hasPrimeiroAcesso) {
-                const usandoCodigoTemporario = password === userData.codigo_temporario;
-                if (usandoCodigoTemporario && new Date(userData.codigo_expiracao) < new Date()) {
-                    await this.signOutAll();
-                    this.showError('Codigo expirado. Solicite um novo codigo.');
-                    return;
-                }
-
                 this.tempData = {
                     organizacao,
                     login,
@@ -588,6 +584,11 @@ export class LoginManager {
 
             if (newPassword.value.length < 6) {
                 this.showError('A senha deve ter no minimo 6 caracteres.', 'createPasswordForm');
+                return;
+            }
+
+            if (newPassword.value === this.tempData.senhaAtual) {
+                this.showError('A senha definitiva deve ser diferente da senha de primeiro acesso.', 'createPasswordForm');
                 return;
             }
 

@@ -181,7 +181,7 @@ export class CadastroCliente {
             <div id="codigoModal" class="modal" style="display: none;">
                 <div class="modal-content" style="padding:0; background:white; border-radius:16px; width:min(92vw,520px); max-width:520px; margin:8vh auto; overflow:hidden;">
                     <div class="modal-header" style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%); color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
-                        <h3>🔑 Código de Acesso</h3>
+                        <h3>🔑 Senha de Primeiro Acesso</h3>
                         <button class="close-codigo-modal" type="button" style="background:rgba(255,255,255,.18); color:white; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
                     </div>
                     <div id="codigoContent" style="padding:18px;"></div>
@@ -235,7 +235,7 @@ export class CadastroCliente {
                     <!-- BOTÃO DESVINCULAR -->
                     <button class="btn-icon unlink-cliente" data-login="${c.login}" title="Desvincular" style="color: #dc2626;">🔗❌</button>
                     ${!c.hasUltimoLogin ? 
-                        `<button class="btn-icon codigo-acesso" data-login="${c.login}" title="Código de Acesso">📱</button>` :
+                        `<button class="btn-icon codigo-acesso" data-login="${c.login}" title="Senha de Primeiro Acesso">📱</button>` :
                         `<button class="btn-icon reset-senha" data-login="${c.login}" title="Resetar Senha">🔑</button>`
                     }
                     ${c.status_ativo_login === true ? 
@@ -426,7 +426,7 @@ export class CadastroCliente {
                 alert(`✅ Cliente "${clienteData.nome}" atualizado com sucesso!`);
             } else {
                 const result = await this.funcoes.registerPaciente(clienteData);
-                alert(`✅ Cliente cadastrado!\n\n📋 Login: ${result.login}\n🔑 Código: ${result.codigo}`);
+                alert(`✅ Cliente cadastrado!\n\n📋 Login: ${result.login}\n🔑 Senha de primeiro acesso: ${result.codigo}`);
             }
             
             document.getElementById('clienteModal').style.display = 'none';
@@ -518,10 +518,10 @@ export class CadastroCliente {
                     <p><strong>👤 Cliente:</strong> ${result.nome}</p>
                     <p><strong>🔑 Login:</strong> ${result.login}</p>
                     <div class="codigo-display">
-                        <span class="codigo-label">📱 CÓDIGO DE ACESSO</span>
+                        <span class="codigo-label">📱 SENHA DE PRIMEIRO ACESSO</span>
                         <div class="codigo-value">${result.codigo}</div>
                     </div>
-                    <p>⏰ Expira em: ${new Date(result.expiracao).toLocaleString('pt-BR')}</p>
+                    <p>Digite apenas os números da data de nascimento no formato DDMMAAAA.</p>
                 </div>
             `;
             const codigoModal = document.getElementById('codigoModal');

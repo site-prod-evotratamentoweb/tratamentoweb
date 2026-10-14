@@ -25,6 +25,7 @@ const MIGRACOES_LOGIN_LEGADO = [
     { loginAntigo: 'Geron01', nome: 'ADENICE FIGUEIREDO', loginNovo: 'adenice.figueiredo' },
     { loginAntigo: 'Geron02', nome: 'MARIA LUIZA ALMEIDA COSTA', loginNovo: 'maria.costa' }
 ];
+const AUTH_PRIMEIRO_ACESSO_SINCRONIZADOS = new Set();
 
 // ==================== FUNÇÕES COMPARTILHADAS ====================
 
@@ -36,6 +37,20 @@ export class FuncoesCompartilhadas {
         const values = new Uint32Array(1);
         crypto.getRandomValues(values);
         return String(100000 + (values[0] % 900000));
+    }
+
+    static gerarSenhaPrimeiroAcesso(dataNascimento) {
+        const match = String(dataNascimento || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) return '';
+        const [, ano, mes, dia] = match;
+        const data = new Date(`${ano}-${mes}-${dia}T00:00:00.000Z`);
+        if (
+            Number.isNaN(data.getTime())
+            || data.getUTCFullYear() !== Number(ano)
+            || data.getUTCMonth() + 1 !== Number(mes)
+            || data.getUTCDate() !== Number(dia)
+        ) return '';
+        return `${dia}${mes}${ano}`;
     }
     
     static gerarEmailPorLogin(login, organizacao = '') {
@@ -212,6 +227,31 @@ export class FuncoesCompartilhadas {
                             void updateDoc(pacienteRef, { status_ativo: deleteField() }).catch(() => {});
                         }
 
+                        const chaveSincronizacaoAuth = `${currentUser.organizacao}:${pacienteLogin}`;
+                        if (
+                            !Object.prototype.hasOwnProperty.call(pacienteData, 'ultimo_login')
+                            && !AUTH_PRIMEIRO_ACESSO_SINCRONIZADOS.has(chaveSincronizacaoAuth)
+                        ) {
+                            try {
+                                const authSincronizado = await apiAutenticada(
+                                    `/api/patients/${encodeURIComponent(pacienteLogin)}/first-access-auth`,
+                                    { method: 'POST' }
+                                );
+                                pacienteData.codigo_temporario = authSincronizado.senha_primeiro_acesso;
+                                pacienteData.email = authSincronizado.email;
+                                delete pacienteData.codigo_expiracao;
+                                await updateDoc(pacienteRef, {
+                                    codigo_temporario: authSincronizado.senha_primeiro_acesso,
+                                    codigo_expiracao: deleteField(),
+                                    email: authSincronizado.email,
+                                    status_ativo: deleteField()
+                                });
+                                AUTH_PRIMEIRO_ACESSO_SINCRONIZADOS.add(chaveSincronizacaoAuth);
+                            } catch (error) {
+                                console.warn(`Não foi possível sincronizar o Auth de ${pacienteLogin}:`, error.message);
+                            }
+                        }
+
                         pacientesList.push({
                             ...pacienteBase,
                             login: pacienteLogin,
@@ -312,10 +352,16 @@ export class FuncoesCompartilhadas {
             }
 
             const { status_ativo: _statusLegado, ...dadosMigrados } = dadosAntigos;
+            const senhaPrimeiroAcesso = this.gerarSenhaPrimeiroAcesso(dadosAntigos.dataNascimento);
+            if (!senhaPrimeiroAcesso) {
+                throw new Error(`Data de nascimento inválida para migrar ${chaveAntiga}.`);
+            }
             await setDoc(loginNovoRef, {
                 ...dadosMigrados,
                 nome: migracao.nome,
                 email: this.gerarEmailPorLogin(migracao.loginNovo, currentUser.organizacao),
+                codigo_temporario: senhaPrimeiroAcesso,
+                codigo_expiracao: deleteField(),
                 profissionais_vinculados: {
                     ...(dadosMigrados.profissionais_vinculados || {}),
                     [profissionalLogin]: {
@@ -330,7 +376,8 @@ export class FuncoesCompartilhadas {
                 body: JSON.stringify({
                     novo_login: migracao.loginNovo,
                     nome: migracao.nome,
-                    codigo_temporario: dadosAntigos.codigo_temporario
+                    codigo_temporario: senhaPrimeiroAcesso,
+                    codigo_temporario_anterior: dadosAntigos.codigo_temporario
                 })
             });
 
@@ -389,10 +436,11 @@ export class FuncoesCompartilhadas {
             if (!confirmou) throw new Error('Criação cancelada: o login não pode ser repetido.');
         }
 
-        const codigo = this.gerarCodigoTemporario();
+        const codigo = this.gerarSenhaPrimeiroAcesso(dataNascimento);
+        if (!/^\d{8}$/.test(codigo)) {
+            throw new Error('A data de nascimento não permite gerar a senha de primeiro acesso.');
+        }
         const emailGerado = this.gerarEmailPorLogin(login, currentUser.organizacao);
-        const dataExpiracao = new Date();
-        dataExpiracao.setDate(dataExpiracao.getDate() + 7);
         
         const loginExiste = await this.verificarLoginExistente(login);
         if (loginExiste) {
@@ -418,8 +466,7 @@ export class FuncoesCompartilhadas {
                     }
                 },
                 dataHoraCadastro: serverTimestamp(),
-                codigo_temporario: codigo,
-                codigo_expiracao: dataExpiracao.toISOString()
+                codigo_temporario: codigo
             };
             
             await runTransaction(db, async (transaction) => {
@@ -693,18 +740,12 @@ export class FuncoesCompartilhadas {
             }
             
             if (!userData.codigo_temporario) {
-                throw new Error('❌ Nenhum código temporário encontrado.');
-            }
-            
-            const dataExpiracao = new Date(userData.codigo_expiracao);
-            if (dataExpiracao < new Date()) {
-                throw new Error('⚠️ O código expirou! Gere um novo código.');
+                throw new Error('❌ Nenhuma senha de primeiro acesso encontrada.');
             }
             
             return {
                 success: true,
                 codigo: userData.codigo_temporario,
-                expiracao: userData.codigo_expiracao,
                 nome: userData.nome,
                 login: login
             };
@@ -729,19 +770,23 @@ export class FuncoesCompartilhadas {
                 throw new Error('❌ Este paciente já fez o primeiro acesso!');
             }
             
-            const novoCodigo = this.gerarCodigoTemporario();
-            const dataExpiracao = new Date();
-            dataExpiracao.setDate(dataExpiracao.getDate() + 7);
+            const novoCodigo = this.gerarSenhaPrimeiroAcesso(userData.dataNascimento);
+            if (!/^\d{8}$/.test(novoCodigo)) {
+                throw new Error('❌ Data de nascimento inválida para gerar a senha de primeiro acesso.');
+            }
+
+            await apiAutenticada(`/api/patients/${encodeURIComponent(login)}/first-access-auth`, {
+                method: 'POST'
+            });
             
             await updateDoc(userRef, {
                 codigo_temporario: novoCodigo,
-                codigo_expiracao: dataExpiracao.toISOString()
+                codigo_expiracao: deleteField()
             });
             
             return {
                 success: true,
                 codigo: novoCodigo,
-                expiracao: dataExpiracao.toISOString(),
                 nome: userData.nome,
                 login: login
             };
