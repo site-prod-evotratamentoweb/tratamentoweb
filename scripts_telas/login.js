@@ -685,7 +685,11 @@ export class LoginManager {
             const userData = userDoc.data();
             if (userData.cargo !== 'paciente') throw new Error('O primeiro acesso esta disponivel apenas para pacientes.');
             if (Object.prototype.hasOwnProperty.call(userData, 'ultimo_login')) {
-                throw new Error('O primeiro acesso ja foi concluido. Entre pela tela de login normal.');
+                sessionStorage.removeItem('firstAccessOrganization');
+                sessionStorage.removeItem('firstAccessLogin');
+                await this.signOutAll();
+                window.location.replace('/');
+                return;
             }
 
             const organizationToken = await auth.currentUser?.getIdToken();
