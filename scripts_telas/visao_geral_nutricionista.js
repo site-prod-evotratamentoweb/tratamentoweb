@@ -1,7 +1,7 @@
 import { FuncoesCompartilhadas } from './0_home.js';
 import { MenuProfissional } from './0_complementos_menu_profissional.js';
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
-import { db, collection, getDocs, query, where } from '../0_firebase_api_config.js';
+import { db, collection, doc, getDoc, getDocs, query, where } from '../0_firebase_api_config.js';
 
 const REFEICOES = [
     ['breakfast', 'Café da manhã'],
@@ -369,12 +369,17 @@ export class VisaoGeralNutricionista {
 
     valorPdf(rotulo, valor, unidade = '') {
         const vazio = valor === null || valor === undefined || valor === '';
-        return `<div class="field"><span>${this.escapeHtml(rotulo)}</span><strong>${vazio ? '--' : `${this.escapeHtml(valor)}${unidade}`}</strong></div>`;
+        if (vazio) return '';
+        return `<div class="field"><span>${this.escapeHtml(rotulo)}</span><strong>${this.escapeHtml(valor)}${unidade}</strong></div>`;
     }
 
-    renderGraficoPdf(titulo, dados, unidade, cor) {
+    renderMetricaPdf(rotulo, valor, detalhe, cor = '#1a237e') {
+        return `<article class="metric" style="--metric-color:${cor}"><span>${this.escapeHtml(rotulo)}</span><strong>${this.escapeHtml(valor)}</strong><small>${this.escapeHtml(detalhe)}</small></article>`;
+    }
+
+    renderGraficoPdf(titulo, subtitulo, dados, unidade, cor) {
         const pontosValidos = dados.filter((item) => item.valor !== null && item.valor !== undefined && item.valor !== '' && Number.isFinite(Number(item.valor)));
-        if (!pontosValidos.length) return `<article class="chart"><h3>${titulo}</h3><p>Dados ainda não disponíveis.</p></article>`;
+        if (!pontosValidos.length) return `<article class="evolution-card"><h3>${this.escapeHtml(titulo)}</h3><p>${this.escapeHtml(subtitulo)}</p><div class="chart-empty">Dados ainda não disponíveis.</div></article>`;
         const width = 520;
         const height = 176;
         const pad = 34;
@@ -384,21 +389,27 @@ export class VisaoGeralNutricionista {
         const range = max - min || 1;
         const pontos = pontosValidos.map((item, index) => ({
             ...item,
-            x: pad + index * ((width - pad * 2) / Math.max(1, pontosValidos.length - 1)),
-            y: height - pad - ((Number(item.valor) - min) / range) * (height - pad * 2)
+            x: pontosValidos.length === 1 ? width / 2 : pad + index * ((width - pad * 2) / (pontosValidos.length - 1)),
+            y: min === max ? height / 2 : height - pad - ((Number(item.valor) - min) / range) * (height - pad * 2)
         }));
         const caminho = pontos.map((ponto, index) => `${index ? 'L' : 'M'} ${ponto.x.toFixed(1)} ${ponto.y.toFixed(1)}`).join(' ');
-        return `<article class="chart"><h3>${titulo}</h3><svg viewBox="0 0 ${width} ${height}"><line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="#cbd5e1"/><path d="${caminho}" fill="none" stroke="${cor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>${pontos.map((ponto) => `<circle cx="${ponto.x}" cy="${ponto.y}" r="5" fill="${cor}" stroke="white" stroke-width="2"/><text x="${ponto.x}" y="${ponto.y - 10}" text-anchor="middle" font-size="11" fill="#334155">${this.numero(ponto.valor)}${unidade}</text><text x="${ponto.x}" y="${height - 10}" text-anchor="middle" font-size="10" fill="#64748b">${this.escapeHtml(ponto.label)}</text>`).join('')}</svg></article>`;
+        const area = pontos.length > 1 ? `${caminho} L ${pontos[pontos.length - 1].x.toFixed(1)} ${height - pad} L ${pontos[0].x.toFixed(1)} ${height - pad} Z` : '';
+        return `<article class="evolution-card"><h3>${this.escapeHtml(titulo)}</h3><p>${this.escapeHtml(subtitulo)}</p><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${this.escapeHtml(titulo)}"><line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="#cbd5e1"/><line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}" stroke="#cbd5e1"/>${area ? `<path d="${area}" fill="${cor}" opacity=".10"/>` : ''}<path d="${caminho}" fill="none" stroke="${cor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>${pontos.map((ponto) => `<circle cx="${ponto.x.toFixed(1)}" cy="${ponto.y.toFixed(1)}" r="5" fill="${cor}" stroke="white" stroke-width="2"/><text x="${ponto.x.toFixed(1)}" y="${(ponto.y - 10).toFixed(1)}" text-anchor="middle" font-size="11" fill="#334155">${this.numero(ponto.valor)}${unidade}</text><text x="${ponto.x.toFixed(1)}" y="${height - 10}" text-anchor="middle" font-size="10" fill="#64748b">${this.escapeHtml(String(ponto.label).replace(/\/\d{4}$/, ''))}</text>`).join('')}</svg></article>`;
     }
 
     renderResumoPdf() {
         const ultima = this.ultimo(this.dados.avaliacoes);
         const dados = ultima?.dados_antropometricos || {};
         const atual = this.dados.planos.find((plano) => plano.atual) || this.ultimo(this.dados.planos);
+        const primeiroPeso = this.dados.avaliacoes[0]?.dados_antropometricos?.peso;
+        const variacao = Number.isFinite(Number(primeiroPeso)) && Number.isFinite(Number(dados.peso)) ? Number(dados.peso) - Number(primeiroPeso) : null;
         const pontos = (campo, grupo = 'dados_antropometricos') => this.dados.avaliacoes.map((item) => ({ label: this.formatarData(item, 'data_avaliacao'), valor: item[grupo]?.[campo] }));
-        return `<section><h2 class="section-title">Visão geral</h2><div class="summary-grid">
-            ${this.valorPdf('Último peso', dados.peso, ' kg')}${this.valorPdf('Último IMC', dados.imc)}${this.valorPdf('Classificação', dados.classificacao_imc)}${this.valorPdf('Avaliações', this.dados.avaliacoes.length)}${this.valorPdf('Anamneses', this.dados.anamneses.length)}${this.valorPdf('Exames', this.dados.exames.length)}${this.valorPdf('Consumos', this.dados.consumo.length)}${this.valorPdf('Meta do plano atual', atual?.meta_calorica, ' kcal')}
-        </div><div class="chart-grid">${this.renderGraficoPdf('Evolução do peso', pontos('peso'), ' kg', '#f97316')}${this.renderGraficoPdf('Evolução do IMC', pontos('imc'), '', '#3b82f6')}${this.renderGraficoPdf('Evolução da massa muscular', pontos('massa_muscular', 'bioimpedancia'), ' kg', '#10b981')}</div></section>`;
+        return `<section class="overview-section"><div class="section-heading"><div><span class="eyebrow">Síntese clínica</span><h2>Visão geral</h2></div><p>Resumo dos dados mais recentes registrados no acompanhamento nutricional.</p></div><div class="metrics-grid">
+            ${this.renderMetricaPdf('Peso atual', dados.peso ? `${this.numero(dados.peso)} kg` : '--', variacao === null ? 'Sem comparação disponível' : `${variacao > 0 ? '+' : ''}${this.numero(variacao)} kg desde o primeiro registro`, '#f97316')}
+            ${this.renderMetricaPdf('IMC atual', dados.imc ? this.numero(dados.imc) : '--', dados.classificacao_imc || 'Classificação não informada', '#3b82f6')}
+            ${this.renderMetricaPdf('Plano atual', atual?.meta_calorica ? `${this.numero(atual.meta_calorica, 0)} kcal` : '--', atual ? 'Meta energética registrada' : 'Nenhum plano disponível', '#1a237e')}
+            ${this.renderMetricaPdf('Acompanhamento', `${this.dados.avaliacoes.length} avaliações`, `${this.dados.anamneses.length} anamneses · ${this.dados.exames.length} exames`, '#10b981')}
+        </div></section><section class="evolution-section page-break"><div class="section-heading"><div><span class="eyebrow">Acompanhamento</span><h2>Evolução do paciente</h2></div><p>Os gráficos apresentam tendências ao longo das avaliações registradas.</p></div><div class="evolution-grid">${this.renderGraficoPdf('Evolução do peso', 'Peso corporal registrado em cada avaliação.', pontos('peso'), ' kg', '#f97316')}${this.renderGraficoPdf('Evolução do IMC', 'Relação entre peso e altura ao longo do acompanhamento.', pontos('imc'), '', '#3b82f6')}${this.renderGraficoPdf('Evolução da massa muscular', 'Massa muscular registrada por bioimpedância.', pontos('massa_muscular', 'bioimpedancia'), ' kg', '#10b981')}</div></section>`;
     }
 
     renderAntropometriaPdf() {
@@ -484,10 +495,39 @@ export class VisaoGeralNutricionista {
     }
 
     renderSecaoPdf(titulo, conteudo, vazio) {
-        return `<section class="page-break"><h2 class="section-title">${titulo}</h2>${conteudo || `<p class="empty">${vazio}</p>`}</section>`;
+        return `<section class="report-section page-break"><div class="section-heading"><div><span class="eyebrow">Prontuário nutricional</span><h2>${this.escapeHtml(titulo)}</h2></div></div>${conteudo || `<div class="empty-state">${this.escapeHtml(vazio)}</div>`}</section>`;
     }
 
-    exportarPdf() {
+    obterOrganizacaoAtual() {
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            return String(this.userInfo.organizacao || currentUser.organizacao || '').trim().toUpperCase();
+        } catch (_error) {
+            return String(this.userInfo.organizacao || '').trim().toUpperCase();
+        }
+    }
+
+    montarCaminhoQrPortfolio() {
+        const organizacao = this.obterOrganizacaoAtual();
+        const loginUnder = String(this.userInfo.login || '').trim().replace(/\./g, '_');
+        if (!organizacao || !loginUnder) return '';
+        return `./imagens/qr_code_portfolios_profissionais/${organizacao}/${loginUnder}.jpg`;
+    }
+
+    async montarQrPortfolioPdf() {
+        try {
+            const profissionalSnap = await getDoc(doc(db, 'logins', this.userInfo.login));
+            if (!profissionalSnap.exists() || profissionalSnap.data()?.habilitar_portfolio !== true) return '';
+            const qrPath = this.montarCaminhoQrPortfolio();
+            if (!qrPath) return '';
+            const qrUrl = new URL(qrPath, window.location.href).href;
+            return `<section class="portfolio-section page-break"><div class="portfolio-brand">TRATAMENTO WEB</div><div class="portfolio-content"><div><span class="eyebrow">Continuidade do cuidado</span><h2>Conheça seu profissional</h2><p>Aponte a câmera do celular para o QR Code e acesse o portfólio profissional.</p><strong>${this.escapeHtml(this.userInfo.nome || 'Profissional responsável')}</strong></div><div class="qr-frame"><img src="${this.escapeHtml(qrUrl)}" alt="QR Code do portfólio profissional"><span>Escaneie para acessar</span></div></div><div class="portfolio-note">Este documento foi preparado para apoiar seu acompanhamento nutricional. Leve-o às consultas e converse com o profissional responsável antes de alterar sua conduta alimentar.</div></section>`;
+        } catch (_error) {
+            return '';
+        }
+    }
+
+    async exportarPdf() {
         if (!this.selectedPaciente) return;
         const secoes = this.secoesSelecionadas();
         if (!secoes.size) {
@@ -496,6 +536,11 @@ export class VisaoGeralNutricionista {
         }
         const pacienteNome = this.selectedPaciente.nome || 'Paciente';
         const fotoProfissional = this.userInfo.foto_perfil_url || this.userInfo.fotoPerfilUrl || this.userInfo.foto || '';
+        const profissionalNome = this.userInfo.nome || 'Profissional responsável';
+        const nascimento = this.funcoes.formatDateToDisplay(this.selectedPaciente.dataNascimento) || '--';
+        const idade = this.funcoes.calcularIdade(this.selectedPaciente.dataNascimento);
+        const emitidoEm = new Date().toLocaleDateString('pt-BR');
+        const qrPortfolio = await this.montarQrPortfolioPdf();
         const conteudo = [
             secoes.has('resumo') ? this.renderResumoPdf() : '',
             secoes.has('antropometria') ? this.renderAntropometriaPdf() : '',
@@ -506,8 +551,8 @@ export class VisaoGeralNutricionista {
             secoes.has('planos') ? this.renderPlanosPdf() : ''
         ].join('');
         const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório nutricional - ${this.escapeHtml(pacienteNome)}</title><style>
-            @page{size:A4;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1f2937;margin:0;background:#f8fafc}.page{background:white;padding:14px}.header{display:flex;justify-content:space-between;align-items:center;gap:14px;border-bottom:2px solid #1a237e;padding-bottom:10px;margin-bottom:12px}.brand h1{margin:0 0 4px;color:#1a237e;font-size:25px}.brand p{margin:3px 0;color:#475569;font-size:14px}.prof{display:flex;align-items:center;gap:10px;text-align:right}.prof img{width:62px;height:62px;object-fit:cover;border-radius:50%;border:2px solid #e0e7ff}.prof-name{font-weight:700;color:#1a237e;font-size:15px}.section-title{margin:14px 0 9px;color:#1a237e;font-size:20px;border-bottom:2px solid #e0e7ff;padding-bottom:5px}.page-break{break-before:page;page-break-before:always}.page>section.page-break:first-of-type{break-before:auto;page-break-before:auto}.summary-grid,.field-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.field{border:1px solid #e2e8f0;border-radius:8px;padding:8px;background:#f8fafc;break-inside:avoid}.field span{display:block;color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:4px}.field strong{font-size:12px;white-space:pre-wrap}.chart-grid{display:grid;gap:8px;margin-top:10px}.chart{border:1px solid #dbe3ef;border-radius:9px;padding:8px;break-inside:avoid}.chart h3{margin:0 0 4px;color:#1a237e;font-size:15px}.chart p{color:#64748b;font-size:12px}.chart svg{display:block;width:100%;height:176px}.record{border:1px solid #dbe3ef;border-radius:10px;padding:10px;margin-bottom:9px;break-inside:avoid}.record h3{margin:0 0 8px;color:#1a237e;font-size:15px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#dcfce7;color:#166534;font-size:9px;margin-left:6px}table{width:100%;border-collapse:collapse;margin-top:8px;font-size:10px}th,td{border:1px solid #dbe3ef;padding:5px;text-align:left}th{background:#eef2ff;color:#1a237e}.meal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}.meal{border:1px solid #dbe3ef;border-radius:8px;overflow:hidden;break-inside:avoid}.meal h4{margin:0;padding:7px 9px;background:#eef2ff;color:#1a237e;font-size:12px}.meal ul{margin:0;padding:7px 10px 8px 23px}.meal li,.meal p{font-size:10px;line-height:1.35;margin:3px 0}.food-list{padding:6px;display:grid;gap:5px}.food-item{font-size:10px;border-left:3px solid #1a237e;padding-left:6px}.food-option{border:1px solid #e2e8f0;border-radius:6px;padding:5px;margin-top:4px}.food-option.selected{border-color:#1a237e;background:#eef2ff}.food-option small{display:block;color:#1a237e;font-weight:700;margin-bottom:2px}.food-option em{display:block;color:#64748b;font-style:normal;font-size:9px;margin-top:3px}.note{border:1px solid #e2e8f0;border-radius:8px;padding:8px;font-size:11px;line-height:1.4;white-space:pre-wrap}.empty{color:#64748b;font-style:italic}.copyright{position:fixed;left:0;bottom:0;color:#64748b;font-size:10px}@media print{body{background:white}.page{padding:0}}
-        </style></head><body><main class="page"><header class="header"><div class="brand"><h1>Relatório Nutricional</h1><p><strong>Paciente:</strong> ${this.escapeHtml(pacienteNome)}</p><p><strong>Emitido em:</strong> ${new Date().toLocaleDateString('pt-BR')}</p></div><div class="prof"><div><div class="prof-name">${this.escapeHtml(this.userInfo.nome || 'Profissional')}</div><div>Profissional responsável</div></div>${fotoProfissional ? `<img src="${this.escapeHtml(fotoProfissional)}" alt="Foto do profissional">` : ''}</div></header>${conteudo}<div class="copyright">© TRATAMENTO WEB</div></main><script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300));<\/script></body></html>`;
+            @page{size:A4;margin:10mm}*{box-sizing:border-box}html{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,sans-serif;color:#1f2937;margin:0;background:#f1f5f9}.page{background:#fff;padding:14px 14px 24px;min-height:100vh}.header{display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:2px solid #1a237e;padding-bottom:12px;margin-bottom:12px}.document-label{display:inline-block;color:#f97316;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}.brand h1{margin:0 0 5px;color:#1a237e;font-size:25px;line-height:1.1}.brand p{margin:2px 0;color:#64748b;font-size:12px}.prof{display:flex;align-items:center;gap:10px;text-align:right}.prof img{width:62px;height:62px;object-fit:cover;border-radius:50%;border:2px solid #e0e7ff}.prof-name{font-weight:700;color:#1a237e;font-size:15px}.prof-role{color:#64748b;font-size:11px;margin-top:3px}.patient-card{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:1px;background:#dbe3ef;border:1px solid #dbe3ef;border-radius:10px;overflow:hidden;margin-bottom:16px;break-inside:avoid}.patient-item{background:#f8fafc;padding:9px 11px}.patient-item span{display:block;color:#64748b;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}.patient-item strong{color:#1f2937;font-size:12px}.section-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;border-bottom:2px solid #e0e7ff;padding-bottom:7px;margin:0 0 11px}.section-heading h2{margin:2px 0 0;color:#1a237e;font-size:20px}.section-heading p{max-width:310px;margin:0;color:#64748b;font-size:11px;line-height:1.4;text-align:right}.eyebrow{color:#f97316;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.overview-section{margin-bottom:12px}.metrics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.metric{border:1px solid #dbe3ef;border-top:4px solid var(--metric-color);border-radius:10px;padding:11px;background:#fff;break-inside:avoid}.metric span{display:block;color:#64748b;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}.metric strong{display:block;color:var(--metric-color);font-size:20px;margin:7px 0 4px}.metric small{display:block;color:#64748b;font-size:10px;line-height:1.35}.page-break{break-before:page;page-break-before:always}.document-content>.page-break:first-child{break-before:auto;page-break-before:auto}.report-section,.evolution-section{break-inside:auto}.evolution-grid{display:grid;grid-template-columns:1fr;gap:9px}.evolution-card{border:1px solid #dbe3ef;border-radius:9px;padding:9px;background:#fff;break-inside:avoid}.evolution-card h3{margin:0 0 3px;color:#1a237e;font-size:15px}.evolution-card p{margin:0 0 5px;color:#64748b;font-size:11px}.evolution-card svg{display:block;width:100%;height:176px}.chart-empty,.empty-state{padding:28px 12px;text-align:center;background:#f8fafc;border-radius:8px;color:#64748b;font-size:12px}.record{border:1px solid #dbe3ef;border-radius:10px;padding:11px;margin-bottom:9px;background:#fff;break-inside:avoid}.record h3{margin:0 0 9px;padding-bottom:7px;border-bottom:1px solid #e2e8f0;color:#1a237e;font-size:14px}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.field{border-left:3px solid #c7d2fe;padding:6px 8px;background:#f8fafc;break-inside:avoid;min-height:44px}.field span{display:block;color:#64748b;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}.field strong{display:block;color:#1f2937;font-size:11px;line-height:1.35;white-space:pre-wrap}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#dcfce7;color:#166534;font-size:9px;margin-left:6px}table{width:100%;border-collapse:collapse;margin-top:9px;font-size:9px}th,td{border:1px solid #dbe3ef;padding:6px;text-align:left;vertical-align:top}th{background:#eef2ff;color:#1a237e;font-weight:800}.meal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:9px}.meal{border:1px solid #dbe3ef;border-radius:9px;overflow:hidden;break-inside:avoid}.meal h4{margin:0;padding:7px 9px;background:#eef2ff;color:#1a237e;font-size:12px}.meal ul{margin:0;padding:8px 11px 9px 24px}.meal li,.meal p{font-size:10px;line-height:1.4;margin:3px 0}.food-list{padding:7px;display:grid;gap:6px}.food-item{font-size:10px;border-left:3px solid #1a237e;padding-left:7px}.food-option{border:1px solid #e2e8f0;border-radius:7px;padding:6px;margin-top:4px}.food-option.selected{border-color:#1a237e;background:#eef2ff}.food-option small{display:block;color:#1a237e;font-weight:700;margin-bottom:3px}.food-option em{display:block;color:#64748b;font-style:normal;font-size:9px;margin-top:3px}.note{border:1px solid #e2e8f0;border-radius:9px;padding:9px;font-size:11px;line-height:1.4;white-space:pre-wrap;background:#f8fafc}.portfolio-section{min-height:245mm;display:flex;flex-direction:column;justify-content:center;break-inside:avoid}.portfolio-brand{color:#1a237e;font-size:11px;font-weight:800;letter-spacing:.16em;margin-bottom:18px}.portfolio-content{display:grid;grid-template-columns:1fr 165px;align-items:center;gap:28px;border:1px solid #c7d2fe;border-top:6px solid #1a237e;border-radius:14px;padding:28px;background:#f8fafc}.portfolio-content h2{font-size:25px;color:#1a237e;margin:5px 0 10px}.portfolio-content p{font-size:13px;color:#475569;line-height:1.55;margin:0 0 16px}.portfolio-content strong{font-size:16px;color:#1f2937}.qr-frame{background:#fff;border:1px solid #dbe3ef;border-radius:12px;padding:10px;text-align:center}.qr-frame img{display:block;width:140px;height:140px;object-fit:contain;margin:auto}.qr-frame span{display:block;margin-top:7px;color:#64748b;font-size:9px;font-weight:700;text-transform:uppercase}.portfolio-note{margin-top:16px;padding:12px;border-left:4px solid #f97316;background:#fff7ed;color:#7c2d12;font-size:10px;line-height:1.5}.document-footer{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;color:#64748b;font-size:9px;border-top:1px solid #e2e8f0;padding-top:5px;background:white}@media print{body{background:#fff}.page{padding:0 0 18px}.portfolio-section{min-height:250mm}}
+        </style></head><body><main class="page"><header class="header"><div class="brand"><span class="document-label">Acompanhamento nutricional</span><h1>Relatório Nutricional</h1><p>Documento consolidado do prontuário do paciente</p></div><div class="prof"><div><div class="prof-name">${this.escapeHtml(profissionalNome)}</div><div class="prof-role">Profissional responsável</div></div>${fotoProfissional ? `<img src="${this.escapeHtml(fotoProfissional)}" alt="Foto do profissional">` : ''}</div></header><section class="patient-card"><div class="patient-item"><span>Paciente</span><strong>${this.escapeHtml(pacienteNome)}</strong></div><div class="patient-item"><span>Nascimento</span><strong>${this.escapeHtml(nascimento)}</strong></div><div class="patient-item"><span>Idade</span><strong>${idade ? `${idade} anos` : '--'}</strong></div><div class="patient-item"><span>Emissão</span><strong>${emitidoEm}</strong></div></section><div class="document-content">${conteudo}${qrPortfolio}</div><footer class="document-footer"><span>© TRATAMENTO WEB</span><span>Relatório emitido em ${emitidoEm}</span></footer></main><script>window.addEventListener('load',()=>{const imagens=[...document.images];Promise.all(imagens.map((imagem)=>imagem.complete?Promise.resolve():new Promise((resolve)=>{imagem.onload=resolve;imagem.onerror=resolve;}))).then(()=>setTimeout(()=>window.print(),350));});<\/script></body></html>`;
         const janela = window.open('', '_blank');
         if (!janela) {
             alert('Permita pop-ups para exportar o PDF.');
