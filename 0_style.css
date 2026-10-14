@@ -1271,6 +1271,639 @@ body.landing-page #app {
     }
 }
 
+/* Landing em painéis de viewport completa */
+body.landing-page {
+    scroll-snap-type: y proximity;
+}
+
+.marketing-page-panels {
+    background: #fff;
+}
+
+.marketing-page-panels .marketing-header {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 78px;
+    border-bottom: 1px solid rgba(23, 33, 103, .09);
+    background: rgba(255, 255, 255, .95);
+    box-shadow: 0 8px 30px rgba(23, 33, 103, .06);
+    backdrop-filter: blur(16px);
+}
+
+.marketing-page-panels .marketing-nav-wrap {
+    height: 78px;
+    min-height: 78px;
+    gap: 22px;
+}
+
+.marketing-page-panels .marketing-brand img {
+    width: auto;
+    max-width: 178px;
+    max-height: 62px;
+    object-fit: contain;
+}
+
+.marketing-tabs {
+    min-width: 0;
+    margin-left: auto;
+    display: flex;
+    align-items: stretch;
+    align-self: stretch;
+}
+
+.marketing-tabs a {
+    position: relative;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    color: #697386;
+    font-size: 12px;
+    font-weight: 720;
+    white-space: nowrap;
+    transition: color .2s ease;
+}
+
+.marketing-tabs a::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    bottom: 0;
+    left: 14px;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--marketing-orange);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform .25s ease;
+}
+
+.marketing-tabs a:hover,
+.marketing-tabs a.active {
+    color: var(--marketing-blue);
+}
+
+.marketing-tabs a.active::after {
+    transform: scaleX(1);
+}
+
+.marketing-page-panels .marketing-nav-actions {
+    flex: 0 0 auto;
+}
+
+.marketing-page-panels .marketing-nav-contact,
+.marketing-page-panels .marketing-login-link {
+    min-height: 40px;
+    padding-inline: 14px;
+    font-size: 12px;
+}
+
+.marketing-panels {
+    position: relative;
+}
+
+.marketing-panel {
+    position: relative;
+    min-height: 700px;
+    height: 100vh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    scroll-margin-top: 0;
+    isolation: isolate;
+    background: #f4f6fb;
+}
+
+.marketing-panel-media,
+.marketing-panel-shade {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+}
+
+.marketing-panel-media {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    transform: scale(1.002);
+}
+
+.marketing-panel-shade {
+    z-index: -1;
+    background:
+        linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, .98) 27%, rgba(255, 255, 255, .8) 42%, rgba(255, 255, 255, .18) 66%, rgba(255, 255, 255, 0) 82%),
+        linear-gradient(180deg, rgba(255, 255, 255, .05) 65%, rgba(255, 255, 255, .34) 100%);
+}
+
+.marketing-panel-attendance .marketing-panel-media,
+.marketing-panel-professionals .marketing-panel-media {
+    background-image: url('/imagens/landing/atendimento-digital.jpg');
+    background-position: 68% center;
+}
+
+.marketing-panel-gamification .marketing-panel-media {
+    background-image: url('/imagens/landing/gamificacao-saude.jpg');
+    background-position: 32% center;
+}
+
+.marketing-panel-camera .marketing-panel-media {
+    background-image: url('/imagens/landing/desafio-camera-ia.jpg');
+    background-position: 68% center;
+}
+
+.marketing-panel-rewards .marketing-panel-media {
+    background-image: url('/imagens/landing/shopping-trocas.jpg');
+    background-position: 30% center;
+}
+
+.marketing-panel.is-content-right .marketing-panel-shade {
+    background:
+        linear-gradient(270deg, #fff 0%, rgba(255, 255, 255, .98) 27%, rgba(255, 255, 255, .82) 43%, rgba(255, 255, 255, .16) 68%, rgba(255, 255, 255, 0) 84%),
+        linear-gradient(180deg, rgba(255, 255, 255, .05) 65%, rgba(255, 255, 255, .34) 100%);
+}
+
+.marketing-panel-professionals .marketing-panel-shade {
+    background:
+        linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, .98) 32%, rgba(255, 255, 255, .78) 48%, rgba(255, 255, 255, .12) 72%, rgba(255, 255, 255, 0) 86%),
+        linear-gradient(180deg, rgba(23, 33, 103, .06), rgba(23, 33, 103, .18));
+}
+
+.marketing-panel-inner {
+    height: 100%;
+    padding-top: 112px;
+    padding-bottom: 84px;
+    display: flex;
+    align-items: center;
+}
+
+.marketing-panel.is-content-right .marketing-panel-inner {
+    justify-content: flex-end;
+}
+
+.marketing-panel-content {
+    width: min(100%, 620px);
+}
+
+.marketing-panel.is-content-right .marketing-panel-content {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    text-align: right;
+}
+
+.marketing-panel-index {
+    margin-bottom: 20px;
+    display: block;
+    color: var(--marketing-orange);
+    font-size: 14px;
+    font-weight: 850;
+    letter-spacing: .14em;
+}
+
+.marketing-panel-index small {
+    color: #9aa2b1;
+    font-size: 10px;
+}
+
+.marketing-page-panels .marketing-eyebrow {
+    margin-bottom: 20px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: var(--marketing-orange);
+    background: transparent;
+    font-size: 11px;
+    letter-spacing: .13em;
+}
+
+.marketing-page-panels .marketing-eyebrow::before {
+    width: 30px;
+    height: 2px;
+    display: block;
+    background: var(--marketing-orange);
+    content: '';
+}
+
+.marketing-page-panels .marketing-eyebrow i {
+    font-size: 14px;
+}
+
+.marketing-panel h1,
+.marketing-panel h2 {
+    max-width: 660px;
+    margin: 0;
+    color: var(--marketing-blue);
+    font-size: clamp(3rem, 5.6vw, 5.25rem);
+    font-weight: 840;
+    letter-spacing: -.055em;
+    line-height: .99;
+}
+
+.marketing-panel h2 {
+    font-size: clamp(2.8rem, 5.1vw, 4.75rem);
+}
+
+.marketing-panel-content > p {
+    max-width: 590px;
+    margin: 24px 0 0;
+    color: #535e70;
+    font-size: clamp(1rem, 1.45vw, 1.17rem);
+    line-height: 1.65;
+}
+
+.marketing-panel.is-content-right .marketing-panel-content > p {
+    margin-left: auto;
+}
+
+.marketing-panel-actions {
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.marketing-button-whatsapp {
+    color: #fff;
+    background: #16a34a;
+    box-shadow: 0 14px 28px rgba(22, 163, 74, .24);
+}
+
+.marketing-button-whatsapp:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 34px rgba(22, 163, 74, .32);
+}
+
+.marketing-panel-tags {
+    margin-top: 31px;
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+
+.marketing-panel.is-content-right .marketing-panel-tags {
+    justify-content: flex-end;
+}
+
+.marketing-panel-tags span {
+    padding: 8px 12px;
+    border: 1px solid rgba(23, 33, 103, .13);
+    border-radius: 999px;
+    color: #5a6577;
+    background: rgba(255, 255, 255, .76);
+    backdrop-filter: blur(8px);
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.marketing-panel-list {
+    width: min(100%, 520px);
+    margin: 27px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+    list-style: none;
+}
+
+.marketing-panel-list li {
+    position: relative;
+    padding-left: 22px;
+    color: #4f5b6e;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.45;
+}
+
+.marketing-panel-list li::before {
+    position: absolute;
+    top: .48em;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--marketing-orange);
+    box-shadow: 0 0 0 5px rgba(249, 115, 22, .11);
+    content: '';
+}
+
+.marketing-panel.is-content-right .marketing-panel-list li {
+    padding-right: 22px;
+    padding-left: 0;
+}
+
+.marketing-panel.is-content-right .marketing-panel-list li::before {
+    right: 0;
+    left: auto;
+}
+
+.marketing-panel-note {
+    width: fit-content;
+    max-width: 480px;
+    margin-top: 28px;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    border: 1px solid rgba(23, 33, 103, .1);
+    border-radius: 14px;
+    color: #536075;
+    background: rgba(255, 255, 255, .82);
+    box-shadow: 0 12px 28px rgba(23, 33, 103, .08);
+    backdrop-filter: blur(10px);
+    font-size: 12px;
+}
+
+.marketing-panel-note i {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    color: #fff;
+    background: var(--marketing-blue);
+    font-size: 17px;
+}
+
+.marketing-panel-note strong {
+    color: var(--marketing-blue);
+}
+
+.marketing-scroll-next {
+    position: absolute;
+    z-index: 3;
+    bottom: 24px;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 4px;
+    color: #697386;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 780;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+
+.marketing-scroll-next i {
+    color: var(--marketing-orange);
+    font-size: 18px;
+    animation: scrollArrow 1.7s ease-in-out infinite;
+}
+
+@keyframes scrollArrow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+}
+
+.marketing-panel-footer {
+    position: absolute;
+    right: 28px;
+    bottom: 20px;
+    left: 28px;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    color: #7d8798;
+    font-size: 9px;
+    font-weight: 650;
+    letter-spacing: .05em;
+}
+
+@media (max-width: 1180px) {
+    .marketing-page-panels .marketing-nav-wrap {
+        gap: 12px;
+    }
+
+    .marketing-page-panels .marketing-brand img {
+        width: auto;
+        max-width: 150px;
+        max-height: 58px;
+    }
+
+    .marketing-tabs a {
+        padding-inline: 9px;
+        font-size: 10px;
+    }
+
+    .marketing-tabs a::after {
+        right: 9px;
+        left: 9px;
+    }
+
+    .marketing-page-panels .marketing-nav-contact span {
+        display: none;
+    }
+}
+
+@media (max-width: 820px) {
+    body.landing-page {
+        scroll-snap-type: none;
+    }
+
+    .marketing-page-panels .marketing-header {
+        height: 112px;
+    }
+
+    .marketing-page-panels .marketing-nav-wrap {
+        width: calc(100% - 20px);
+        height: 112px;
+        min-height: 112px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: 63px 49px;
+        gap: 0 10px;
+    }
+
+    .marketing-page-panels .marketing-brand img {
+        width: auto;
+        max-width: 142px;
+        max-height: 48px;
+    }
+
+    .marketing-page-panels .marketing-nav-actions {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+    }
+
+    .marketing-tabs {
+        width: calc(100vw - 20px);
+        max-width: 100%;
+        min-width: 0;
+        margin: 0;
+        grid-column: 1 / -1;
+        grid-row: 2;
+        overflow-x: auto;
+        align-self: stretch;
+        scrollbar-width: none;
+    }
+
+    .marketing-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .marketing-tabs a {
+        min-height: 49px;
+        padding-inline: 13px;
+        font-size: 10px;
+    }
+
+    .marketing-panel {
+        height: auto;
+        min-height: max(100svh, 820px);
+        background: #fff;
+    }
+
+    .marketing-panel-media {
+        bottom: auto;
+        height: 58%;
+        background-position: center !important;
+    }
+
+    .marketing-panel-shade,
+    .marketing-panel.is-content-right .marketing-panel-shade,
+    .marketing-panel-professionals .marketing-panel-shade {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0) 12%, rgba(255, 255, 255, .1) 30%, rgba(255, 255, 255, .9) 55%, #fff 70%, #fff 100%);
+    }
+
+    .marketing-panel-inner,
+    .marketing-panel.is-content-right .marketing-panel-inner {
+        min-height: max(100svh, 820px);
+        padding-top: 380px;
+        padding-bottom: 78px;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .marketing-panel-content,
+    .marketing-panel.is-content-right .marketing-panel-content {
+        width: 100%;
+        max-width: 620px;
+        min-width: 0;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .marketing-panel h1,
+    .marketing-panel h2 {
+        max-width: 590px;
+        font-size: clamp(2.35rem, 9.2vw, 3.65rem);
+    }
+
+    .marketing-panel-content > p,
+    .marketing-panel.is-content-right .marketing-panel-content > p {
+        margin-right: 0;
+        margin-left: 0;
+    }
+
+    .marketing-panel.is-content-right .marketing-panel-tags {
+        justify-content: flex-start;
+    }
+
+    .marketing-panel.is-content-right .marketing-panel-list li {
+        padding-right: 0;
+        padding-left: 22px;
+    }
+
+    .marketing-panel.is-content-right .marketing-panel-list li::before {
+        right: auto;
+        left: 0;
+    }
+}
+
+@media (max-width: 520px) {
+    .marketing-page-panels .marketing-brand img {
+        width: auto;
+        max-width: 125px;
+        max-height: 46px;
+    }
+
+    .marketing-page-panels .marketing-login-link {
+        min-height: 37px;
+        padding-inline: 13px;
+    }
+
+    .marketing-panel {
+        min-height: max(100svh, 790px);
+    }
+
+    .marketing-panel-media {
+        height: 51%;
+    }
+
+    .marketing-panel-inner,
+    .marketing-panel.is-content-right .marketing-panel-inner {
+        min-height: max(100svh, 790px);
+        padding-top: 310px;
+        padding-bottom: 70px;
+    }
+
+    .marketing-panel-index {
+        margin-bottom: 12px;
+    }
+
+    .marketing-page-panels .marketing-eyebrow {
+        margin-bottom: 15px;
+        font-size: 9px;
+    }
+
+    .marketing-panel h1,
+    .marketing-panel h2 {
+        font-size: clamp(2.15rem, 10vw, 3rem);
+        line-height: 1.01;
+    }
+
+    .marketing-panel-content > p {
+        margin-top: 16px;
+        font-size: 14px;
+        line-height: 1.52;
+    }
+
+    .marketing-panel-actions {
+        margin-top: 20px;
+        gap: 9px;
+    }
+
+    .marketing-panel-actions .marketing-button {
+        width: 100%;
+        min-height: 46px;
+        font-size: 13px;
+    }
+
+    .marketing-panel-tags,
+    .marketing-panel-list,
+    .marketing-panel-note {
+        margin-top: 19px;
+    }
+
+    .marketing-panel-list {
+        gap: 7px;
+    }
+
+    .marketing-panel-list li {
+        font-size: 11px;
+    }
+
+    .marketing-scroll-next span {
+        display: none;
+    }
+
+    .marketing-scroll-next {
+        bottom: 13px;
+    }
+
+    .marketing-panel-footer {
+        right: 14px;
+        bottom: 13px;
+        left: 14px;
+    }
+}
+
 .contact-button {
     width: 100%;
     margin-top: 12px;

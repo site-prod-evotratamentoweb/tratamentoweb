@@ -37,6 +37,7 @@ export class LoginManager {
             this.showPendingLoginNotice();
         } else {
             this.renderWelcomeScreen();
+            this.setupLandingNavigation();
         }
         void this.loadPublicContacts();
         this.ativarKeepAliveBackend();
@@ -51,176 +52,160 @@ export class LoginManager {
         document.body.classList.add('landing-page');
 
         app.innerHTML = `
-            <div class="marketing-page">
-                <a class="marketing-skip-link" href="#conteudo-principal">Ir para o conteúdo</a>
+            <div class="marketing-page marketing-page-panels">
+                <a class="marketing-skip-link" href="#atendimento">Ir para o conteúdo</a>
 
                 <header class="marketing-header">
                     <div class="marketing-shell marketing-nav-wrap">
-                        <a href="/" class="marketing-brand" aria-label="TratamentoWeb - início">
+                        <a href="#atendimento" class="marketing-brand" data-landing-target="atendimento" aria-label="TratamentoWeb - início">
                             <img src="/imagens/logo.png" alt="TratamentoWeb">
                         </a>
-                        <nav class="marketing-nav" aria-label="Navegação principal">
-                            <a href="#experiencia">Experiência</a>
-                            <a href="#recursos">Recursos</a>
-                            <a href="#para-profissionais">Para profissionais</a>
+                        <nav class="marketing-tabs" aria-label="Experiências da plataforma">
+                            <a href="#atendimento" class="active" data-landing-target="atendimento" aria-current="page">Atendimento</a>
+                            <a href="#gamificacao" data-landing-target="gamificacao">Gamificação</a>
+                            <a href="#camera-ia" data-landing-target="camera-ia">Câmera + IA</a>
+                            <a href="#recompensas" data-landing-target="recompensas">Recompensas</a>
+                            <a href="#profissionais" data-landing-target="profissionais">Para profissionais</a>
                         </nav>
                         <div class="marketing-nav-actions">
-                            <a href="#contato" class="marketing-nav-contact" data-whatsapp-contact="comercial" hidden>
-                                <i class="bi bi-whatsapp" aria-hidden="true"></i>
-                                Contato comercial
+                            <a href="#profissionais" class="marketing-nav-contact" data-whatsapp-contact="comercial" hidden>
+                                <i class="bi bi-whatsapp" aria-hidden="true"></i><span>Comercial</span>
                             </a>
                             <a href="/login" class="marketing-login-link">Entrar</a>
                         </div>
                     </div>
                 </header>
 
-                <main id="conteudo-principal">
-                    <section class="marketing-hero">
-                        <div class="marketing-shell marketing-hero-grid">
-                            <div class="marketing-hero-copy">
-                                <span class="marketing-eyebrow">
-                                    <i class="bi bi-stars" aria-hidden="true"></i>
-                                    Cuidado digital que aproxima
-                                </span>
-                                <h1>Transforme o acompanhamento em uma jornada que engaja.</h1>
-                                <p>O TratamentoWeb conecta profissionais e pacientes em uma experiência personalizada, imersiva e contínua — com gamificação e suporte de IA.</p>
-                                <div class="marketing-hero-actions">
-                                    <a href="#experiencia" class="marketing-button marketing-button-primary">
-                                        Conhecer a experiência
-                                        <i class="bi bi-arrow-down-right" aria-hidden="true"></i>
-                                    </a>
-                                    <a href="/login" class="marketing-button marketing-button-secondary">
-                                        <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
-                                        Entrar na plataforma
-                                    </a>
+                <main class="marketing-panels" id="conteudo-principal">
+                    <section class="marketing-panel marketing-panel-attendance" id="atendimento" data-landing-section="atendimento" aria-labelledby="attendance-title">
+                        <div class="marketing-panel-media" role="img" aria-label="Profissional de saúde realizando atendimento digital"></div>
+                        <div class="marketing-panel-shade"></div>
+                        <div class="marketing-shell marketing-panel-inner">
+                            <div class="marketing-panel-content">
+                                <span class="marketing-panel-index">01 <small>/ 05</small></span>
+                                <span class="marketing-eyebrow"><i class="bi bi-camera-video" aria-hidden="true"></i> Atendimento digital</span>
+                                <h1 id="attendance-title">Cuidado digital que acompanha de verdade.</h1>
+                                <p>Atenda de forma web, personalizada e próxima. O TratamentoWeb conecta profissionais e pacientes em uma jornada contínua, antes, durante e depois da consulta.</p>
+                                <div class="marketing-panel-actions">
+                                    <a href="/login" class="marketing-button marketing-button-primary">Entrar na plataforma <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+                                    <a href="/primeiro-acesso" class="marketing-button marketing-button-secondary">Primeiro acesso</a>
                                 </div>
-                                <div class="marketing-audience" aria-label="Feito para profissionais e pacientes">
-                                    <span><i class="bi bi-heart-pulse" aria-hidden="true"></i> Nutricionistas</span>
-                                    <span><i class="bi bi-chat-heart" aria-hidden="true"></i> Psicólogos</span>
-                                    <span><i class="bi bi-people" aria-hidden="true"></i> Pacientes</span>
-                                </div>
-                            </div>
-                            <div class="marketing-hero-visual">
-                                <img src="/imagens/landing/atendimento-digital.jpg" alt="Profissional de saúde realizando atendimento digital" fetchpriority="high">
-                                <div class="marketing-floating-card marketing-floating-card-top">
-                                    <span class="marketing-floating-icon"><i class="bi bi-camera-video" aria-hidden="true"></i></span>
-                                    <div><strong>Atendimento digital</strong><small>Mais proximidade, onde estiver</small></div>
-                                </div>
-                                <div class="marketing-floating-card marketing-floating-card-bottom">
-                                    <span class="marketing-floating-icon is-orange"><i class="bi bi-trophy" aria-hidden="true"></i></span>
-                                    <div><strong>Jornada ativa</strong><small>Experiências que estimulam constância</small></div>
-                                </div>
+                                <div class="marketing-panel-tags"><span>Nutricionistas</span><span>Psicólogos</span><span>Pacientes</span></div>
                             </div>
                         </div>
+                        <a href="#gamificacao" class="marketing-scroll-next" data-landing-target="gamificacao"><span>Explore a experiência</span><i class="bi bi-arrow-down" aria-hidden="true"></i></a>
                     </section>
 
-                    <section class="marketing-value-strip" aria-label="Benefícios da plataforma">
-                        <div class="marketing-shell marketing-value-grid">
-                            <article><i class="bi bi-person-check" aria-hidden="true"></i><div><strong>Cuidado personalizado</strong><span>Jornadas adaptadas a cada paciente.</span></div></article>
-                            <article><i class="bi bi-controller" aria-hidden="true"></i><div><strong>Engajamento real</strong><span>Desafios e conquistas no dia a dia.</span></div></article>
-                            <article><i class="bi bi-cpu" aria-hidden="true"></i><div><strong>IA como suporte</strong><span>Tecnologia para enriquecer a experiência.</span></div></article>
+                    <section class="marketing-panel marketing-panel-gamification is-content-right" id="gamificacao" data-landing-section="gamificacao" aria-labelledby="gamification-title">
+                        <div class="marketing-panel-media" role="img" aria-label="Pessoa usando a experiência gamificada de saúde no celular"></div>
+                        <div class="marketing-panel-shade"></div>
+                        <div class="marketing-shell marketing-panel-inner">
+                            <div class="marketing-panel-content">
+                                <span class="marketing-panel-index">02 <small>/ 05</small></span>
+                                <span class="marketing-eyebrow"><i class="bi bi-trophy" aria-hidden="true"></i> Gamificação no aplicativo</span>
+                                <h2 id="gamification-title">Cada avanço vira uma conquista visível.</h2>
+                                <p>Pontos, metas, níveis e evolução transformam pequenas ações em motivação. O paciente participa da própria jornada e mantém a constância entre os atendimentos.</p>
+                                <ul class="marketing-panel-list"><li>Metas personalizadas pelo profissional</li><li>Progresso simples de acompanhar</li><li>Reconhecimento a cada nova conquista</li></ul>
+                            </div>
                         </div>
+                        <a href="#camera-ia" class="marketing-scroll-next" data-landing-target="camera-ia"><span>Próxima experiência</span><i class="bi bi-arrow-down" aria-hidden="true"></i></a>
                     </section>
 
-                    <section class="marketing-section marketing-intro" id="experiencia">
-                        <div class="marketing-shell">
-                            <div class="marketing-section-heading">
-                                <span class="marketing-kicker">Muito além da consulta</span>
-                                <h2>Uma experiência que continua depois do atendimento.</h2>
-                                <p>O plano sai da tela e entra na rotina. Cada interação ajuda o paciente a manter o foco, perceber sua evolução e se aproximar do profissional.</p>
-                            </div>
-                            <div class="marketing-experience-grid" id="recursos">
-                                <article class="marketing-feature-card">
-                                    <div class="marketing-feature-image">
-                                        <img src="/imagens/landing/gamificacao-saude.jpg" alt="Pessoa comemorando uma conquista na experiência gamificada do aplicativo" loading="lazy">
-                                        <span class="marketing-feature-number">01</span>
-                                    </div>
-                                    <div class="marketing-feature-copy">
-                                        <span class="marketing-feature-label"><i class="bi bi-trophy" aria-hidden="true"></i> Gamificação</span>
-                                        <h3>Pequenas conquistas que mantêm o paciente em movimento.</h3>
-                                        <p>Pontos, metas e evolução visual tornam o cuidado mais participativo e incentivam a constância entre os atendimentos.</p>
-                                    </div>
-                                </article>
-
-                                <article class="marketing-feature-card is-reversed">
-                                    <div class="marketing-feature-image">
-                                        <img src="/imagens/landing/desafio-camera-ia.jpg" alt="Pessoa usando a câmera do celular em um desafio de hábitos com suporte de IA" loading="lazy">
-                                        <span class="marketing-feature-number">02</span>
-                                    </div>
-                                    <div class="marketing-feature-copy">
-                                        <span class="marketing-feature-label"><i class="bi bi-camera" aria-hidden="true"></i> Câmera + IA</span>
-                                        <h3>Desafios imersivos conectados à vida real.</h3>
-                                        <p>O paciente usa a câmera para registrar desafios. A IA apoia a experiência, enquanto o profissional permanece no centro do acompanhamento.</p>
-                                    </div>
-                                </article>
-
-                                <article class="marketing-feature-card">
-                                    <div class="marketing-feature-image">
-                                        <img src="/imagens/landing/shopping-trocas.jpg" alt="Pessoa escolhendo uma recompensa no shopping de trocas pelo celular" loading="lazy">
-                                        <span class="marketing-feature-number">03</span>
-                                    </div>
-                                    <div class="marketing-feature-copy">
-                                        <span class="marketing-feature-label"><i class="bi bi-bag-heart" aria-hidden="true"></i> Shopping de trocas</span>
-                                        <h3>Engajamento que pode virar recompensa.</h3>
-                                        <p>Os pontos conquistados ganham significado no shopping de trocas, criando uma experiência positiva de reconhecimento e continuidade.</p>
-                                    </div>
-                                </article>
+                    <section class="marketing-panel marketing-panel-camera" id="camera-ia" data-landing-section="camera-ia" aria-labelledby="camera-title">
+                        <div class="marketing-panel-media" role="img" aria-label="Pessoa registrando um desafio com a câmera do celular e suporte de inteligência artificial"></div>
+                        <div class="marketing-panel-shade"></div>
+                        <div class="marketing-shell marketing-panel-inner">
+                            <div class="marketing-panel-content">
+                                <span class="marketing-panel-index">03 <small>/ 05</small></span>
+                                <span class="marketing-eyebrow"><i class="bi bi-camera" aria-hidden="true"></i> Desafios com câmera e IA</span>
+                                <h2 id="camera-title">A rotina se transforma em uma experiência imersiva.</h2>
+                                <p>O paciente registra desafios com a câmera. A inteligência artificial apoia a experiência e organiza a interação, enquanto o profissional permanece no centro do cuidado.</p>
+                                <div class="marketing-panel-note"><i class="bi bi-cpu" aria-hidden="true"></i><span><strong>IA como suporte</strong> à jornada definida pelo profissional.</span></div>
                             </div>
                         </div>
+                        <a href="#recompensas" class="marketing-scroll-next" data-landing-target="recompensas"><span>Ver recompensas</span><i class="bi bi-arrow-down" aria-hidden="true"></i></a>
                     </section>
 
-                    <section class="marketing-professionals" id="para-profissionais">
-                        <div class="marketing-shell marketing-professionals-grid">
-                            <div class="marketing-professionals-copy">
-                                <span class="marketing-kicker is-light">Sua prática, mais presente</span>
-                                <h2>Feito para profissionais que querem atender de forma web e personalizada.</h2>
-                                <p>Nutricionistas e psicólogos ganham um ambiente para aproximar o cuidado da rotina dos pacientes, criar experiências próprias e acompanhar cada jornada com mais contexto.</p>
-                                <ul class="marketing-check-list">
-                                    <li><i class="bi bi-check2" aria-hidden="true"></i><span><strong>Personalização de verdade</strong> para respeitar a estratégia de cada profissional.</span></li>
-                                    <li><i class="bi bi-check2" aria-hidden="true"></i><span><strong>Imersão e continuidade</strong> para manter o paciente conectado ao processo.</span></li>
-                                    <li><i class="bi bi-check2" aria-hidden="true"></i><span><strong>Suporte de inteligência artificial</strong> sem tirar o profissional do centro.</span></li>
-                                </ul>
+                    <section class="marketing-panel marketing-panel-rewards is-content-right" id="recompensas" data-landing-section="recompensas" aria-labelledby="rewards-title">
+                        <div class="marketing-panel-media" role="img" aria-label="Pessoa escolhendo uma recompensa no shopping de trocas pelo celular"></div>
+                        <div class="marketing-panel-shade"></div>
+                        <div class="marketing-shell marketing-panel-inner">
+                            <div class="marketing-panel-content">
+                                <span class="marketing-panel-index">04 <small>/ 05</small></span>
+                                <span class="marketing-eyebrow"><i class="bi bi-bag-heart" aria-hidden="true"></i> Shopping de trocas</span>
+                                <h2 id="rewards-title">Engajamento que ganha significado.</h2>
+                                <p>Os pontos conquistados nos desafios podem virar recompensas. Uma forma positiva de reconhecer o esforço e incentivar a continuidade do acompanhamento.</p>
+                                <div class="marketing-panel-tags"><span>Conquistar</span><span>Acumular</span><span>Trocar</span></div>
                             </div>
-                            <aside class="marketing-contact-card" id="contato">
-                                <span class="marketing-contact-icon"><i class="bi bi-whatsapp" aria-hidden="true"></i></span>
-                                <span class="marketing-contact-overline">Contato comercial</span>
-                                <h3>Quer levar essa experiência aos seus pacientes?</h3>
-                                <p>Converse com nossa equipe e descubra como o TratamentoWeb pode apoiar o seu modelo de atendimento.</p>
-                                <a href="#contato" class="marketing-contact-button" data-whatsapp-contact="comercial" hidden>
-                                    Falar com um especialista
-                                    <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
-                                </a>
-                                <small>Atendimento pelo WhatsApp</small>
-                            </aside>
                         </div>
+                        <a href="#profissionais" class="marketing-scroll-next" data-landing-target="profissionais"><span>Conhecer para profissionais</span><i class="bi bi-arrow-down" aria-hidden="true"></i></a>
                     </section>
 
-                    <section class="marketing-final-cta">
-                        <div class="marketing-shell marketing-final-cta-inner">
-                            <div>
-                                <span>Já faz parte do TratamentoWeb?</span>
-                                <h2>Sua jornada continua por aqui.</h2>
-                            </div>
-                            <div class="marketing-final-actions">
-                                <a href="/login" class="marketing-button marketing-button-primary">Entrar</a>
-                                <a href="/primeiro-acesso" class="marketing-first-access">Fazer primeiro acesso <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                    <section class="marketing-panel marketing-panel-professionals" id="profissionais" data-landing-section="profissionais" aria-labelledby="professionals-title">
+                        <div class="marketing-panel-media" role="img" aria-label="Profissional realizando atendimento de saúde personalizado pela internet"></div>
+                        <div class="marketing-panel-shade"></div>
+                        <div class="marketing-shell marketing-panel-inner">
+                            <div class="marketing-panel-content">
+                                <span class="marketing-panel-index">05 <small>/ 05</small></span>
+                                <span class="marketing-eyebrow"><i class="bi bi-heart-pulse" aria-hidden="true"></i> Para profissionais de saúde</span>
+                                <h2 id="professionals-title">Sua prática mais presente, personalizada e inteligente.</h2>
+                                <p>Para nutricionistas e psicólogos que querem atender pacientes pela web com mais imersão, proximidade e suporte de inteligência artificial.</p>
+                                <ul class="marketing-panel-list"><li>Experiências adaptadas ao seu método</li><li>Continuidade além da consulta</li><li>Tecnologia sem tirar você do centro</li></ul>
+                                <div class="marketing-panel-actions">
+                                    <a href="#profissionais" class="marketing-button marketing-button-whatsapp" data-whatsapp-contact="comercial" hidden><i class="bi bi-whatsapp" aria-hidden="true"></i> Falar com o comercial</a>
+                                    <a href="/login" class="marketing-button marketing-button-secondary">Já sou cliente</a>
+                                </div>
                             </div>
                         </div>
+                        <footer class="marketing-panel-footer"><span>TratamentoWeb</span><span>Saúde, tecnologia e conexão.</span></footer>
                     </section>
                 </main>
-
-                <footer class="marketing-footer">
-                    <div class="marketing-shell marketing-footer-inner">
-                        <img src="/imagens/logo.png" alt="TratamentoWeb">
-                        <p>Saúde, tecnologia e conexão em uma experiência feita para pessoas.</p>
-                        <div>
-                            <a href="/login">Entrar</a>
-                            <a href="/primeiro-acesso">Primeiro acesso</a>
-                        </div>
-                    </div>
-                </footer>
             </div>
         `;
+    }
+
+    setupLandingNavigation() {
+        const tabs = [...document.querySelectorAll('[data-landing-target]')];
+        const sections = [...document.querySelectorAll('[data-landing-section]')];
+        if (!sections.length) return;
+
+        const activateTab = (sectionId) => {
+            document.querySelectorAll('.marketing-tabs [data-landing-target]').forEach((tab) => {
+                const isActive = tab.dataset.landingTarget === sectionId;
+                tab.classList.toggle('active', isActive);
+                if (isActive) {
+                    tab.setAttribute('aria-current', 'page');
+                    const tabList = tab.parentElement;
+                    if (window.innerWidth <= 820 && tabList) {
+                        tabList.scrollTo({
+                            left: tab.offsetLeft - (tabList.clientWidth / 2) + (tab.clientWidth / 2),
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+                else tab.removeAttribute('aria-current');
+            });
+        };
+
+        tabs.forEach((link) => {
+            link.addEventListener('click', (event) => {
+                const target = document.getElementById(link.dataset.landingTarget);
+                if (!target) return;
+                event.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        if ('IntersectionObserver' in window) {
+            this.landingObserver?.disconnect();
+            this.landingObserver = new IntersectionObserver((entries) => {
+                const visible = entries
+                    .filter((entry) => entry.isIntersecting)
+                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+                if (visible) activateTab(visible.target.dataset.landingSection);
+            }, { threshold: [0.45, 0.6, 0.75] });
+            sections.forEach((section) => this.landingObserver.observe(section));
+        }
     }
 
     renderLoginScreen() {
@@ -1240,6 +1225,7 @@ export class LoginManager {
     }
 
     async showHome(userData) {
+        this.landingObserver?.disconnect();
         document.body.classList.remove('landing-page', 'profile-paciente', 'profile-profissional');
         document.body.classList.add(userData.cargo === 'paciente' ? 'profile-paciente' : 'profile-profissional');
 
