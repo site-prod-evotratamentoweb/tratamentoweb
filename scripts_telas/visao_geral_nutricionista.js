@@ -395,7 +395,7 @@ export class VisaoGeralNutricionista {
         const ultima = this.ultimo(this.dados.avaliacoes);
         const dados = ultima?.dados_antropometricos || {};
         const atual = this.dados.planos.find((plano) => plano.atual) || this.ultimo(this.dados.planos);
-        const pontos = (campo, grupo = 'dados_antropometricos') => this.dados.avaliacoes.map((item) => ({ label: this.formatarData(item, 'data_avaliacao'), valor: item[group]?.[campo] }));
+        const pontos = (campo, grupo = 'dados_antropometricos') => this.dados.avaliacoes.map((item) => ({ label: this.formatarData(item, 'data_avaliacao'), valor: item[grupo]?.[campo] }));
         return `<section><h2 class="section-title">Visão geral</h2><div class="summary-grid">
             ${this.valorPdf('Último peso', dados.peso, ' kg')}${this.valorPdf('Último IMC', dados.imc)}${this.valorPdf('Classificação', dados.classificacao_imc)}${this.valorPdf('Avaliações', this.dados.avaliacoes.length)}${this.valorPdf('Anamneses', this.dados.anamneses.length)}${this.valorPdf('Exames', this.dados.exames.length)}${this.valorPdf('Consumos', this.dados.consumo.length)}${this.valorPdf('Meta do plano atual', atual?.meta_calorica, ' kcal')}
         </div><div class="chart-grid">${this.renderGraficoPdf('Evolução do peso', pontos('peso'), ' kg', '#f97316')}${this.renderGraficoPdf('Evolução do IMC', pontos('imc'), '', '#3b82f6')}${this.renderGraficoPdf('Evolução da massa muscular', pontos('massa_muscular', 'bioimpedancia'), ' kg', '#10b981')}</div></section>`;
