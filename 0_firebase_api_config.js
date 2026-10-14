@@ -213,5 +213,6 @@ export {
     uploadParaImgbb,
     uploadParaCloudinary,
     excluirDoCloudinary,
-    apiAutenticada
+    apiAutenticada,
+    getRenderApiBaseUrl
 };

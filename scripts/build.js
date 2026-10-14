@@ -15,6 +15,7 @@ const copyAsIs = [
   'manifest.json',
   'service-worker.js',
   'imagens',
+  'integracoes',
   'manuais',
   'formularios',
   'portfolio/grazielle_matos_imagens'

@@ -21,6 +21,9 @@ export class NavegadorBase {
             case 'cadastro_cliente':
                 await this.irParaCadastroCliente();
                 return true;
+            case 'gestao_agendamentos':
+                await this.irParaGestaoAgendamentos();
+                return true;
             case 'logout':
                 this.funcoes.logout();
                 return true;
@@ -37,6 +40,12 @@ export class NavegadorBase {
         const { CadastroCliente } = await import('./cadastro_cliente.js');
         const cadastroCliente = new CadastroCliente(this.userInfo);
         cadastroCliente.render();
+    }
+
+    async irParaGestaoAgendamentos() {
+        const { GestaoAgendamentos } = await import('./gestao_agendamentos.js');
+        const tela = new GestaoAgendamentos(this.userInfo, this.pacientesList);
+        await tela.render();
     }
 
     showMensagemDesenvolvimento(module) {

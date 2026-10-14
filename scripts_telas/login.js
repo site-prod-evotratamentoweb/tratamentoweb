@@ -1260,8 +1260,8 @@ export class LoginManager {
     isRestorableModule(module, cargo) {
         const comuns = new Set(['home', 'cadastro_cliente', 'shopping_nutri', 'palestras_videos']);
         const porCargo = {
-            nutricionista: new Set(['avaliacao_nutricional', 'anamnese', 'medidas_fisicas', 'exames_nutricionais', 'medidas_consumo', 'plano_alimentar', 'calculo_energetico']),
-            psicologo: new Set(['avaliacao_psicologica']),
+            nutricionista: new Set(['avaliacao_nutricional', 'anamnese', 'medidas_fisicas', 'exames_nutricionais', 'medidas_consumo', 'plano_alimentar', 'calculo_energetico', 'gestao_agendamentos']),
+            psicologo: new Set(['avaliacao_psicologica', 'gestao_agendamentos']),
             paciente: new Set(['minhas_avaliacoes', 'meu_plano_alimentar', 'minha_anamnese'])
         };
         return comuns.has(module) || Boolean(porCargo[cargo]?.has(module));
