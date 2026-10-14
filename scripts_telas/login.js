@@ -16,6 +16,7 @@ import { criarNavegador } from './0_complementos_menu_navegacao.js';
 const CARGOS_VALIDOS = ['paciente', 'nutricionista', 'psicologo'];
 const LOGIN_EMAIL_DOMAIN = 'tratamentoweb.com.br';
 const DEFAULT_RENDER_API_BASE_URL = 'https://backend-tratamentoweb.onrender.com';
+const FIRST_ACCESS_ALREADY_COMPLETED_MESSAGE = 'Este login já existe e o primeiro acesso já foi realizado. Caso necessário, entre em contato com o administrador para resetar o acesso.';
 // Encerra a sessao antes do token central do Firebase (1 hora) expirar.
 const SESSION_DURATION_MS = 50 * 60 * 1000;
 
@@ -24,17 +25,52 @@ export class LoginManager {
         this.tempData = null;
         this.sessionTimerId = null;
         this.isFirstAccessRoute = /^\/primeiro-acesso(?:\/index\.html)?\/?$/.test(window.location.pathname);
+        this.isLoginRoute = /^\/login(?:\/index\.html)?\/?$/.test(window.location.pathname);
         if (this.isFirstAccessRoute) {
             this.renderFirstAccessScreen();
             this.setupFirstAccessEvents();
             this.loadFirstAccessDefaults();
-        } else {
+        } else if (this.isLoginRoute) {
             this.renderLoginScreen();
             this.setupEventListeners();
             this.loadSavedCredentials();
+            this.showPendingLoginNotice();
+        } else {
+            this.renderWelcomeScreen();
         }
+        void this.loadPublicContacts();
         this.ativarKeepAliveBackend();
         this.checkAutoLogin();
+    }
+
+    renderWelcomeScreen() {
+        const app = document.getElementById('app');
+        if (!app) return;
+
+        app.innerHTML = `
+            <div class="login-wrapper">
+                <div class="login-card welcome-card">
+                    <div class="login-header">
+                        <div class="logo-container">
+                            <img src="/imagens/logo.png" alt="TratamentoWeb" class="login-logo-img">
+                        </div>
+                        <h1 class="welcome-title">Bem-vindo ao TratamentoWeb</h1>
+                        <p class="welcome-text">Seu acompanhamento de saúde em um só lugar.</p>
+                    </div>
+                    <div class="welcome-actions">
+                        <a href="/login" class="login-button welcome-link">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            Entrar
+                        </a>
+                        <a href="/primeiro-acesso" class="welcome-secondary-link">Primeiro acesso</a>
+                        <a href="#" class="contact-button" data-whatsapp-contact="comercial" hidden>
+                            <i class="bi bi-whatsapp"></i>
+                            Contato Comercial
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     renderLoginScreen() {
@@ -103,6 +139,10 @@ export class LoginManager {
                             <i class="bi bi-box-arrow-in-right"></i>
                             Entrar
                         </button>
+                        <a href="#" class="contact-button" data-whatsapp-contact="suporte" hidden>
+                            <i class="bi bi-whatsapp"></i>
+                            Contato ao Suporte
+                        </a>
                     </form>
                 </div>
             </div>
@@ -133,6 +173,58 @@ export class LoginManager {
             });
             if (input.value) input.parentElement.classList.add('focused');
         });
+    }
+
+    async loadPublicContacts() {
+        try {
+            const apiBaseUrl = (
+                window.TRATAMENTOWEB_API_BASE_URL ||
+                localStorage.getItem('tratamentowebApiBaseUrl') ||
+                DEFAULT_RENDER_API_BASE_URL
+            ).replace(/\/$/, '');
+            const response = await fetch(`${apiBaseUrl}/api/public/contacts`, {
+                method: 'GET',
+                cache: 'no-store',
+                credentials: 'omit'
+            });
+            if (!response.ok) return;
+            const contacts = await response.json().catch(() => ({}));
+            const contactMap = {
+                comercial: contacts.whatsapp_comercial,
+                suporte: contacts.whatsapp_suporte
+            };
+
+            document.querySelectorAll('[data-whatsapp-contact]').forEach((link) => {
+                const type = link.getAttribute('data-whatsapp-contact');
+                const digits = String(contactMap[type] || '').replace(/\D/g, '');
+                if (!/^55\d{10,11}$/.test(digits)) return;
+                const message = type === 'comercial'
+                    ? 'Ola! Gostaria de saber mais sobre o TratamentoWeb.'
+                    : 'Ola! Preciso de suporte no TratamentoWeb.';
+                link.href = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.hidden = false;
+            });
+        } catch (_error) {}
+    }
+
+    showPendingLoginNotice() {
+        const message = sessionStorage.getItem('loginNotice');
+        if (!message) return;
+        sessionStorage.removeItem('loginNotice');
+        this.showTemporaryPopup(message);
+    }
+
+    showTemporaryPopup(message) {
+        document.querySelector('.temporary-login-popup')?.remove();
+        const popup = document.createElement('div');
+        popup.className = 'temporary-login-popup';
+        popup.setAttribute('role', 'status');
+        popup.innerHTML = `<i class="bi bi-info-circle-fill"></i><span>${message}</span>`;
+        document.body.appendChild(popup);
+        window.setTimeout(() => popup.classList.add('is-leaving'), 2600);
+        window.setTimeout(() => popup.remove(), 3000);
     }
 
     setupPasswordToggle(toggleId, inputId) {
@@ -194,18 +286,20 @@ export class LoginManager {
             }
 
             if (this.isFirstAccessRoute) {
-                window.location.replace('/');
+                this.clearSessionState();
+                sessionStorage.setItem('loginNotice', FIRST_ACCESS_ALREADY_COMPLETED_MESSAGE);
+                void signOut(auth).finally(() => window.location.replace('/login'));
                 return;
             }
 
+            if (this.isLoginRoute) window.history.replaceState({}, '', '/');
             user.sessionExpiresAt = expiresAt;
             localStorage.setItem('currentUser', JSON.stringify(user));
             localStorage.setItem('sessionExpiresAt', expiresAt);
             this.iniciarTimerSessao(expiresAt);
             void this.showHome(user).catch(() => {
                 this.clearSessionState();
-                this.renderLoginScreen();
-                this.setupEventListeners();
+                window.location.replace('/login');
             });
         } catch (error) {
             this.clearSessionState();
@@ -274,9 +368,8 @@ export class LoginManager {
         try {
             await signOut(auth);
         } catch (error) {}
-        this.renderLoginScreen();
-        this.setupEventListeners();
-        this.showError('Sessao expirada. Entre novamente.');
+        sessionStorage.setItem('loginNotice', 'Sessao expirada. Entre novamente.');
+        window.location.replace('/login');
     }
 
     async validarUsuarioOrganizacaoEmBackground(userRef, sessionUser) {
@@ -300,9 +393,8 @@ export class LoginManager {
         } catch (error) {
             await this.signOutAll().catch(() => {});
             this.clearSessionState();
-            this.renderLoginScreen();
-            this.setupEventListeners();
-            this.showError(error.message || 'Nao foi possivel validar a conta.');
+            sessionStorage.setItem('loginNotice', error.message || 'Nao foi possivel validar a conta.');
+            window.location.replace('/login');
         }
     }
 
@@ -406,10 +498,10 @@ export class LoginManager {
                 localStorage.setItem('sessionExpiresAt', sessionUser.sessionExpiresAt);
                 this.iniciarTimerSessao(sessionExpiresAt);
                 void this.validarUsuarioOrganizacaoEmBackground(userRef, sessionUser);
+                window.history.replaceState({}, '', '/');
                 void this.showHome(sessionUser).catch(() => {
                     this.clearSessionState();
-                    this.renderLoginScreen();
-                    this.setupEventListeners();
+                    window.location.replace('/login');
                 });
                 return;
             }
@@ -474,10 +566,10 @@ export class LoginManager {
             localStorage.setItem('sessionCreatedAt', sessionUser.sessionCreatedAt);
             localStorage.setItem('sessionExpiresAt', sessionUser.sessionExpiresAt);
             this.iniciarTimerSessao(sessionExpiresAt);
+            window.history.replaceState({}, '', '/');
             void this.showHome(sessionUser).catch(() => {
                 this.clearSessionState();
-                this.renderLoginScreen();
-                this.setupEventListeners();
+                window.location.replace('/login');
             });
         } catch (error) {
 
@@ -593,6 +685,10 @@ export class LoginManager {
                             <i class="bi bi-check-circle"></i>
                             Criar senha e entrar
                         </button>
+                        <a href="#" class="contact-button" data-whatsapp-contact="suporte" hidden>
+                            <i class="bi bi-whatsapp"></i>
+                            Contato ao Suporte
+                        </a>
                     </form>
                 </div>
             </div>
@@ -623,6 +719,28 @@ export class LoginManager {
             event.preventDefault();
             void this.handleFirstAccess();
         });
+    }
+
+    async redirectExistingLoginFromFirstAccess(apiBaseUrl, organization, login) {
+        try {
+            const response = await fetch(`${apiBaseUrl}/api/public/first-access-status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'omit',
+                body: JSON.stringify({ organization, login })
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.login_existe !== true) return false;
+
+            sessionStorage.removeItem('firstAccessOrganization');
+            sessionStorage.removeItem('firstAccessLogin');
+            sessionStorage.setItem('loginNotice', FIRST_ACCESS_ALREADY_COMPLETED_MESSAGE);
+            await this.signOutAll().catch(() => {});
+            window.location.replace('/login');
+            return true;
+        } catch (_error) {
+            return false;
+        }
     }
 
     async handleFirstAccess() {
@@ -673,7 +791,11 @@ export class LoginManager {
                 body: JSON.stringify({ organization: organizacao, login, password: temporaryPassword })
             });
             const loginResult = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(loginResult.error?.message || 'Login ou senha temporaria incorretos.');
+            if (!response.ok) {
+                const redirected = await this.redirectExistingLoginFromFirstAccess(apiBaseUrl, organizacao, login);
+                if (redirected) return;
+                throw new Error(loginResult.error?.message || 'Login ou senha temporaria incorretos.');
+            }
 
             const email = this.montarEmailAuth(organizacao, login);
             configureOrganizationFirebase(loginResult.firebaseConfig, organizacao);
@@ -687,8 +809,9 @@ export class LoginManager {
             if (Object.prototype.hasOwnProperty.call(userData, 'ultimo_login')) {
                 sessionStorage.removeItem('firstAccessOrganization');
                 sessionStorage.removeItem('firstAccessLogin');
+                sessionStorage.setItem('loginNotice', FIRST_ACCESS_ALREADY_COMPLETED_MESSAGE);
                 await this.signOutAll();
-                window.location.replace('/');
+                window.location.replace('/login');
                 return;
             }
 

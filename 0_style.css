@@ -217,6 +217,98 @@ img, svg, canvas, video {
     box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.4);
 }
 
+.welcome-card {
+    text-align: center;
+}
+
+.welcome-title {
+    margin: 12px 0 8px;
+    color: #1e293b;
+    font-size: clamp(1.7rem, 5vw, 2.2rem);
+}
+
+.welcome-text {
+    margin: 0;
+    color: #64748b;
+}
+
+.welcome-actions {
+    display: grid;
+    gap: 14px;
+}
+
+.welcome-link {
+    text-decoration: none;
+}
+
+.welcome-link:hover {
+    color: white;
+}
+
+.welcome-secondary-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.contact-button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 13px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 2px solid #16a34a;
+    border-radius: 16px;
+    color: #15803d;
+    background: #f0fdf4;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.contact-button[hidden] {
+    display: none;
+}
+
+.contact-button:hover {
+    color: white;
+    background: #16a34a;
+    transform: translateY(-2px);
+}
+
+.temporary-login-popup {
+    position: fixed;
+    z-index: 10000;
+    top: 20px;
+    left: 50%;
+    width: min(92vw, 560px);
+    padding: 14px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    border: 1px solid #fdba74;
+    border-radius: 14px;
+    color: #7c2d12;
+    background: #fff7ed;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22);
+    transform: translateX(-50%);
+    animation: popupEnter 0.2s ease-out;
+}
+
+.temporary-login-popup.is-leaving {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+@keyframes popupEnter {
+    from { opacity: 0; transform: translate(-50%, -10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
 .error-message-custom {
     background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
     color: var(--danger);
