@@ -624,6 +624,8 @@ export class LoginManager {
                     organizacao,
                     firebaseConfig: organizationFirebaseConfig,
                     authToken: result.token?.idToken || '',
+                    agendae_habilitado: result.integrations?.agendae === true,
+                    agendae_contexto: result.integrations?.agendaeContext || '',
                     sessionCreatedAt: new Date().toISOString(),
                     sessionExpiresAt,
                     activeModule: 'home'
@@ -693,6 +695,8 @@ export class LoginManager {
                 firebaseConfig: organizationFirebaseConfig,
                 perfil: userData.perfil || (isPaciente ? 'operador' : 'supervisor'),
                 authToken: result.token?.idToken || '',
+                agendae_habilitado: result.integrations?.agendae === true,
+                agendae_contexto: result.integrations?.agendaeContext || '',
                 sessionCreatedAt: new Date().toISOString(),
                 sessionExpiresAt,
                 activeModule: 'home'
@@ -991,6 +995,8 @@ export class LoginManager {
                 organizacao,
                 firebaseConfig: loginResult.firebaseConfig,
                 authToken: passwordResult.token?.idToken || '',
+                agendae_habilitado: loginResult.integrations?.agendae === true,
+                agendae_contexto: loginResult.integrations?.agendaeContext || '',
                 perfil: userData.perfil || 'operador',
                 sessionCreatedAt,
                 sessionExpiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString(),
@@ -1237,7 +1243,9 @@ export class LoginManager {
         }
 
         const activeModule = localStorage.getItem('activeModule') || userData.activeModule || 'home';
-        if (activeModule && activeModule !== 'home' && this.isRestorableModule(activeModule, userData.cargo)) {
+        const agendaeModuleUnavailable = ['meus_agendamentos', 'gestao_agendamentos'].includes(activeModule)
+            && (userData.agendae_habilitado !== true || !userData.agendae_contexto);
+        if (activeModule && activeModule !== 'home' && !agendaeModuleUnavailable && this.isRestorableModule(activeModule, userData.cargo)) {
             try {
                 const pacientesList = userData.cargo === 'paciente'
                     ? []
@@ -1262,7 +1270,7 @@ export class LoginManager {
         const porCargo = {
             nutricionista: new Set(['avaliacao_nutricional', 'anamnese', 'medidas_fisicas', 'exames_nutricionais', 'medidas_consumo', 'plano_alimentar', 'calculo_energetico', 'gestao_agendamentos']),
             psicologo: new Set(['avaliacao_psicologica', 'gestao_agendamentos']),
-            paciente: new Set(['minhas_avaliacoes', 'meu_plano_alimentar', 'minha_anamnese'])
+            paciente: new Set(['minhas_avaliacoes', 'meu_plano_alimentar', 'minha_anamnese', 'meus_agendamentos'])
         };
         return comuns.has(module) || Boolean(porCargo[cargo]?.has(module));
     }

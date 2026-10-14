@@ -112,6 +112,12 @@ export class HomeCliente {
                             <span>🏠</span>
                             <span>Home</span>
                         </button>
+                        ${this.userInfo.agendae_habilitado === true && this.userInfo.agendae_contexto ? `
+                            <button class="menu-item" data-module="meus_agendamentos">
+                                <span>📅</span>
+                                <span>Agendar Atendimento</span>
+                            </button>
+                        ` : ''}
                         
                         <!-- SÓ MOSTRA ITENS DE NUTRIÇÃO SE TIVER NUTRICIONISTA VINCULADO -->
                         ${temNutricionista ? `

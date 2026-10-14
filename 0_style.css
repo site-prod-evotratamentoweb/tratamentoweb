@@ -2570,6 +2570,9 @@ body.profile-profissional .section-header h3 {
 .agendae-management-primary h2,.agendae-management-info h2 { margin:0 0 8px; color:#102c52; font-size:22px; }
 .agendae-management-primary p,.agendae-management-info li { color:#637287; font-size:14px; line-height:1.55; }
 .agendae-management-button { display:flex; min-height:52px; grid-column:1/-1; align-items:center; justify-content:space-between; gap:16px; padding:0 20px; border:0; border-radius:12px; background:#0b4ca3; color:#fff; box-shadow:0 9px 22px rgba(11,76,163,.22); cursor:pointer; font-size:15px; font-weight:800; transition:transform .18s ease,background .18s ease,box-shadow .18s ease; }
+.agendae-patient-picker { display:grid; grid-column:1/-1; gap:8px; color:#344a68; font-size:12px; font-weight:800; }
+.agendae-patient-picker select { width:100%; min-height:50px; padding:0 13px; border:1px solid #c9d6e5; border-radius:10px; background:#fff; color:#183653; font-family:inherit; font-size:14px; font-weight:500; }
+.agendae-patient-picker select:focus { border-color:#0b4ca3; outline:none; box-shadow:0 0 0 3px rgba(11,76,163,.1); }
 .agendae-management-button:hover:not(:disabled) { transform:translateY(-1px); background:#073b91; box-shadow:0 12px 26px rgba(11,76,163,.27); }
 .agendae-management-button:focus-visible { outline:3px solid rgba(246,201,69,.65); outline-offset:3px; }
 .agendae-management-button:disabled { cursor:wait; opacity:.62; box-shadow:none; }

@@ -22,6 +22,11 @@ export class NavegadorBase {
                 await this.irParaCadastroCliente();
                 return true;
             case 'gestao_agendamentos':
+                if (this.userInfo.agendae_habilitado !== true || !this.userInfo.agendae_contexto) {
+                    localStorage.setItem('activeModule', 'home');
+                    await this.irParaHome();
+                    return true;
+                }
                 await this.irParaGestaoAgendamentos();
                 return true;
             case 'logout':
@@ -336,7 +341,13 @@ export class NavegadorPaciente extends NavegadorBase {
     }
 
     async irParaMeusAgendamentos() {
-        this.showMensagemDesenvolvimento('meus_agendamentos');
+        if (this.userInfo.agendae_habilitado !== true || !this.userInfo.agendae_contexto) {
+            localStorage.setItem('activeModule', 'home');
+            await this.irParaHome();
+            return;
+        }
+        const { AgendamentosCliente } = await import('./agendamentos_cliente.js');
+        await new AgendamentosCliente(this.userInfo).render();
     }
 
     async irParaMinhasMensagens() {

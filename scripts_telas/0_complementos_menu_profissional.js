@@ -138,10 +138,12 @@ export class MenuProfissional {
                 <span class="menu-icon">👥</span>
                 <span>Atendimento em Grupo</span>
             </button>
-            <button class="menu-item ${this.currentModule === 'gestao_agendamentos' ? 'active' : ''}" data-module="gestao_agendamentos">
-                <span class="menu-icon">📅</span>
-                <span>Gestão de Agendamentos</span>
-            </button>
+            ${this.userInfo.agendae_habilitado === true && this.userInfo.agendae_contexto ? `
+                <button class="menu-item ${this.currentModule === 'gestao_agendamentos' ? 'active' : ''}" data-module="gestao_agendamentos">
+                    <span class="menu-icon">📅</span>
+                    <span>Agendar Paciente</span>
+                </button>
+            ` : ''}
             <button class="menu-item ${this.currentModule === 'acompanhar_jornadas' ? 'active' : ''}" data-module="acompanhar_jornadas">
                 <span class="menu-icon">🌟</span>
                 <span>Acompanhar Jornadas</span>
