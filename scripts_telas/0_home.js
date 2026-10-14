@@ -25,8 +25,6 @@ const MIGRACOES_LOGIN_LEGADO = [
     { loginAntigo: 'Geron01', nome: 'ADENICE FIGUEIREDO', loginNovo: 'adenice.figueiredo' },
     { loginAntigo: 'Geron02', nome: 'MARIA LUIZA ALMEIDA COSTA', loginNovo: 'maria.costa' }
 ];
-const AUTH_PRIMEIRO_ACESSO_SINCRONIZADOS = new Set();
-
 // ==================== FUNÇÕES COMPARTILHADAS ====================
 
 export class FuncoesCompartilhadas {
@@ -190,8 +188,6 @@ export class FuncoesCompartilhadas {
                 profissionalLogin = currentUser.login;
             }
 
-            await this.migrarCheckinsLegadosOrganizacao(currentUser);
-            
             const profissionalRef = doc(db, "logins", profissionalLogin);
             const profissionalDoc = await getDoc(profissionalRef);
             
@@ -225,31 +221,6 @@ export class FuncoesCompartilhadas {
                         const pacienteData = pacienteDoc.data();
                         if (Object.prototype.hasOwnProperty.call(pacienteData, 'status_ativo')) {
                             void updateDoc(pacienteRef, { status_ativo: deleteField() }).catch(() => {});
-                        }
-
-                        const chaveSincronizacaoAuth = `${currentUser.organizacao}:${pacienteLogin}`;
-                        if (
-                            !Object.prototype.hasOwnProperty.call(pacienteData, 'ultimo_login')
-                            && !AUTH_PRIMEIRO_ACESSO_SINCRONIZADOS.has(chaveSincronizacaoAuth)
-                        ) {
-                            try {
-                                const authSincronizado = await apiAutenticada(
-                                    `/api/patients/${encodeURIComponent(pacienteLogin)}/first-access-auth`,
-                                    { method: 'POST' }
-                                );
-                                pacienteData.codigo_temporario = authSincronizado.senha_primeiro_acesso;
-                                pacienteData.email = authSincronizado.email;
-                                delete pacienteData.codigo_expiracao;
-                                await updateDoc(pacienteRef, {
-                                    codigo_temporario: authSincronizado.senha_primeiro_acesso,
-                                    codigo_expiracao: deleteField(),
-                                    email: authSincronizado.email,
-                                    status_ativo: deleteField()
-                                });
-                                AUTH_PRIMEIRO_ACESSO_SINCRONIZADOS.add(chaveSincronizacaoAuth);
-                            } catch (error) {
-                                console.warn(`Não foi possível sincronizar o Auth de ${pacienteLogin}:`, error.message);
-                            }
                         }
 
                         pacientesList.push({
@@ -290,33 +261,6 @@ export class FuncoesCompartilhadas {
             
         } catch (error) {
             return [];
-        }
-    }
-
-    static async migrarCheckinsLegadosOrganizacao(currentUser) {
-        if (currentUser.perfil !== 'gerente') return;
-
-        try {
-            const registros = await apiAutenticada('/api/meal-plan-checkins/legacy/organization');
-            for (const registro of Array.isArray(registros) ? registros : []) {
-                if (!registro.id || !registro.paciente_login || !registro.plano_id || !registro.data) continue;
-
-                const {
-                    id,
-                    organization: _organization,
-                    data_atualizacao_backend: _legacyUpdatedAt,
-                    ...dadosOperacionais
-                } = registro;
-                await setDoc(doc(db, 'checkins_plano_alimentar', id), {
-                    ...dadosOperacionais,
-                    data_atualizacao: serverTimestamp()
-                }, { merge: true });
-                await apiAutenticada(`/api/meal-plan-checkins/legacy/organization/${encodeURIComponent(id)}`, {
-                    method: 'DELETE'
-                });
-            }
-        } catch (_error) {
-            // A migração é retomada no próximo acesso do gerente sem bloquear a lista de pacientes.
         }
     }
 

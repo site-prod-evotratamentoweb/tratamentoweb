@@ -51,7 +51,7 @@ export class HomeNutricionista {
             <div class="dashboard-container" style="height: calc(100vh - 24px); max-height: calc(100vh - 24px); margin: 12px auto; display: flex; flex-direction: column;">
                 <div id="menuContainer"></div>
     
-                <div class="main-content" style="flex: 1; overflow: hidden; padding: 14px 20px; min-height: 0;">
+                <div class="main-content" style="flex: 1; overflow-y: auto; padding: 14px 20px 90px; min-height: 0;">
                     ${this.modoAvaliacao ? this.renderNavegacaoAvaliacao() : ''}
                     
                     ${!isPaciente ? `
@@ -118,6 +118,8 @@ export class HomeNutricionista {
                             <canvas id="muscleChart" style="max-height: 300px; width: 100%;"></canvas>
                         </div>
                     </div>
+
+                    <section id="historicoAntropometriaSection" class="evaluation-section" style="display:none; margin-top:24px; margin-bottom:24px;"></section>
     
                     ` : `
                     <!-- MENSAGEM PARA PACIENTE - ACESSO RESTRITO -->
@@ -243,7 +245,8 @@ export class HomeNutricionista {
             return; // 🔒 SAI AQUI - Não carrega eventos de profissional
         }
         
-        document.getElementById('abaAnamneses')?.addEventListener('click', () => this.navegador.navegarPara('avaliacao_nutricional'));
+        document.getElementById('abaAnamneses')?.addEventListener('click', () => this.navegador.navegarPara('anamnese'));
+        document.getElementById('abaVisaoGeral')?.addEventListener('click', () => this.navegador.navegarPara('visao_geral_nutricional'));
         document.getElementById('abaMedidasFisicas')?.addEventListener('click', () => {});
         document.getElementById('abaExames')?.addEventListener('click', () => this.navegador.navegarPara('exames_nutricionais'));
         document.getElementById('abaConsumo')?.addEventListener('click', () => this.navegador.navegarPara('medidas_consumo'));
@@ -254,18 +257,25 @@ export class HomeNutricionista {
             pacienteSelect.addEventListener('change', async (e) => {
                 const login = e.target.value;
                 if (login) {
+                    localStorage.setItem('avaliacaoNutricionalSelectedPacienteLogin', login);
                     this.selectedPaciente = this.pacientesList.find(p => p.login === login);
                     this.displayPacienteInfo();
                     await this.loadEvaluationData();
                     document.getElementById('periodoSection').style.display = 'block';
                     document.getElementById('chartsSection').style.display = 'grid';
                 } else {
+                    localStorage.removeItem('avaliacaoNutricionalSelectedPacienteLogin');
                     this.selectedPaciente = null;
                     this.limparInfoPaciente();
                     document.getElementById('periodoSection').style.display = 'none';
                     document.getElementById('chartsSection').style.display = 'none';
                     this.currentEvaluations = [];
                     this.limparGraficos();
+                    const historico = document.getElementById('historicoAntropometriaSection');
+                    if (historico) {
+                        historico.style.display = 'none';
+                        historico.innerHTML = '';
+                    }
                 }
             });
         }
@@ -350,6 +360,7 @@ export class HomeNutricionista {
                     <button id="novaAvaliacaoBtn" type="button" style="padding:9px 14px;border:none;border-radius:8px;background:#1a237e;color:white;font-weight:700;cursor:pointer;">Registrar antropometria</button>
                 </div>
                 <nav style="display:flex;gap:8px;flex-wrap:wrap;" aria-label="Seções da avaliação nutricional">
+                    <button id="abaVisaoGeral" type="button" style="padding:9px 14px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#334155;font-weight:700;cursor:pointer;">Visão Geral</button>
                     <button id="abaAnamneses" type="button" style="padding:9px 14px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#334155;font-weight:700;cursor:pointer;">Anamnese Clínica</button>
                     <button id="abaMedidasFisicas" type="button" style="padding:9px 14px;border:1px solid #1a237e;border-radius:8px;background:#1a237e;color:white;font-weight:700;cursor:pointer;">Avaliação Antropométrica</button>
                     <button id="abaExames" type="button" style="padding:9px 14px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#334155;font-weight:700;cursor:pointer;">Exames Laboratoriais</button>
@@ -443,6 +454,19 @@ export class HomeNutricionista {
         // Atualiza a lista no navegador
         this.navegador.pacientesList = this.pacientesList;
         this.populatePacienteSelect();
+        const loginSalvo = localStorage.getItem('avaliacaoNutricionalSelectedPacienteLogin');
+        const pacienteSalvo = this.pacientesList.find((paciente) => paciente.login === loginSalvo);
+        if (pacienteSalvo) {
+            this.selectedPaciente = pacienteSalvo;
+            const select = document.getElementById('pacienteSelect');
+            if (select) select.value = pacienteSalvo.login;
+            this.displayPacienteInfo();
+            const periodo = document.getElementById('periodoSection');
+            const graficos = document.getElementById('chartsSection');
+            if (periodo) periodo.style.display = 'block';
+            if (graficos) graficos.style.display = 'grid';
+            await this.loadEvaluationData();
+        }
     }
 
     populatePacienteSelect() {
@@ -623,6 +647,7 @@ export class HomeNutricionista {
     async loadEvaluationData() {
         if (!this.selectedPaciente) return;
         this.currentEvaluations = await this.funcoes.loadEvaluationsByPatient(this.selectedPaciente.login);
+        this.atualizarHistoricoAntropometrico();
         
         if (this.currentEvaluations.length === 0) {
             this.mostrarMensagemSemDados();
@@ -630,6 +655,61 @@ export class HomeNutricionista {
         }
         
         this.renderCharts();
+    }
+
+    escapeHtml(valor) {
+        return String(valor ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    }
+
+    formatarDataAvaliacao(avaliacao) {
+        const valor = avaliacao?.data_avaliacao || avaliacao?.timestamp;
+        if (!valor) return 'Data não informada';
+        const data = new Date(String(valor).length === 10 ? `${valor}T12:00:00` : valor);
+        return Number.isNaN(data.getTime()) ? String(valor) : data.toLocaleDateString('pt-BR');
+    }
+
+    atualizarHistoricoAntropometrico() {
+        const container = document.getElementById('historicoAntropometriaSection');
+        if (!container) return;
+        container.style.display = 'block';
+
+        const avaliacoes = this.currentEvaluations.slice().reverse();
+        const cards = avaliacoes.map((avaliacao) => {
+            const dados = avaliacao.dados_antropometricos || {};
+            const bio = avaliacao.bioimpedancia || {};
+            const campo = (rotulo, valor, unidade = '') => `
+                <div style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;">
+                    <small style="display:block;color:#64748b;font-weight:700;margin-bottom:4px;">${this.escapeHtml(rotulo)}</small>
+                    <strong style="color:#1f2937;">${valor === null || valor === undefined || valor === '' ? '--' : `${this.escapeHtml(valor)}${unidade}`}</strong>
+                </div>`;
+            return `
+                <article style="border:1px solid #dbe3ef;border-radius:12px;background:white;overflow:hidden;margin-top:12px;break-inside:avoid;">
+                    <header style="padding:11px 14px;background:#eef2ff;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;">
+                        <strong style="color:#1a237e;">Avaliação de ${this.escapeHtml(this.formatarDataAvaliacao(avaliacao))}</strong>
+                        <span style="color:#64748b;font-size:13px;">${this.escapeHtml(avaliacao.profissional || this.userInfo.nome || '')}</span>
+                    </header>
+                    <div style="padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;">
+                        ${campo('Peso', dados.peso, ' kg')}
+                        ${campo('Altura', dados.altura, ' m')}
+                        ${campo('IMC', dados.imc)}
+                        ${campo('Classificação do IMC', dados.classificacao_imc)}
+                        ${campo('Massa muscular', bio.massa_muscular, ' kg')}
+                        ${campo('Gordura corporal', bio.gordura_corporal, '%')}
+                        ${dados.perfil ? campo('Perfil', dados.perfil === 'idoso' ? 'Idoso' : 'Adulto') : ''}
+                        ${dados.altura_joelho ? campo('Altura do joelho', dados.altura_joelho, ' cm') : ''}
+                        ${dados.altura_estimada_chumlea ? campo('Altura estimada', dados.altura_estimada_chumlea, ' m') : ''}
+                        ${dados.circunferencia_panturrilha ? campo('Panturrilha', dados.circunferencia_panturrilha, ' cm') : ''}
+                        ${dados.classificacao_panturrilha ? campo('Classificação da panturrilha', dados.classificacao_panturrilha) : ''}
+                    </div>
+                </article>`;
+        }).join('');
+
+        container.innerHTML = `
+            <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div><h3 style="margin:0;">Histórico antropométrico</h3><p style="margin:4px 0 0;color:#64748b;">Todos os dados gravados para o paciente selecionado.</p></div>
+                <span style="color:#1a237e;font-weight:700;">${avaliacoes.length} registro(s)</span>
+            </div>
+            ${cards || '<p style="color:#64748b;margin:16px 0 0;">Nenhuma avaliação antropométrica gravada para este paciente.</p>'}`;
     }
 
     renderCharts() {

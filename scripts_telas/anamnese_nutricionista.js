@@ -10,7 +10,8 @@ export class AnamneseNutricionista {
         this.secaoAtiva = ['anamnese', 'exames', 'consumo'].includes(secaoAtiva) ? secaoAtiva : 'anamnese';
         this.funcoes = FuncoesCompartilhadas;
         this.pacientesList = pacientesList || [];
-        this.selectedPaciente = null;
+        const loginSalvo = localStorage.getItem('avaliacaoNutricionalSelectedPacienteLogin');
+        this.selectedPaciente = this.pacientesList.find((paciente) => paciente.login === loginSalvo) || null;
         this.currentAnamnese = null;
         this.anamnesesList = [];
         this.anamneseExpandida = null;
@@ -50,6 +51,9 @@ export class AnamneseNutricionista {
     async carregarPacientes() {
         this.pacientesList = await this.funcoes.loadPacientesList(this.userInfo.login);
         this.navegador.pacientesList = this.pacientesList;
+
+        const loginSalvo = localStorage.getItem('avaliacaoNutricionalSelectedPacienteLogin');
+        this.selectedPaciente = this.pacientesList.find((paciente) => paciente.login === loginSalvo) || null;
 
         if (this.pacientesList.length) {
             this.render();
@@ -365,9 +369,10 @@ export class AnamneseNutricionista {
     }
 
     attachEvents() {
+        document.getElementById('abaVisaoGeral')?.addEventListener('click', () => this.navegador.navegarPara('visao_geral_nutricional'));
         document.getElementById('abaMedidasFisicas')?.addEventListener('click', () => this.navegador.navegarPara('medidas_fisicas'));
         document.getElementById('abaAnamneses')?.addEventListener('click', () => {
-            if (this.secaoAtiva !== 'anamnese') this.navegador.navegarPara('avaliacao_nutricional');
+            if (this.secaoAtiva !== 'anamnese') this.navegador.navegarPara('anamnese');
         });
         document.getElementById('abaExames')?.addEventListener('click', () => {
             if (this.secaoAtiva !== 'exames') this.navegador.navegarPara('exames_nutricionais');
@@ -404,6 +409,7 @@ export class AnamneseNutricionista {
             pacienteSelect.addEventListener('change', async (e) => {
                 const login = e.target.value;
                 if (login) {
+                    localStorage.setItem('avaliacaoNutricionalSelectedPacienteLogin', login);
                     this.selectedPaciente = this.pacientesList.find(p => p.login === login);
                     this.currentAnamnese = null;
                     this.anamnesesList = [];
@@ -411,6 +417,7 @@ export class AnamneseNutricionista {
                     this.historicoCarregadoLogin = null;
                     await this.render();
                 } else {
+                    localStorage.removeItem('avaliacaoNutricionalSelectedPacienteLogin');
                     this.selectedPaciente = null;
                     await this.render();
                 }
@@ -537,6 +544,7 @@ export class AnamneseNutricionista {
             <section style="margin-bottom:16px;background:white;border:1px solid #dbe3ef;border-radius:12px;padding:12px 14px;">
                 <div style="margin-bottom:10px;"><h2 style="margin:0;color:#1a237e;font-size:21px;">Avaliação Nutricional</h2><p style="margin:3px 0 0;color:#64748b;font-size:13px;">Informações clínicas organizadas por etapa da consulta.</p></div>
                 <nav style="display:flex;gap:8px;flex-wrap:wrap;" aria-label="Seções da avaliação nutricional">
+                    ${botao('abaVisaoGeral', 'Visão Geral', false)}
                     ${botao('abaAnamneses', 'Anamnese Clínica', this.secaoAtiva === 'anamnese')}
                     ${botao('abaMedidasFisicas', 'Avaliação Antropométrica', false)}
                     ${botao('abaExames', 'Exames Laboratoriais', this.secaoAtiva === 'exames')}

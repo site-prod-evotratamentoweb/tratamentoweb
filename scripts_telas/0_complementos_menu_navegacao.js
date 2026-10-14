@@ -56,6 +56,9 @@ export class NavegadorNutricionista extends NavegadorBase {
         
         // Tenta navegar pelos módulos do nutricionista primeiro
         switch(moduloLower) {
+            case 'visao_geral_nutricional':
+                await this.irParaVisaoGeralNutricional();
+                return true;
             case 'avaliacao_nutricional':
                 await this.irParaAvaliacaoNutricional();
                 return true;
@@ -117,7 +120,13 @@ export class NavegadorNutricionista extends NavegadorBase {
     }
 
     async irParaAvaliacaoNutricional() {
-        await this.irParaSecaoClinica('anamnese');
+        await this.irParaVisaoGeralNutricional();
+    }
+
+    async irParaVisaoGeralNutricional() {
+        const { VisaoGeralNutricionista } = await import('./visao_geral_nutricionista.js');
+        const tela = new VisaoGeralNutricionista(this.userInfo, this.pacientesList);
+        tela.render();
     }
 
     async irParaMedidasFisicas() {
