@@ -13,11 +13,11 @@ import {
     deleteDoc,
     getDoc,
     setDoc,
+    runTransaction,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
     getAuth,
-    createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -182,9 +182,9 @@ export {
     deleteDoc,
     getDoc,
     setDoc,
+    runTransaction,
     serverTimestamp,
 
-    createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
 

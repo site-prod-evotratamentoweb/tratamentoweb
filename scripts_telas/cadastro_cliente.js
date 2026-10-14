@@ -108,7 +108,8 @@ export class CadastroCliente {
                             <div class="form-row">
                                 <div class="form-field">
                                     <label>👤 Nome Completo *</label>
-                                    <input type="text" id="nome" required placeholder="Ex: Maria da Silva">
+                                    <input type="text" id="nome" required autocomplete="name" placeholder="Ex: Maria da Silva">
+                                    <small>Somente letras; informe pelo menos nome e sobrenome</small>
                                 </div>
                                 <div class="form-field">
                                     <label>🔑 Login *</label>
@@ -400,12 +401,14 @@ export class CadastroCliente {
 
     async saveCliente() {
         try {
-            const nome = document.getElementById('nome').value;
+            const nome = this.funcoes.normalizarNomeCompleto(document.getElementById('nome').value);
             const login = this.isEditing
                 ? this.editingLogin
                 : this.funcoes.gerarLoginPorNome(nome);
             document.getElementById('login').value = login;
-            const existingCliente = this.clientesList.find(c => c.login === login);
+            const existingCliente = this.isEditing
+                ? this.clientesList.find(c => c.login === this.editingLogin)
+                : null;
             
             const clienteData = {
                 nome,

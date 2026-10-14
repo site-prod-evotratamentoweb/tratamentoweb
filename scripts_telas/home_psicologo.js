@@ -127,7 +127,8 @@ export class HomePsicologo {
                     <form id="registerPacienteForm">
                         <div class="form-field">
                             <label>👤 Nome Completo:</label>
-                            <input type="text" id="regNome" class="form-control" required>
+                            <input type="text" id="regNome" class="form-control" required autocomplete="name">
+                            <small>Somente letras; informe pelo menos nome e sobrenome</small>
                         </div>
                         <div class="form-field">
                             <label>⚥ Sexo:</label>
@@ -139,8 +140,8 @@ export class HomePsicologo {
                         </div>
                         <div class="form-field">
                             <label>🔑 Login:</label>
-                            <input type="text" id="regLogin" class="form-control" required>
-                            <small>⚠️ Login único</small>
+                            <input type="text" id="regLogin" class="form-control" required readonly>
+                            <small>Gerado automaticamente com o primeiro e o último nome</small>
                         </div>
                         <div class="form-field">
                             <label>📅 Data Nascimento:</label>
@@ -185,6 +186,12 @@ export class HomePsicologo {
                 await this.registerPaciente();
             });
         }
+
+        const registerName = document.getElementById('regNome');
+        const registerLogin = document.getElementById('regLogin');
+        registerName?.addEventListener('input', () => {
+            if (registerLogin) registerLogin.value = this.funcoes.gerarLoginPorNome(registerName.value);
+        });
 
         const select = document.getElementById('pacienteSelect');
         if (select) {

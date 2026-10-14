@@ -6,7 +6,6 @@ import {
     doc,
     signInWithEmailAndPassword,
     updateDoc,
-    createUserWithEmailAndPassword,
     signOut,
     serverTimestamp
 } from '../0_firebase_api_config.js';
@@ -418,14 +417,9 @@ export class LoginManager {
             const hasPrimeiroAcesso = Object.prototype.hasOwnProperty.call(userData, 'ultimo_login');
 
             if (isPaciente && !hasPrimeiroAcesso) {
-                await this.signOutAll();
-
-                if (password !== userData.codigo_temporario) {
-                    this.showError('Codigo temporario invalido.');
-                    return;
-                }
-
-                if (new Date(userData.codigo_expiracao) < new Date()) {
+                const usandoCodigoTemporario = password === userData.codigo_temporario;
+                if (usandoCodigoTemporario && new Date(userData.codigo_expiracao) < new Date()) {
+                    await this.signOutAll();
                     this.showError('Codigo expirado. Solicite um novo codigo.');
                     return;
                 }
@@ -440,6 +434,7 @@ export class LoginManager {
                     userData,
                     firebaseConfig: organizationFirebaseConfig,
                     authToken: result.token?.idToken || '',
+                    senhaAtual: password,
                     userRef,
                     rememberLogin: rememberCheckbox?.checked
                 };
@@ -597,8 +592,34 @@ export class LoginManager {
             }
 
             try {
-                await createUserWithEmailAndPassword(auth, this.tempData.email, newPassword.value);
-                void updateDoc(this.tempData.userRef, {
+                const organizationToken = await auth.currentUser?.getIdToken();
+                if (!organizationToken) throw new Error('Sessao da organizacao expirada. Entre novamente.');
+
+                const apiBaseUrl = (
+                    window.TRATAMENTOWEB_API_BASE_URL ||
+                    localStorage.getItem('tratamentowebApiBaseUrl') ||
+                    DEFAULT_RENDER_API_BASE_URL
+                ).replace(/\/$/, '');
+                const response = await fetch(`${apiBaseUrl}/api/auth/password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${this.tempData.authToken}`,
+                        'X-Organization-Token': organizationToken
+                    },
+                    body: JSON.stringify({
+                        senha_atual: this.tempData.senhaAtual,
+                        nova_senha: newPassword.value
+                    })
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(result.error?.message || 'Nao foi possivel atualizar a senha nos dois projetos.');
+                }
+
+                await signOut(auth);
+                await signInWithEmailAndPassword(auth, this.tempData.email, newPassword.value);
+                await updateDoc(this.tempData.userRef, {
                     ultimo_login: serverTimestamp(),
                     codigo_temporario: deleteField(),
                     codigo_expiracao: deleteField(),
@@ -612,7 +633,7 @@ export class LoginManager {
                     email: this.tempData.email,
                     organizacao: this.tempData.organizacao,
                     firebaseConfig: this.tempData.firebaseConfig,
-                    authToken: this.tempData.authToken || '',
+                    authToken: result.token?.idToken || '',
                     perfil: userData.perfil || 'operador',
                     sessionCreatedAt: new Date().toISOString(),
                     sessionExpiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString(),
@@ -630,13 +651,10 @@ export class LoginManager {
                     this.setupEventListeners();
                 });
             } catch (error) {
-
-                if (error.code === 'auth/email-already-in-use') {
-                    this.showError('Este login ja possui cadastro. Contate o administrador.', 'createPasswordForm');
-                } else if (error.code === 'auth/weak-password') {
+                if (error.code === 'auth/weak-password') {
                     this.showError('Senha muito fraca. Use pelo menos 6 caracteres.', 'createPasswordForm');
                 } else {
-                    this.showError('Erro ao criar conta: ' + error.message, 'createPasswordForm');
+                    this.showError('Erro ao cadastrar senha: ' + error.message, 'createPasswordForm');
                 }
             }
         });

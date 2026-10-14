@@ -4,11 +4,11 @@ import {
     getDocs, 
     doc, 
     setDoc, 
+    runTransaction,
     deleteDoc,
     getDoc, 
     addDoc, 
     auth, 
-    createUserWithEmailAndPassword, 
     signOut, 
     serverTimestamp,
     updateDoc,
@@ -43,23 +43,33 @@ export class FuncoesCompartilhadas {
         const organizacaoNormalizada = String(organizacao || '').trim().toUpperCase();
 
         if (organizacaoNormalizada) {
-            return `${organizacaoNormalizada}-${loginNormalizado}@tratamentoweb.com.br`;
+            return `${organizacaoNormalizada}-${loginNormalizado}@tratamentoweb.com.br`.toLowerCase();
         }
 
         return `${loginNormalizado}@tratamentoweb.com`;
     }
 
     static gerarLoginPorNome(nome) {
-        const partes = String(nome || '')
-            .trim()
+        const nomeNormalizado = this.normalizarNomeCompleto(nome);
+        if (!this.validarNomeCompleto(nomeNormalizado)) return '';
+
+        const partes = nomeNormalizado
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .toLowerCase()
-            .split(/[^a-z0-9]+/)
+            .split(/[^a-z]+/)
             .filter(Boolean);
 
         if (partes.length < 2) return '';
         return `${partes[0]}.${partes[partes.length - 1]}`;
+    }
+
+    static normalizarNomeCompleto(nome) {
+        return String(nome || '').trim().replace(/\s+/g, ' ');
+    }
+
+    static validarNomeCompleto(nome) {
+        return /^\p{L}+(?: \p{L}+)+$/u.test(this.normalizarNomeCompleto(nome));
     }
     
     static formatDateToDisplay(dateString) {
@@ -319,7 +329,8 @@ export class FuncoesCompartilhadas {
                 method: 'POST',
                 body: JSON.stringify({
                     novo_login: migracao.loginNovo,
-                    nome: migracao.nome
+                    nome: migracao.nome,
+                    codigo_temporario: dadosAntigos.codigo_temporario
                 })
             });
 
@@ -343,19 +354,16 @@ export class FuncoesCompartilhadas {
     }
     
     static async registerPaciente(pacienteData) {
-        const { nome, dataNascimento, sexo } = pacienteData;
-        const login = this.gerarLoginPorNome(nome);
+        const nome = this.normalizarNomeCompleto(pacienteData.nome);
+        const { dataNascimento, sexo } = pacienteData;
+        const loginBase = this.gerarLoginPorNome(nome);
         
         if (!nome || !dataNascimento || !sexo) {
             throw new Error('Preencha todos os campos!');
         }
 
-        if (!login) {
-            throw new Error('Informe o nome e o sobrenome do paciente.');
-        }
-        
-        if (login.includes(' ')) {
-            throw new Error('O login não pode conter espaços!');
+        if (!this.validarNomeCompleto(nome)) {
+            throw new Error('O nome deve conter somente letras e ter, no mínimo, nome e sobrenome.');
         }
         
         if (!this.validarIdade(dataNascimento)) {
@@ -363,6 +371,24 @@ export class FuncoesCompartilhadas {
         }
         
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const disponibilidade = await apiAutenticada('/api/patients/availability', {
+            method: 'POST',
+            body: JSON.stringify({ nome, dataNascimento })
+        });
+
+        if (disponibilidade.duplicado) {
+            throw new Error(`Já existe um paciente com este nome e esta data de nascimento (${disponibilidade.login_existente}).`);
+        }
+
+        const login = disponibilidade.login_sugerido || loginBase;
+        const adicionarNumeracao = login !== loginBase;
+        if (adicionarNumeracao) {
+            const confirmou = window.confirm(
+                `O login "${loginBase}" já existe. Deseja criar o novo login como "${login}"?`
+            );
+            if (!confirmou) throw new Error('Criação cancelada: o login não pode ser repetido.');
+        }
+
         const codigo = this.gerarCodigoTemporario();
         const emailGerado = this.gerarEmailPorLogin(login, currentUser.organizacao);
         const dataExpiracao = new Date();
@@ -376,13 +402,7 @@ export class FuncoesCompartilhadas {
         try {
             const pacienteRef = doc(db, "logins", login);
             const profissionalRef = doc(db, "logins", currentUser.login);
-            const profissionalDoc = await getDoc(profissionalRef);
-
-            if (!profissionalDoc.exists()) {
-                throw new Error('Profissional não encontrado.');
-            }
-
-            const pacientesAnteriores = profissionalDoc.data().pacientes || {};
+            let pacientesAnteriores = {};
             
             const pacienteDataToSave = {
                 nome: nome.toUpperCase(),
@@ -402,19 +422,34 @@ export class FuncoesCompartilhadas {
                 codigo_expiracao: dataExpiracao.toISOString()
             };
             
-            await setDoc(pacienteRef, pacienteDataToSave);
+            await runTransaction(db, async (transaction) => {
+                const [profissionalDoc, pacienteDoc] = await Promise.all([
+                    transaction.get(profissionalRef),
+                    transaction.get(pacienteRef)
+                ]);
+                if (!profissionalDoc.exists()) throw new Error('Profissional não encontrado.');
+                if (pacienteDoc.exists()) throw new Error('Este login acabou de ser utilizado. Tente novamente.');
 
-            try {
-                await updateDoc(profissionalRef, {
+                pacientesAnteriores = profissionalDoc.data().pacientes || {};
+                transaction.set(pacienteRef, pacienteDataToSave);
+                transaction.update(profissionalRef, {
                     pacientes: {
                         ...pacientesAnteriores,
                         [login]: pacienteDataToSave.nome
                     }
                 });
+            });
 
+            try {
                 await apiAutenticada('/api/patients', {
                     method: 'POST',
-                    body: JSON.stringify({ login, nome })
+                    body: JSON.stringify({
+                        login,
+                        nome,
+                        dataNascimento,
+                        codigo_temporario: codigo,
+                        adicionar_numeracao: adicionarNumeracao
+                    })
                 });
             } catch (error) {
                 await Promise.allSettled([
