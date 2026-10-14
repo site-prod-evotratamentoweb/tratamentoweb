@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tratamentoweb-v12';
+const CACHE_NAME = 'tratamentoweb-v13';
 const APP_SHELL = ['./', './index.html', './login/', './primeiro-acesso/', './manifest.json', './imagens/logo_cel.png'];
 
 self.addEventListener('install', (event) => {
@@ -21,15 +21,20 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === 'navigate') {
+  const networkFirst = request.mode === 'navigate'
+    || url.pathname.startsWith('/assets/')
+    || url.pathname.endsWith('.js')
+    || url.pathname.endsWith('.css');
+
+  if (networkFirst) {
     event.respondWith(
       fetch(request)
         .then((response) => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('./index.html')))
     );
     return;
   }
