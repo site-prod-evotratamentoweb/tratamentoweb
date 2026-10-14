@@ -136,7 +136,7 @@ export class HomeNutricionista {
             <!-- MODAL NOVA AVALIAÇÃO - SÓ APARECE PARA PROFISSIONAIS -->
             ${!isPaciente && this.modoAvaliacao ? `
             <div id="avaliacaoModal" class="modal" style="display: none;">
-                <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-content" style="max-width: 760px; max-height: 90vh; overflow-y: auto;">
                     <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3 style="margin: 0;">📏 Nova Avaliação Antropométrica</h3>
                         <button class="close-modal" style="background: none; border: none; font-size: 28px; cursor: pointer;">&times;</button>
@@ -148,12 +148,47 @@ export class HomeNutricionista {
                                 <input type="text" id="modalPacienteNome" readonly style="background: #f1f5f9; padding: 12px 14px; border-radius: 10px; border: 2px solid #e2e8f0;">
                             </div>
                             <div class="form-field">
-                                <label>📏 Peso (kg)</label>
-                                <input type="number" id="weight" step="0.1" required placeholder="Ex: 70.5">
+                                <label>Perfil antropométrico</label>
+                                <select id="anthropometricProfile" required>
+                                    <option value="adulto">Adulto</option>
+                                    <option value="idoso">Idoso (60 anos ou mais)</option>
+                                </select>
                             </div>
                             <div class="form-field">
-                                <label>📐 Altura (m)</label>
-                                <input type="number" id="height" step="0.01" required placeholder="Ex: 1.65">
+                                <label>📏 Peso (kg)</label>
+                                <input type="number" id="weight" step="0.1" min="1" required placeholder="Ex: 70.5">
+                            </div>
+                            <div class="form-field">
+                                <label>📐 Altura aferida (m)</label>
+                                <input type="number" id="height" step="0.01" min="0.5" max="2.5" required placeholder="Ex: 1.65">
+                            </div>
+                            <div id="elderlyAnthropometryFields" style="display:none; grid-column:1 / -1; background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:14px;">
+                                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px;">
+                                    <div class="form-field">
+                                        <label>Altura do joelho (cm)</label>
+                                        <input type="number" id="kneeHeight" step="0.1" min="20" max="90" placeholder="Ex: 52.0">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Altura estimada — Chumlea (m)</label>
+                                        <input type="text" id="chumleaEstimatedHeight" readonly style="background:#f8fafc;">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Circunferência da panturrilha esquerda (cm)</label>
+                                        <input type="number" id="calfCircumference" step="0.1" min="10" max="80" placeholder="Ex: 34.0">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Classificação da panturrilha</label>
+                                        <input type="text" id="calfClassification" readonly style="background:#f8fafc;">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Altura usada no IMC</label>
+                                        <select id="heightMethod">
+                                            <option value="aferida">Altura aferida</option>
+                                            <option value="chumlea">Estimativa de Chumlea</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <small id="elderlyAnthropometryNote" style="display:block; margin-top:10px; color:#9a3412; line-height:1.45;">A estimativa original de Chumlea usa sexo, idade e altura do joelho e foi desenvolvida para pessoas de 60 a 90 anos. A circunferência da panturrilha complementa a triagem e não deve ser interpretada isoladamente.</small>
                             </div>
                             <div class="form-field">
                                 <label>📊 IMC</label>
@@ -267,6 +302,10 @@ export class HomeNutricionista {
                 }
                 document.getElementById('modalPacienteNome').value = this.selectedPaciente.nome;
                 this.limparFormularioAvaliacao();
+                const idade = this.funcoes.calcularIdade(this.selectedPaciente.dataNascimento);
+                const profileInput = document.getElementById('anthropometricProfile');
+                if (profileInput) profileInput.value = idade >= 60 ? 'idoso' : 'adulto';
+                this.atualizarPerfilAntropometrico(true);
                 modal.style.display = 'flex';
             });
         }
@@ -283,8 +322,8 @@ export class HomeNutricionista {
         if (form) {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                await this.saveNutritionalEvaluation();
-                modal.style.display = 'none';
+                const saved = await this.saveNutritionalEvaluation();
+                if (saved) modal.style.display = 'none';
             });
         }
 
@@ -292,10 +331,15 @@ export class HomeNutricionista {
         const weightInput = document.getElementById('weight');
         const heightInput = document.getElementById('height');
         const calculateFields = () => { if (this.selectedPaciente) this.calculateNutritionalParameters(); };
-        if (weightInput && heightInput) {
-            weightInput.addEventListener('input', calculateFields);
-            heightInput.addEventListener('input', calculateFields);
-        }
+        weightInput?.addEventListener('input', calculateFields);
+        heightInput?.addEventListener('input', calculateFields);
+        document.getElementById('kneeHeight')?.addEventListener('input', calculateFields);
+        document.getElementById('calfCircumference')?.addEventListener('input', calculateFields);
+        document.getElementById('heightMethod')?.addEventListener('change', calculateFields);
+        document.getElementById('anthropometricProfile')?.addEventListener('change', () => {
+            this.atualizarPerfilAntropometrico(true);
+            calculateFields();
+        });
     }
 
     renderNavegacaoAvaliacao() {
@@ -336,7 +380,7 @@ export class HomeNutricionista {
     }
 
     limparFormularioAvaliacao() {
-        const ids = ['weight', 'height', 'muscleMass', 'bodyFat', 'glucose', 'cholesterol', 'imc', 'imcClassification'];
+        const ids = ['weight', 'height', 'kneeHeight', 'chumleaEstimatedHeight', 'calfCircumference', 'calfClassification', 'muscleMass', 'bodyFat', 'glucose', 'cholesterol', 'imc', 'imcClassification'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
@@ -442,20 +486,100 @@ export class HomeNutricionista {
         }
     }
 
+    atualizarPerfilAntropometrico(definirMetodoPadrao = false) {
+        const perfil = document.getElementById('anthropometricProfile')?.value || 'adulto';
+        const idoso = perfil === 'idoso';
+        const camposIdoso = document.getElementById('elderlyAnthropometryFields');
+        const altura = document.getElementById('height');
+        const alturaJoelho = document.getElementById('kneeHeight');
+        const panturrilha = document.getElementById('calfCircumference');
+        const metodoAltura = document.getElementById('heightMethod');
+
+        if (camposIdoso) camposIdoso.style.display = idoso ? 'block' : 'none';
+        if (alturaJoelho) alturaJoelho.required = idoso;
+        if (panturrilha) panturrilha.required = idoso;
+
+        if (metodoAltura && (definirMetodoPadrao || !idoso)) {
+            metodoAltura.value = idoso ? 'chumlea' : 'aferida';
+        }
+        if (altura) {
+            const usaAlturaAferida = !idoso || metodoAltura?.value === 'aferida';
+            altura.required = usaAlturaAferida;
+        }
+    }
+
+    calcularAlturaChumlea(alturaJoelho, idade, sexo) {
+        if (!alturaJoelho || !idade) return null;
+        const sexoNormalizado = String(sexo || '').trim().toLowerCase();
+        if (!['masculino', 'feminino'].includes(sexoNormalizado)) return null;
+        const alturaCm = sexoNormalizado === 'masculino'
+            ? 64.19 + (2.02 * alturaJoelho) - (0.04 * idade)
+            : 84.88 + (1.83 * alturaJoelho) - (0.24 * idade);
+        return alturaCm > 0 ? alturaCm / 100 : null;
+    }
+
+    classificarCircunferenciaPanturrilha(valor) {
+        if (!valor) return '';
+        if (valor < 31) return 'Ação — redução de massa muscular';
+        if (valor < 35) return 'Atenção';
+        return 'Acompanhamento de rotina';
+    }
+
     calculateNutritionalParameters() {
-        const weight = parseFloat(document.getElementById('weight').value);
-        const height = parseFloat(document.getElementById('height').value);
-        const idade = parseInt(document.getElementById('infoIdade').textContent) || 30;
+        const weight = parseFloat(document.getElementById('weight')?.value);
+        const measuredHeight = parseFloat(document.getElementById('height')?.value);
+        const kneeHeight = parseFloat(document.getElementById('kneeHeight')?.value);
+        const calfCircumference = parseFloat(document.getElementById('calfCircumference')?.value);
+        const idade = this.funcoes.calcularIdade(this.selectedPaciente?.dataNascimento);
         const sexo = this.selectedPaciente?.sexo || 'feminino';
-        const params = this.funcoes.calculateNutritionalParameters(weight, height, idade, sexo);
+        const perfil = document.getElementById('anthropometricProfile')?.value || (idade >= 60 ? 'idoso' : 'adulto');
+        const estimatedHeight = perfil === 'idoso' ? this.calcularAlturaChumlea(kneeHeight, idade, sexo) : null;
+        const heightMethod = perfil === 'idoso' ? document.getElementById('heightMethod')?.value : 'aferida';
+        const height = heightMethod === 'chumlea' ? estimatedHeight : measuredHeight;
+
+        const estimatedHeightInput = document.getElementById('chumleaEstimatedHeight');
+        if (estimatedHeightInput) estimatedHeightInput.value = estimatedHeight ? estimatedHeight.toFixed(2) : '';
+
+        const calfClassificationInput = document.getElementById('calfClassification');
+        if (calfClassificationInput) calfClassificationInput.value = this.classificarCircunferenciaPanturrilha(calfCircumference);
+
+        const heightInput = document.getElementById('height');
+        if (heightInput) heightInput.required = heightMethod !== 'chumlea';
+
+        const params = this.funcoes.calculateNutritionalParameters(weight, height, idade || 0, sexo, perfil);
         if (params) {
             document.getElementById('imc').value = params.imc;
             document.getElementById('imcClassification').value = params.classification;
+        } else {
+            document.getElementById('imc').value = '';
+            document.getElementById('imcClassification').value = '';
         }
     }
 
     async saveNutritionalEvaluation() {
         try {
+            const perfil = document.getElementById('anthropometricProfile')?.value || 'adulto';
+            const idade = this.funcoes.calcularIdade(this.selectedPaciente?.dataNascimento);
+            const peso = parseFloat(document.getElementById('weight')?.value);
+            const alturaAferida = parseFloat(document.getElementById('height')?.value) || null;
+            const alturaJoelho = parseFloat(document.getElementById('kneeHeight')?.value) || null;
+            const circunferenciaPanturrilha = parseFloat(document.getElementById('calfCircumference')?.value) || null;
+            const alturaEstimadaChumlea = perfil === 'idoso'
+                ? this.calcularAlturaChumlea(alturaJoelho, idade, this.selectedPaciente?.sexo)
+                : null;
+            const metodoAltura = perfil === 'idoso'
+                ? document.getElementById('heightMethod')?.value || 'chumlea'
+                : 'aferida';
+            const alturaUtilizada = metodoAltura === 'chumlea' ? alturaEstimadaChumlea : alturaAferida;
+
+            if (!peso || !alturaUtilizada) {
+                throw new Error('Informe o peso e uma altura válida para calcular o IMC.');
+            }
+            if (perfil === 'idoso' && (!alturaJoelho || !circunferenciaPanturrilha)) {
+                throw new Error('Para o perfil idoso, informe a altura do joelho e a circunferência da panturrilha.');
+            }
+
+            this.calculateNutritionalParameters();
             await this.funcoes.saveNutritionalEvaluation({
                 paciente_login: this.selectedPaciente.login,
                 paciente_nome: this.selectedPaciente.nome || '',
@@ -464,8 +588,16 @@ export class HomeNutricionista {
                 cargo: 'nutricionista',
                 data_avaliacao: new Date().toISOString().split('T')[0],
                 dados_antropometricos: {
-                    peso: parseFloat(document.getElementById('weight').value) || 0,
-                    altura: parseFloat(document.getElementById('height').value) || 0,
+                    perfil,
+                    idade_avaliacao: idade || null,
+                    peso,
+                    altura: Number(alturaUtilizada.toFixed(2)),
+                    altura_aferida: alturaAferida,
+                    altura_joelho: alturaJoelho,
+                    altura_estimada_chumlea: alturaEstimadaChumlea ? Number(alturaEstimadaChumlea.toFixed(2)) : null,
+                    metodo_altura: metodoAltura,
+                    circunferencia_panturrilha: circunferenciaPanturrilha,
+                    classificacao_panturrilha: this.classificarCircunferenciaPanturrilha(circunferenciaPanturrilha),
                     imc: parseFloat(document.getElementById('imc').value) || 0,
                     classificacao_imc: document.getElementById('imcClassification').value || ''
                 },
@@ -481,8 +613,10 @@ export class HomeNutricionista {
             alert('✅ Avaliação salva com sucesso!');
             await this.loadEvaluationData();
             this.definirPeriodoPadrao();
+            return true;
         } catch (error) {
             alert('❌ Erro: ' + error.message);
+            return false;
         }
     }
 

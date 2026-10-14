@@ -558,18 +558,25 @@ export class FuncoesCompartilhadas {
         }
     }
     
-    static calculateNutritionalParameters(weight, height, idade, sexo) {
+    static calculateNutritionalParameters(weight, height, idade, sexo, perfilAntropometrico = '') {
         if (!weight || !height || height <= 0) return null;
         
         const imc = weight / (height * height);
+        const perfil = perfilAntropometrico || (idade >= 60 ? 'idoso' : 'adulto');
         
         let classification = '';
-        if (imc < 18.5) classification = 'Abaixo do peso';
-        else if (imc < 25) classification = 'Peso normal';
-        else if (imc < 30) classification = 'Sobrepeso';
-        else if (imc < 35) classification = 'Obesidade grau I';
-        else if (imc < 40) classification = 'Obesidade grau II';
-        else classification = 'Obesidade grau III';
+        if (perfil === 'idoso') {
+            if (imc <= 22) classification = 'Baixo peso — classificação para idosos';
+            else if (imc <= 27) classification = 'Peso adequado — classificação para idosos';
+            else classification = 'Excesso de peso — classificação para idosos';
+        } else {
+            if (imc < 18.5) classification = 'Abaixo do peso';
+            else if (imc < 25) classification = 'Peso normal';
+            else if (imc < 30) classification = 'Sobrepeso';
+            else if (imc < 35) classification = 'Obesidade grau I';
+            else if (imc < 40) classification = 'Obesidade grau II';
+            else classification = 'Obesidade grau III';
+        }
         
         let percentualMassaMuscularIdeal = 0;
         

@@ -435,6 +435,12 @@ export class HomeCliente {
                             <div><strong>📏 Peso:</strong> ${data.dados_antropometricos?.peso || '-'} kg</div>
                             <div><strong>📐 Altura:</strong> ${data.dados_antropometricos?.altura || '-'} m</div>
                             <div><strong>📊 IMC:</strong> ${data.dados_antropometricos?.imc || '-'} - ${data.dados_antropometricos?.classificacao_imc || '-'}</div>
+                            ${data.dados_antropometricos?.perfil === 'idoso' ? `
+                                <div><strong>Perfil:</strong> Idoso</div>
+                                <div><strong>Altura do joelho:</strong> ${data.dados_antropometricos?.altura_joelho || '-'} cm</div>
+                                <div><strong>Altura estimada por Chumlea:</strong> ${data.dados_antropometricos?.altura_estimada_chumlea || '-'} m</div>
+                                <div><strong>Circunferência da panturrilha:</strong> ${data.dados_antropometricos?.circunferencia_panturrilha || '-'} cm - ${data.dados_antropometricos?.classificacao_panturrilha || '-'}</div>
+                            ` : ''}
                             ${data.bioimpedancia?.massa_muscular ? `<div><strong>💪 Massa Muscular:</strong> ${data.bioimpedancia.massa_muscular} kg</div>` : ''}
                             ${data.bioimpedancia?.gordura_corporal ? `<div><strong>🧈 Gordura Corporal:</strong> ${data.bioimpedancia.gordura_corporal}%</div>` : ''}
                             ${data.exames_laboratoriais?.glicemia ? `<div><strong>🩸 Glicemia:</strong> ${data.exames_laboratoriais.glicemia} mg/dL</div>` : ''}

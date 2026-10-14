@@ -2954,6 +2954,51 @@ body.profile-profissional .info-group label {
     overflow-y: auto;
 }
 
+#nutritionalForm .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+#nutritionalForm .form-field {
+    min-width: 0;
+}
+
+#nutritionalForm .form-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+#nutritionalForm .form-field input,
+#nutritionalForm .form-field select {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+}
+
+#nutritionalForm .form-field input:focus,
+#nutritionalForm .form-field select:focus {
+    border-color: #f97316;
+    outline: 3px solid rgba(249, 115, 22, .14);
+}
+
+@media (max-width: 640px) {
+    #nutritionalForm .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #elderlyAnthropometryFields {
+        grid-column: 1 !important;
+    }
+}
+
 @keyframes modalSlideIn {
     from {
         transform: translateY(-60px);
