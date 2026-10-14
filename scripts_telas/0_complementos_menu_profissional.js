@@ -79,6 +79,16 @@ export class MenuProfissional {
 
     renderMenuItems() {
         const items = [];
+        const agendaeValidando = this.userInfo.agendae_validando === true;
+        const agendaeDisponivel = !agendaeValidando
+            && this.userInfo.agendae_habilitado === true
+            && Boolean(this.userInfo.agendae_contexto);
+        const agendaeStatus = agendaeValidando ? 'Validando...' : 'Indisponível';
+        const agendaeTitle = agendaeValidando
+            ? 'Verificando a integração com o Agendae.'
+            : agendaeDisponivel
+                ? 'Agendar um atendimento para um paciente vinculado.'
+                : 'O agendamento não está disponível para este usuário.';
         
         // Home (comum)
         items.push(`
@@ -138,12 +148,18 @@ export class MenuProfissional {
                 <span class="menu-icon">👥</span>
                 <span>Atendimento em Grupo</span>
             </button>
-            ${this.userInfo.agendae_habilitado === true && this.userInfo.agendae_contexto ? `
-                <button class="menu-item ${this.currentModule === 'gestao_agendamentos' ? 'active' : ''}" data-module="gestao_agendamentos">
-                    <span class="menu-icon">📅</span>
-                    <span>Agendar Paciente</span>
-                </button>
-            ` : ''}
+            <button
+                class="menu-item agendae-menu-item ${agendaeValidando ? 'is-validating' : ''} ${this.currentModule === 'gestao_agendamentos' ? 'active' : ''}"
+                data-module="gestao_agendamentos"
+                data-agendae-menu
+                ${agendaeDisponivel ? '' : 'disabled'}
+                aria-disabled="${agendaeDisponivel ? 'false' : 'true'}"
+                title="${agendaeTitle}"
+            >
+                <span class="menu-icon">📅</span>
+                <span>Agendar Paciente</span>
+                <small class="menu-item-status" data-agendae-menu-status ${agendaeDisponivel ? 'hidden' : ''}>${agendaeStatus}</small>
+            </button>
             <button class="menu-item ${this.currentModule === 'acompanhar_jornadas' ? 'active' : ''}" data-module="acompanhar_jornadas">
                 <span class="menu-icon">🌟</span>
                 <span>Acompanhar Jornadas</span>

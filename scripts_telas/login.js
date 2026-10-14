@@ -1243,18 +1243,23 @@ export class LoginManager {
             configureOrganizationFirebase(userData.firebaseConfig, userData.organizacao || userData.login);
         }
 
-        try {
-            const integrations = await apiAutenticada('/api/auth/me/integrations');
-            userData = this.montarUsuarioSessao(userData, {
-                agendae_habilitado: integrations.agendae === true,
-                agendae_contexto: integrations.agendaeContext || ''
-            });
-            localStorage.setItem('currentUser', JSON.stringify(userData));
-        } catch (error) {
-            console.warn('Nao foi possivel atualizar as integracoes da sessao.', error);
-        }
+        Object.assign(userData, {
+            agendae_validando: true,
+            agendae_erro: ''
+        });
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        const validacaoAgendae = this.validarIntegracaoAgendae(userData);
 
         const activeModule = localStorage.getItem('activeModule') || userData.activeModule || 'home';
+        if (activeModule === 'home') {
+            const homeManager = new HomeManager(userData);
+            homeManager.render();
+            await validacaoAgendae;
+            this.atualizarBotaoAgendae(userData);
+            return;
+        }
+
+        await validacaoAgendae;
         const agendaeModuleUnavailable = ['meus_agendamentos', 'gestao_agendamentos'].includes(activeModule)
             && (userData.agendae_habilitado !== true || !userData.agendae_contexto);
         if (activeModule && activeModule !== 'home' && !agendaeModuleUnavailable && this.isRestorableModule(activeModule, userData.cargo)) {
@@ -1275,6 +1280,55 @@ export class LoginManager {
 
         const homeManager = new HomeManager(userData);
         homeManager.render();
+    }
+
+    async validarIntegracaoAgendae(userData) {
+        try {
+            const integrations = await apiAutenticada('/api/auth/me/integrations');
+            Object.assign(userData, {
+                agendae_habilitado: integrations.agendae === true,
+                agendae_contexto: integrations.agendaeContext || '',
+                agendae_validando: false,
+                agendae_erro: ''
+            });
+        } catch (error) {
+            Object.assign(userData, {
+                agendae_habilitado: false,
+                agendae_contexto: '',
+                agendae_validando: false,
+                agendae_erro: error.message || 'Não foi possível validar o agendamento.'
+            });
+            console.warn('Nao foi possivel atualizar as integracoes da sessao.', error);
+        }
+
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        return userData;
+    }
+
+    atualizarBotaoAgendae(userData) {
+        const validando = userData.agendae_validando === true;
+        const disponivel = !validando
+            && userData.agendae_habilitado === true
+            && Boolean(userData.agendae_contexto);
+        const statusText = validando ? 'Validando...' : 'Indisponível';
+        const title = validando
+            ? 'Verificando a integração com o Agendae.'
+            : disponivel
+                ? 'Abrir o agendamento.'
+                : userData.agendae_erro || 'O agendamento não está disponível para este usuário.';
+
+        document.querySelectorAll('[data-agendae-menu]').forEach((button) => {
+            button.disabled = !disponivel;
+            button.setAttribute('aria-disabled', String(!disponivel));
+            button.classList.toggle('is-validating', validando);
+            button.title = title;
+
+            const status = button.querySelector('[data-agendae-menu-status]');
+            if (status) {
+                status.hidden = disponivel;
+                status.textContent = statusText;
+            }
+        });
     }
 
     isRestorableModule(module, cargo) {

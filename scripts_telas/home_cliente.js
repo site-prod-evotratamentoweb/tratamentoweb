@@ -74,6 +74,16 @@ export class HomeCliente {
     renderHTML() {
         const isMembro = this.userInfo.perfil === 'operador_membro' && !this.userInfo.isAdminView;
         const nomeFormatado = this.formatarNome(this.userInfo.nome);
+        const agendaeValidando = this.userInfo.agendae_validando === true;
+        const agendaeDisponivel = !agendaeValidando
+            && this.userInfo.agendae_habilitado === true
+            && Boolean(this.userInfo.agendae_contexto);
+        const agendaeStatus = agendaeValidando ? 'Validando...' : 'Indisponível';
+        const agendaeTitle = agendaeValidando
+            ? 'Verificando a integração com o Agendae.'
+            : agendaeDisponivel
+                ? 'Escolher um horário para atendimento.'
+                : 'O agendamento não está disponível para este usuário.';
         
         // Verifica se tem nutricionista vinculado
         const temNutricionista = this.profissionaisVinculados.some(prof => prof.cargo === 'nutricionista');
@@ -112,12 +122,18 @@ export class HomeCliente {
                             <span>🏠</span>
                             <span>Home</span>
                         </button>
-                        ${this.userInfo.agendae_habilitado === true && this.userInfo.agendae_contexto ? `
-                            <button class="menu-item" data-module="meus_agendamentos">
-                                <span>📅</span>
-                                <span>Agendar Atendimento</span>
-                            </button>
-                        ` : ''}
+                        <button
+                            class="menu-item agendae-menu-item ${agendaeValidando ? 'is-validating' : ''}"
+                            data-module="meus_agendamentos"
+                            data-agendae-menu
+                            ${agendaeDisponivel ? '' : 'disabled'}
+                            aria-disabled="${agendaeDisponivel ? 'false' : 'true'}"
+                            title="${agendaeTitle}"
+                        >
+                            <span>📅</span>
+                            <span>Agendar Atendimento</span>
+                            <small class="menu-item-status" data-agendae-menu-status ${agendaeDisponivel ? 'hidden' : ''}>${agendaeStatus}</small>
+                        </button>
                         
                         <!-- SÓ MOSTRA ITENS DE NUTRIÇÃO SE TIVER NUTRICIONISTA VINCULADO -->
                         ${temNutricionista ? `
