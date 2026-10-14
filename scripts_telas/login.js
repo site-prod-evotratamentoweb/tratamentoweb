@@ -23,11 +23,18 @@ export class LoginManager {
     constructor() {
         this.tempData = null;
         this.sessionTimerId = null;
-        this.renderLoginScreen();
-        this.setupEventListeners();
+        this.isFirstAccessRoute = /^\/primeiro-acesso(?:\/index\.html)?\/?$/.test(window.location.pathname);
+        if (this.isFirstAccessRoute) {
+            this.renderFirstAccessScreen();
+            this.setupFirstAccessEvents();
+            this.loadFirstAccessDefaults();
+        } else {
+            this.renderLoginScreen();
+            this.setupEventListeners();
+            this.loadSavedCredentials();
+        }
         this.ativarKeepAliveBackend();
         this.checkAutoLogin();
-        this.loadSavedCredentials();
     }
 
     renderLoginScreen() {
@@ -39,7 +46,7 @@ export class LoginManager {
                 <div class="login-card">
                     <div class="login-header">
                         <div class="logo-container">
-                            <img src="./imagens/logo.png" alt="TratamentoWeb" class="login-logo-img">
+                            <img src="/imagens/logo.png" alt="TratamentoWeb" class="login-logo-img">
                         </div>
                     </div>
 
@@ -79,10 +86,6 @@ export class LoginManager {
                                 <i class="bi bi-eye-slash"></i>
                             </div>
                         </div>
-                        <small style="display:block; margin:-10px 0 14px 54px; color:#5f6368; line-height:1.35;">
-                            Primeiro acesso: digite apenas os 8 números da sua data de nascimento (DDMMAAAA).
-                        </small>
-
                         <div class="login-options">
                             <label class="checkbox-custom">
                                 <input type="checkbox" id="rememberLogin">
@@ -90,6 +93,10 @@ export class LoginManager {
                                 <span class="checkbox-text">Lembrar meus dados</span>
                             </label>
                             <a href="#" id="forgotPasswordLink" class="forgot-password">Esqueci minha senha</a>
+                        </div>
+
+                        <div style="text-align:center; margin-bottom:16px;">
+                            <a href="/primeiro-acesso" class="forgot-password">Primeiro acesso</a>
                         </div>
 
                         <button type="submit" class="login-button">
@@ -183,6 +190,11 @@ export class LoginManager {
             const expiresAt = new Date(Math.min(storedExpiresAt, maximumExpiresAt)).toISOString();
             if (!this.isSessionValid(expiresAt)) {
                 this.expirarSessao();
+                return;
+            }
+
+            if (this.isFirstAccessRoute) {
+                window.location.replace('/');
                 return;
             }
 
@@ -431,22 +443,11 @@ export class LoginManager {
             const hasPrimeiroAcesso = Object.prototype.hasOwnProperty.call(userData, 'ultimo_login');
 
             if (isPaciente && !hasPrimeiroAcesso) {
-                this.tempData = {
-                    organizacao,
-                    login,
-                    email: emailMontado,
-                    nome: userData.nome,
-                    cargo: userData.cargo,
-                    perfil: userData.perfil,
-                    userData,
-                    firebaseConfig: organizationFirebaseConfig,
-                    authToken: result.token?.idToken || '',
-                    senhaAtual: password,
-                    userRef,
-                    rememberLogin: rememberCheckbox?.checked
-                };
-
-                this.showCreatePasswordScreen();
+                sessionStorage.setItem('firstAccessOrganization', organizacao);
+                sessionStorage.setItem('firstAccessLogin', login);
+                this.saveRememberedCredentials(rememberCheckbox?.checked, organizacao, login);
+                await this.signOutAll();
+                window.location.replace('/primeiro-acesso');
                 return;
             }
 
@@ -516,6 +517,237 @@ export class LoginManager {
         localStorage.setItem('rememberLogin', 'false');
     }
 
+    renderFirstAccessScreen() {
+        const app = document.getElementById('app');
+        if (!app) return;
+
+        app.innerHTML = `
+            <div class="login-wrapper">
+                <div class="login-card">
+                    <div class="login-header">
+                        <div class="logo-container">
+                            <img src="/imagens/logo.png" alt="TratamentoWeb" class="login-logo-img">
+                        </div>
+                        <h2>Primeiro acesso</h2>
+                        <p>Crie sua senha pessoal para entrar no sistema.</p>
+                    </div>
+
+                    <form id="firstAccessForm" class="login-form">
+                        <div class="input-group-custom">
+                            <div class="input-icon"><i class="bi bi-building"></i></div>
+                            <div class="input-field">
+                                <input type="text" id="organizacao" placeholder=" " autocomplete="organization" list="organizacoesList" required>
+                                <label>Organizacao</label>
+                                <datalist id="organizacoesList"><option value="ORG_0001"></option></datalist>
+                            </div>
+                        </div>
+
+                        <div class="input-group-custom">
+                            <div class="input-icon"><i class="bi bi-person"></i></div>
+                            <div class="input-field">
+                                <input type="text" id="login" placeholder=" " autocomplete="username" required>
+                                <label>Login</label>
+                            </div>
+                        </div>
+
+                        <div class="input-group-custom">
+                            <div class="input-icon"><i class="bi bi-lock"></i></div>
+                            <div class="input-field">
+                                <input type="password" id="temporaryPassword" placeholder=" " inputmode="numeric" autocomplete="current-password" maxlength="8" required>
+                                <label>Senha Temporária</label>
+                            </div>
+                            <div class="input-icon password-toggle" id="toggleTemporaryPassword"><i class="bi bi-eye-slash"></i></div>
+                        </div>
+                        <small style="display:block; margin:-10px 0 14px 54px; color:#5f6368; line-height:1.35;">
+                            Digite apenas os 8 números da sua data de nascimento (DDMMAAAA).
+                        </small>
+
+                        <div class="input-group-custom">
+                            <div class="input-icon"><i class="bi bi-shield-lock"></i></div>
+                            <div class="input-field">
+                                <input type="password" id="newPassword" placeholder=" " autocomplete="new-password" required>
+                                <label>Nova senha</label>
+                            </div>
+                            <div class="input-icon password-toggle" id="toggleNewPassword"><i class="bi bi-eye-slash"></i></div>
+                        </div>
+
+                        <div class="input-group-custom">
+                            <div class="input-icon"><i class="bi bi-shield-check"></i></div>
+                            <div class="input-field">
+                                <input type="password" id="confirmPassword" placeholder=" " autocomplete="new-password" required>
+                                <label>Repetir nova senha</label>
+                            </div>
+                            <div class="input-icon password-toggle" id="toggleConfirmPassword"><i class="bi bi-eye-slash"></i></div>
+                        </div>
+
+                        <div class="login-options">
+                            <label class="checkbox-custom">
+                                <input type="checkbox" id="rememberLogin">
+                                <span class="checkmark"></span>
+                                <span class="checkbox-text">Lembrar meus dados</span>
+                            </label>
+                            <a href="/" class="forgot-password">Voltar ao login</a>
+                        </div>
+
+                        <button type="submit" class="login-button">
+                            <i class="bi bi-check-circle"></i>
+                            Criar senha e entrar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        `;
+    }
+
+    loadFirstAccessDefaults() {
+        const organization = sessionStorage.getItem('firstAccessOrganization') || localStorage.getItem('savedOrganizacao') || '';
+        const login = sessionStorage.getItem('firstAccessLogin') || localStorage.getItem('savedLogin') || '';
+        sessionStorage.removeItem('firstAccessOrganization');
+        sessionStorage.removeItem('firstAccessLogin');
+
+        const organizationInput = document.getElementById('organizacao');
+        const loginInput = document.getElementById('login');
+        if (organizationInput) organizationInput.value = organization;
+        if (loginInput) loginInput.value = login;
+        const rememberInput = document.getElementById('rememberLogin');
+        if (rememberInput) rememberInput.checked = localStorage.getItem('rememberLogin') === 'true';
+        this.setupFloatingLabels();
+    }
+
+    setupFirstAccessEvents() {
+        this.setupPasswordToggle('toggleTemporaryPassword', 'temporaryPassword');
+        this.setupPasswordToggle('toggleNewPassword', 'newPassword');
+        this.setupPasswordToggle('toggleConfirmPassword', 'confirmPassword');
+        this.setupFloatingLabels();
+        document.getElementById('firstAccessForm')?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            void this.handleFirstAccess();
+        });
+    }
+
+    async handleFirstAccess() {
+        const organizacao = this.normalizeOrganizacao(document.getElementById('organizacao')?.value);
+        const login = this.normalizeLogin(document.getElementById('login')?.value);
+        const temporaryPassword = document.getElementById('temporaryPassword')?.value || '';
+        const newPassword = document.getElementById('newPassword')?.value || '';
+        const confirmPassword = document.getElementById('confirmPassword')?.value || '';
+        const remember = document.getElementById('rememberLogin')?.checked;
+        const submitBtn = document.querySelector('#firstAccessForm .login-button');
+
+        if (!organizacao || !login || !temporaryPassword || !newPassword || !confirmPassword) {
+            this.showError('Preencha todos os campos.', 'firstAccessForm');
+            return;
+        }
+        if (!/^\d{8}$/.test(temporaryPassword)) {
+            this.showError('A senha temporaria deve conter os 8 numeros da data de nascimento.', 'firstAccessForm');
+            return;
+        }
+        if (newPassword.length < 6) {
+            this.showError('A nova senha deve ter no minimo 6 caracteres.', 'firstAccessForm');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            this.showError('As novas senhas nao coincidem.', 'firstAccessForm');
+            return;
+        }
+        if (newPassword === temporaryPassword) {
+            this.showError('A nova senha deve ser diferente da senha temporaria.', 'firstAccessForm');
+            return;
+        }
+
+        const originalText = submitBtn?.innerHTML || '';
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Criando senha...';
+            submitBtn.disabled = true;
+        }
+
+        try {
+            const apiBaseUrl = (
+                window.TRATAMENTOWEB_API_BASE_URL ||
+                localStorage.getItem('tratamentowebApiBaseUrl') ||
+                DEFAULT_RENDER_API_BASE_URL
+            ).replace(/\/$/, '');
+            const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ organization: organizacao, login, password: temporaryPassword })
+            });
+            const loginResult = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(loginResult.error?.message || 'Login ou senha temporaria incorretos.');
+
+            const email = this.montarEmailAuth(organizacao, login);
+            configureOrganizationFirebase(loginResult.firebaseConfig, organizacao);
+            await signInWithEmailAndPassword(auth, email, temporaryPassword);
+
+            const userRef = doc(db, 'logins', login);
+            const userDoc = await getDoc(userRef);
+            if (!userDoc.exists()) throw new Error('Dados do usuario nao encontrados.');
+            const userData = userDoc.data();
+            if (userData.cargo !== 'paciente') throw new Error('O primeiro acesso esta disponivel apenas para pacientes.');
+            if (Object.prototype.hasOwnProperty.call(userData, 'ultimo_login')) {
+                throw new Error('O primeiro acesso ja foi concluido. Entre pela tela de login normal.');
+            }
+
+            const organizationToken = await auth.currentUser?.getIdToken();
+            if (!organizationToken) throw new Error('Sessao da organizacao expirada. Tente novamente.');
+            const passwordResponse = await fetch(`${apiBaseUrl}/api/auth/password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${loginResult.token?.idToken || ''}`,
+                    'X-Organization-Token': organizationToken
+                },
+                body: JSON.stringify({
+                    senha_atual: temporaryPassword,
+                    nova_senha: newPassword
+                })
+            });
+            const passwordResult = await passwordResponse.json().catch(() => ({}));
+            if (!passwordResponse.ok) {
+                throw new Error(passwordResult.error?.message || 'Nao foi possivel cadastrar a nova senha.');
+            }
+
+            await signOut(auth);
+            await signInWithEmailAndPassword(auth, email, newPassword);
+            await updateDoc(userRef, {
+                ultimo_login: serverTimestamp(),
+                codigo_temporario: deleteField(),
+                codigo_expiracao: deleteField(),
+                status_ativo: deleteField(),
+                email
+            });
+
+            const sessionCreatedAt = new Date().toISOString();
+            const sessionUser = this.montarUsuarioSessao(userData, {
+                login,
+                email,
+                organizacao,
+                firebaseConfig: loginResult.firebaseConfig,
+                authToken: passwordResult.token?.idToken || '',
+                perfil: userData.perfil || 'operador',
+                sessionCreatedAt,
+                sessionExpiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString(),
+                activeModule: 'home'
+            });
+
+            this.saveRememberedCredentials(remember, organizacao, login);
+            localStorage.setItem('currentUser', JSON.stringify(sessionUser));
+            localStorage.setItem('sessionCreatedAt', sessionUser.sessionCreatedAt);
+            localStorage.setItem('sessionExpiresAt', sessionUser.sessionExpiresAt);
+            this.iniciarTimerSessao(sessionUser.sessionExpiresAt);
+            window.history.replaceState({}, '', '/');
+            await this.showHome(sessionUser);
+        } catch (error) {
+            await this.signOutAll().catch(() => {});
+            this.showError(error.message || 'Nao foi possivel concluir o primeiro acesso.', 'firstAccessForm');
+        } finally {
+            if (submitBtn) {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+    }
+
     showCreatePasswordScreen() {
         const app = document.getElementById('app');
         if (!app) return;
@@ -525,7 +757,7 @@ export class LoginManager {
                 <div class="login-card">
                     <div class="login-header">
                         <div class="logo-container">
-                            <img src="./imagens/logo.png" alt="TratamentoWeb" class="login-logo-img">
+                            <img src="/imagens/logo.png" alt="TratamentoWeb" class="login-logo-img">
                         </div>
                         <h2>Primeiro Acesso</h2>
                         <p>Ola, <strong>${this.tempData.nome || this.tempData.login}</strong>!</p>
@@ -681,7 +913,7 @@ export class LoginManager {
                 <div class="login-card">
                     <div class="login-header">
                         <div class="logo-container">
-                            <img src="./imagens/logo.png" alt="TratamentoWeb" class="login-logo-img">
+                            <img src="/imagens/logo.png" alt="TratamentoWeb" class="login-logo-img">
                         </div>
                         <h2>Recuperar Senha</h2>
                         <p>Para recuperar sua senha, entre em contato com o profissional responsavel.</p>

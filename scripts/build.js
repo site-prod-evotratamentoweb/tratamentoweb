@@ -22,6 +22,7 @@ const copyAsIs = [
 
 const htmlFiles = [
   'index.html',
+  'primeiro-acesso/index.html',
   'portfolio/grazielle_matos.html'
 ];
 
@@ -218,7 +219,7 @@ async function build() {
   const styles = await buildStyles();
 
   const replacements = {
-    'scripts_telas/login.js?v=clean-console-20260703': appEntry,
+    'scripts_telas/login.js?v=first-access-20261014': appEntry,
     '0_style.css': styles['0_style.css'],
     'grazielle_matos.css': `../${styles['portfolio/grazielle_matos.css']}`,
     'grazielle_matos.js': `../${portfolioEntry}`
