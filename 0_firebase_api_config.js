@@ -84,6 +84,17 @@ function getSessionAuthToken() {
     }
 }
 
+async function expireLocalSession() {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('activeModule');
+    localStorage.removeItem('planoAlimentarSelectedPacienteLogin');
+    localStorage.removeItem('sessionCreatedAt');
+    localStorage.removeItem('sessionExpiresAt');
+    try {
+        if (auth) await signOut(auth);
+    } catch (_error) {}
+}
+
 async function uploadParaImgbb(imagemBase64) {
     try {
         const token = getSessionAuthToken();
@@ -101,6 +112,12 @@ async function uploadParaImgbb(imagemBase64) {
         });
 
         const result = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+            await expireLocalSession();
+            window.location.reload();
+            throw new Error(result.error?.message || 'Sessao expirada. Faca login novamente.');
+        }
 
         if (response.ok && result.success) {
             return result;
@@ -121,6 +138,11 @@ async function apiAutenticada(caminho, options = {}) {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(organizationToken ? { 'X-Organization-Token': organizationToken } : {}), ...(options.headers || {}) }
     });
     const result = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+        await expireLocalSession();
+        window.location.reload();
+        throw new Error(result.error?.message || 'Sessao expirada. Faca login novamente.');
+    }
     if (!response.ok) throw new Error(result.error?.message || 'Falha na comunicação com o servidor.');
     return result;
 }

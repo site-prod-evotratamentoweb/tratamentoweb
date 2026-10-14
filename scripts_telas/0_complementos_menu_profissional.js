@@ -1,6 +1,6 @@
 // components/MenuProfissional.js
 import { criarNavegador } from './0_complementos_menu_navegacao.js';
-import { db, doc, updateDoc, uploadParaImgbb } from '../0_firebase_api_config.js';
+import { apiAutenticada, db, doc, updateDoc, uploadParaImgbb } from '../0_firebase_api_config.js';
 
 export class MenuProfissional {
     constructor(userInfo, onNavigate, currentModule = 'home') {
@@ -307,32 +307,13 @@ export class MenuProfissional {
     }
 
     async atualizarFotoPerfilCentral(uploadResult) {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        const token = currentUser.authToken || currentUser.idToken || currentUser.token || '';
-        if (!token) return;
-
-        const apiBaseUrl = (
-            window.TRATAMENTOWEB_API_BASE_URL ||
-            localStorage.getItem('tratamentowebApiBaseUrl') ||
-            'https://backend-tratamentoweb.onrender.com'
-        ).replace(/\/$/, '');
-
-        const response = await fetch(`${apiBaseUrl}/api/auth/me/profile-photo`, {
+        await apiAutenticada('/api/auth/me/profile-photo', {
             method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            },
             body: JSON.stringify({
                 url: uploadResult.url,
                 thumb: uploadResult.thumb,
                 delete_url: uploadResult.delete_url
             })
         });
-
-        if (!response.ok) {
-            const result = await response.json().catch(() => ({}));
-            throw new Error(result.error?.message || 'Nao foi possivel atualizar a foto no login central.');
-        }
     }
 }

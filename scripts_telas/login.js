@@ -16,7 +16,8 @@ import { criarNavegador } from './0_complementos_menu_navegacao.js';
 const CARGOS_VALIDOS = ['paciente', 'nutricionista', 'psicologo'];
 const LOGIN_EMAIL_DOMAIN = 'tratamentoweb.com.br';
 const DEFAULT_RENDER_API_BASE_URL = 'https://backend-tratamentoweb.onrender.com';
-const SESSION_DURATION_MS = 10 * 60 * 60 * 1000;
+// Encerra a sessao antes do token central do Firebase (1 hora) expirar.
+const SESSION_DURATION_MS = 50 * 60 * 1000;
 
 export class LoginManager {
     constructor() {
@@ -172,12 +173,22 @@ export class LoginManager {
                 return;
             }
 
-            const expiresAt = user.sessionExpiresAt || localStorage.getItem('sessionExpiresAt');
+            const storedExpiresAt = new Date(
+                user.sessionExpiresAt || localStorage.getItem('sessionExpiresAt') || ''
+            ).getTime();
+            const sessionCreatedAt = new Date(
+                user.sessionCreatedAt || localStorage.getItem('sessionCreatedAt') || ''
+            ).getTime();
+            const maximumExpiresAt = sessionCreatedAt + SESSION_DURATION_MS;
+            const expiresAt = new Date(Math.min(storedExpiresAt, maximumExpiresAt)).toISOString();
             if (!this.isSessionValid(expiresAt)) {
                 this.expirarSessao();
                 return;
             }
 
+            user.sessionExpiresAt = expiresAt;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            localStorage.setItem('sessionExpiresAt', expiresAt);
             this.iniciarTimerSessao(expiresAt);
             void this.showHome(user).catch(() => {
                 this.clearSessionState();
