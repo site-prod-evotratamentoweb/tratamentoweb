@@ -7,7 +7,8 @@ import {
     signInWithEmailAndPassword,
     updateDoc,
     signOut,
-    serverTimestamp
+    serverTimestamp,
+    apiAutenticada
 } from '../0_firebase_api_config.js';
 import { deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { HomeManager, FuncoesCompartilhadas } from './0_home.js';
@@ -1240,6 +1241,17 @@ export class LoginManager {
 
         if (userData.firebaseConfig?.apiKey && userData.firebaseConfig?.projectId) {
             configureOrganizationFirebase(userData.firebaseConfig, userData.organizacao || userData.login);
+        }
+
+        try {
+            const integrations = await apiAutenticada('/api/auth/me/integrations');
+            userData = this.montarUsuarioSessao(userData, {
+                agendae_habilitado: integrations.agendae === true,
+                agendae_contexto: integrations.agendaeContext || ''
+            });
+            localStorage.setItem('currentUser', JSON.stringify(userData));
+        } catch (error) {
+            console.warn('Nao foi possivel atualizar as integracoes da sessao.', error);
         }
 
         const activeModule = localStorage.getItem('activeModule') || userData.activeModule || 'home';
