@@ -380,21 +380,21 @@ export class LoginManager {
     }
 
     loadSavedCredentials() {
-        if (localStorage.getItem('rememberLogin') !== 'true') return;
-
+        const rememberLogin = localStorage.getItem('rememberLogin') === 'true';
         const values = {
             organizacao: localStorage.getItem('savedOrganizacao') || '',
-            login: localStorage.getItem('savedLogin') || '',
+            login: rememberLogin ? localStorage.getItem('savedLogin') || '' : '',
             password: ''
         };
 
         localStorage.removeItem('savedPassword');
 
-        if (!values.login) return;
-
-        document.getElementById('organizacao').value = values.organizacao;
-        document.getElementById('login').value = values.login;
-        document.getElementById('rememberLogin').checked = true;
+        const organizationInput = document.getElementById('organizacao');
+        const loginInput = document.getElementById('login');
+        const rememberInput = document.getElementById('rememberLogin');
+        if (organizationInput) organizationInput.value = values.organizacao;
+        if (loginInput) loginInput.value = values.login;
+        if (rememberInput) rememberInput.checked = rememberLogin;
         setTimeout(() => this.setupFloatingLabels(), 100);
     }
 
@@ -732,15 +732,17 @@ export class LoginManager {
     }
 
     saveRememberedCredentials(remember, organizacao, login) {
+        // A organizacao acompanha as credenciais lembradas pelo navegador, mas nao
+        // e um segredo e pode permanecer preenchida mesmo sem guardar o login.
+        localStorage.setItem('savedOrganizacao', organizacao);
+
         if (remember) {
-            localStorage.setItem('savedOrganizacao', organizacao);
             localStorage.setItem('savedLogin', login);
             localStorage.removeItem('savedPassword');
             localStorage.setItem('rememberLogin', 'true');
             return;
         }
 
-        localStorage.removeItem('savedOrganizacao');
         localStorage.removeItem('savedLogin');
         localStorage.removeItem('savedPassword');
         localStorage.setItem('rememberLogin', 'false');
@@ -858,7 +860,7 @@ export class LoginManager {
         });
     }
 
-    async redirectExistingLoginFromFirstAccess(apiBaseUrl, organization, login) {
+    async redirectExistingLoginFromFirstAccess(apiBaseUrl, organization, login, remember = false) {
         try {
             const response = await fetch(`${apiBaseUrl}/api/public/first-access-status`, {
                 method: 'POST',
@@ -869,6 +871,7 @@ export class LoginManager {
             const result = await response.json().catch(() => ({}));
             if (!response.ok || result.login_existe !== true) return false;
 
+            this.saveRememberedCredentials(remember, organization, login);
             sessionStorage.removeItem('firstAccessOrganization');
             sessionStorage.removeItem('firstAccessLogin');
             sessionStorage.setItem('loginNotice', FIRST_ACCESS_ALREADY_COMPLETED_MESSAGE);
@@ -929,7 +932,7 @@ export class LoginManager {
             });
             const loginResult = await response.json().catch(() => ({}));
             if (!response.ok) {
-                const redirected = await this.redirectExistingLoginFromFirstAccess(apiBaseUrl, organizacao, login);
+                const redirected = await this.redirectExistingLoginFromFirstAccess(apiBaseUrl, organizacao, login, remember);
                 if (redirected) return;
                 throw new Error(loginResult.error?.message || 'Login ou senha temporaria incorretos.');
             }
