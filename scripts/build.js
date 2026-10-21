@@ -18,19 +18,19 @@ const copyAsIs = [
   'integracoes',
   'manuais',
   'formularios',
-  'portfolio/grazielle_matos_imagens'
+  'portfolio/graziellematos/grazielle_matos_imagens'
 ];
 
 const htmlFiles = [
   'index.html',
   'login/index.html',
   'primeiro-acesso/index.html',
-  'portfolio/grazielle_matos.html'
+  'portfolio/graziellematos/index.html'
 ];
 
 const cssFiles = [
   { source: '0_style.css', publicName: 'app' },
-  { source: 'portfolio/grazielle_matos.css', publicName: 'portfolio' }
+  { source: 'portfolio/graziellematos/grazielle_matos.css', publicName: 'portfolio' }
 ];
 
 async function exists(filePath) {
@@ -172,7 +172,7 @@ async function buildModuleApp() {
 
 async function buildClassicScript() {
   const bundle = await rollup({
-    input: path.join(rootDir, 'portfolio/grazielle_matos.js')
+    input: path.join(rootDir, 'portfolio/graziellematos/grazielle_matos.js')
   });
 
   const { output } = await bundle.generate({
@@ -223,8 +223,8 @@ async function build() {
   const replacements = {
     'scripts_telas/login.js?v=elderly-anthropometry-20261014': appEntry,
     '0_style.css': styles['0_style.css'],
-    'grazielle_matos.css': `../${styles['portfolio/grazielle_matos.css']}`,
-    'grazielle_matos.js': `../${portfolioEntry}`
+    'grazielle_matos.css': `../../${styles['portfolio/graziellematos/grazielle_matos.css']}`,
+    'grazielle_matos.js': `../../${portfolioEntry}`
   };
 
   for (const file of htmlFiles) {
