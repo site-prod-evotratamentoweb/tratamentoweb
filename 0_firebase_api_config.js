@@ -45,7 +45,18 @@ function configureOrganizationFirebase(organizationFirebaseConfig, organizationI
         throw new Error('Configuracao Firebase da organizacao invalida.');
     }
 
-    const appName = `org-${organizationId}-${organizationFirebaseConfig.projectId}`.replace(/[^a-zA-Z0-9-_]/g, '-');
+    const normalizedOrganizationId = String(organizationId || '').trim().toUpperCase();
+    const organizationMatch = normalizedOrganizationId.match(/^ORG_(\d{4})$/);
+    if (!organizationMatch) {
+        throw new Error('Identificador da organizacao invalido.');
+    }
+
+    const expectedProjectId = `tratamentoweb-org${organizationMatch[1]}`;
+    if (organizationFirebaseConfig.projectId !== expectedProjectId) {
+        throw new Error(`A organizacao ${normalizedOrganizationId} deve usar exclusivamente o projeto ${expectedProjectId}.`);
+    }
+
+    const appName = `org-${normalizedOrganizationId}-${organizationFirebaseConfig.projectId}`.replace(/[^a-zA-Z0-9-_]/g, '-');
     app = getOrCreateFirebaseApp(appName, organizationFirebaseConfig);
 
     const appCheckSiteKey = organizationFirebaseConfig.appCheckSiteKey || organizationFirebaseConfig.recaptchaSiteKey;
