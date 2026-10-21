@@ -12,6 +12,7 @@ export class CadastroCliente {
         this.currentFilter = 'todos';
         this.isEditing = false;
         this.editingLogin = null;
+        this.resetPasswordLogin = null;
         this.menu = null;
         this.navegador = criarNavegador(userInfo, this.clientesList);
     }
@@ -187,6 +188,36 @@ export class CadastroCliente {
                     <div id="codigoContent" style="padding:18px;"></div>
                 </div>
             </div>
+
+            <!-- MODAL REDEFINIR SENHA -->
+            <div id="resetPasswordModal" class="modal" style="display: none;">
+                <div class="modal-content" style="padding:0; background:white; border-radius:16px; width:min(92vw,520px); max-width:520px; margin:8vh auto; overflow:hidden;">
+                    <div class="modal-header" style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%); color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+                        <h3>🔑 Redefinir senha do paciente</h3>
+                        <button class="close-reset-password-modal" type="button" aria-label="Fechar" style="background:rgba(255,255,255,.18); color:white; border:none; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px;">X</button>
+                    </div>
+                    <form id="resetPasswordForm" style="padding:18px;">
+                        <p id="resetPasswordPatient" style="margin:0 0 16px; color:#475569;"></p>
+                        <div class="form-field" style="margin-bottom:14px;">
+                            <label for="patientNewPassword">Nova senha</label>
+                            <input type="password" id="patientNewPassword" autocomplete="new-password" minlength="6" maxlength="128" required>
+                            <small>Mínimo de 6 caracteres.</small>
+                        </div>
+                        <div class="form-field" style="margin-bottom:10px;">
+                            <label for="patientConfirmPassword">Confirmar nova senha</label>
+                            <input type="password" id="patientConfirmPassword" autocomplete="new-password" minlength="6" maxlength="128" required>
+                        </div>
+                        <label style="display:flex; align-items:center; gap:8px; margin:12px 0 16px; color:#475569; cursor:pointer;">
+                            <input type="checkbox" id="showPatientPassword"> Mostrar senhas
+                        </label>
+                        <p style="font-size:13px; color:#64748b; margin:0 0 16px;">A senha será atualizada nos dois ambientes de autenticação. As sessões anteriores não poderão ser renovadas.</p>
+                        <div class="form-actions" style="margin-top:0;">
+                            <button type="button" class="btn-secondary" id="cancelResetPasswordBtn">Cancelar</button>
+                            <button type="submit" class="btn-primary" id="saveResetPasswordBtn">Redefinir senha</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         `;
     }
 
@@ -291,9 +322,14 @@ export class CadastroCliente {
         const closeModalBtn = document.querySelector('.close-modal');
         const cancelarBtn = document.getElementById('cancelarModalBtn');
         const novoClienteBtn = document.getElementById('novoClienteBtn');
+        const resetPasswordModal = document.getElementById('resetPasswordModal');
+        const closeResetPasswordBtn = document.querySelector('.close-reset-password-modal');
+        const cancelResetPasswordBtn = document.getElementById('cancelResetPasswordBtn');
 
         if (closeModalBtn) closeModalBtn.onclick = () => modal.style.display = 'none';
         if (cancelarBtn) cancelarBtn.onclick = () => modal.style.display = 'none';
+        if (closeResetPasswordBtn) closeResetPasswordBtn.onclick = () => this.closeResetPasswordModal();
+        if (cancelResetPasswordBtn) cancelResetPasswordBtn.onclick = () => this.closeResetPasswordModal();
         if (novoClienteBtn) {
             novoClienteBtn.onclick = () => {
                 this.clearForm();
@@ -310,6 +346,7 @@ export class CadastroCliente {
             if (event.target === modal) modal.style.display = 'none';
             if (event.target === document.getElementById('detalhesModal')) document.getElementById('detalhesModal').style.display = 'none';
             if (event.target === document.getElementById('codigoModal')) document.getElementById('codigoModal').style.display = 'none';
+            if (event.target === resetPasswordModal) this.closeResetPasswordModal();
         };
 
         // Form submit
@@ -320,6 +357,19 @@ export class CadastroCliente {
                 await this.saveCliente();
             });
         }
+
+        const resetPasswordForm = document.getElementById('resetPasswordForm');
+        if (resetPasswordForm) {
+            resetPasswordForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                await this.submitPasswordReset();
+            });
+        }
+        document.getElementById('showPatientPassword')?.addEventListener('change', (event) => {
+            const type = event.target.checked ? 'text' : 'password';
+            document.getElementById('patientNewPassword').type = type;
+            document.getElementById('patientConfirmPassword').type = type;
+        });
 
         // Table actions
         const tableBody = document.getElementById('clientesTableBody');
@@ -501,12 +551,59 @@ export class CadastroCliente {
     }
 
     async resetPassword(login) {
-        if (!confirm(`⚠️ Gerar token de reset de senha para ${login}?`)) return;
+        const cliente = this.clientesList.find((item) => item.login === login);
+        if (!cliente) return;
+
+        this.resetPasswordLogin = login;
+        document.getElementById('resetPasswordPatient').innerHTML = `Paciente: <strong>${this.escapeHtml(cliente.nome || login)}</strong><br>Login: <span class="login-code">${this.escapeHtml(login)}</span>`;
+        document.getElementById('patientNewPassword').value = '';
+        document.getElementById('patientConfirmPassword').value = '';
+        document.getElementById('showPatientPassword').checked = false;
+        document.getElementById('patientNewPassword').type = 'password';
+        document.getElementById('patientConfirmPassword').type = 'password';
+        document.getElementById('resetPasswordModal').style.display = 'flex';
+        document.getElementById('patientNewPassword').focus();
+    }
+
+    closeResetPasswordModal() {
+        const modal = document.getElementById('resetPasswordModal');
+        if (modal) modal.style.display = 'none';
+        this.resetPasswordLogin = null;
+    }
+
+    async submitPasswordReset() {
+        const login = this.resetPasswordLogin;
+        const newPassword = document.getElementById('patientNewPassword')?.value || '';
+        const confirmPassword = document.getElementById('patientConfirmPassword')?.value || '';
+        const submitButton = document.getElementById('saveResetPasswordBtn');
+
+        if (!login) return;
+        if (newPassword.length < 6) {
+            alert('A nova senha deve ter no mínimo 6 caracteres.');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            alert('As senhas não coincidem.');
+            return;
+        }
+        if (!confirm(`Redefinir a senha de ${login}? As sessões anteriores não poderão ser renovadas.`)) return;
+
+        const originalText = submitButton?.textContent || 'Redefinir senha';
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Redefinindo...';
+        }
         try {
-            const result = await this.funcoes.resetarSenhaPaciente(login);
-            alert(`🔑 TOKEN: ${result.token}\nVálido por 1 hora`);
+            await this.funcoes.redefinirSenhaPaciente(login, newPassword);
+            this.closeResetPasswordModal();
+            alert(`✅ Senha de ${login} redefinida com sucesso nos dois ambientes.`);
         } catch (error) {
-            alert(error.message);
+            alert(`❌ Não foi possível redefinir a senha: ${error.message}`);
+        } finally {
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
         }
     }
 

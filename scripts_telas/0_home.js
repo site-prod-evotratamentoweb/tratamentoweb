@@ -783,6 +783,13 @@ export class FuncoesCompartilhadas {
             throw error;
         }
     }
+
+    static async redefinirSenhaPaciente(login, novaSenha) {
+        return apiAutenticada(`/api/patients/${encodeURIComponent(login)}/password`, {
+            method: 'POST',
+            body: JSON.stringify({ nova_senha: novaSenha })
+        });
+    }
     
     static async visualizarTokenReset(login) {
         try {
